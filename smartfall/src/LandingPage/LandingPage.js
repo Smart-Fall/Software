@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./LandingPage.css";
 import Navbar from "./Navbar";
 import heroImage from "./CaregiverImageHero.webp";
@@ -6,11 +6,13 @@ import cargiverlogo from "./caregiverlogo.png";
 import falldetectionlogo from "./falldetectionlogo.png";
 import vitalLogo from "./vitalslogo.png";
 import dashboardImage from "./dashboard.jpg";
+import LoginModal from "../UserCreation/LoginModal"; 
 
 function LandingPage() {
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   return (
     <div className="landing">
-      <Navbar /> 
+      <Navbar onLoginClick={() => setIsLoginOpen(true)}/> 
 
       {/* Hero Section */}
       <section className="hero">
@@ -24,8 +26,6 @@ function LandingPage() {
           <img src={heroImage} alt="SmartFall device" />
         </div>
       </section>
-
-
 
       {/* Features Section */}
       <section className="features">
@@ -70,7 +70,7 @@ function LandingPage() {
           <p className="hero-subtext">
             Monitor fall alerts, health vitals,<br/>and device status in real time<br/> with our intuitive dashboard.
           </p>
-          <button className="hero-button">Login</button>
+          <button className="hero-button" onClick={() => setIsLoginOpen(true)}>Login</button>
         </div>
         <div className="hero-right">
           <img src={dashboardImage} alt="SmartFall Dashboard" />
@@ -82,6 +82,9 @@ function LandingPage() {
       <footer>
         <p>&copy; 2025 SmartFall.</p>
       </footer>
+
+       {/* Login Modal */}
+      {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} />} 
     </div>
   );
 }
