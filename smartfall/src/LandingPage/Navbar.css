@@ -33,7 +33,18 @@
   transition: color 0.2s;
 }
 
-.navbar-links li a:hover {
+.navbar-links li a {
+  color: #111A96;
+}
+
+.login-btn {
+ text-decoration: none;
+  font-size: 1rem;
+  color: #333;
+  transition: color 0.2s;
+}
+
+.login-btn:hover {
   color: #111A96;
 }
 
