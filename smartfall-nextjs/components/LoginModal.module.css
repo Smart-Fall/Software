@@ -1,0 +1,110 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  width: 320px;
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.modalContent:hover {
+  transform: scale(1.02);
+}
+
+.modalContent button.closeBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #111a96;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  width: auto;
+  height: auto;
+  display: inline-block;
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.modalContent button.closeBtn:hover {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.modalContent h2 {
+  color: #111a96;
+  margin-bottom: 1rem;
+}
+
+.modalContent input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.modalContent input:focus {
+  border-color: #111a96;
+}
+
+.modalContent button[type="submit"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background-color: #111a96;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.modalContent button[type="submit"]:hover {
+  background-color: rgba(17, 26, 150, 0.85);
+}
+
+.toggleText {
+  margin-top: 14px;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.toggleText span {
+  color: #111a96;
+  cursor: pointer;
+  font-weight: 600;
+  transition: text-decoration 0.2s ease;
+}
+
+.toggleText span:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,23 @@
+.dashboardContainer {
+  min-height: 100vh;
+  padding: 60px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(17, 26, 150, 0.05) 0%, rgba(17, 26, 150, 0.1) 100%);
+}
+
+.dashboardTitle {
+  color: #111a96;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.dashboardSubtext {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 1.1rem;
+  text-align: center;
+  max-width: 500px;
+}
