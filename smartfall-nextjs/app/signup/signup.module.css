@@ -1,0 +1,95 @@
+.signupContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.signupBox {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+}
+
+.signupBox h2 {
+  color: #111a96;
+  margin-bottom: 20px;
+}
+
+.signupBox input,
+.signupBox select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #111a96;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.signupBox input:focus,
+.signupBox select:focus {
+  outline: none;
+  border-color: #111a96;
+  box-shadow: 0 0 5px rgba(17, 26, 150, 0.3);
+}
+
+.stepIndicator {
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #111a96;
+}
+
+.signupBox h3 {
+  color: #111a96;
+  margin-bottom: 15px;
+}
+
+.signupBox p {
+  text-align: left;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.signupBox label {
+  display: block;
+  text-align: left;
+  margin-bottom: 10px;
+  color: #333;
+  font-weight: 500;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.buttonRow button {
+  flex: 1;
+  padding: 10px;
+  background: #111a96;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.buttonRow button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(17, 26, 150, 0.3);
+}
+
+.buttonRow button:active {
+  transform: translateY(0);
+}
