@@ -1,0 +1,55 @@
+.loginContainer {
+  max-width: 400px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.loginContainer h1 {
+  color: #111a96;
+  margin-bottom: 1rem;
+}
+
+.loginContainer input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.loginContainer input:focus {
+  border-color: #111a96;
+}
+
+.loginContainer button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background-color: #111a96;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.loginContainer button:hover {
+  background-color: rgba(17, 26, 150, 0.85);
+}
+
+.errorMsg {
+  margin-top: 10px;
+  color: red;
+  font-size: 0.9rem;
+}
