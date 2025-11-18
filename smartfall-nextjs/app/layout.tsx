@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: "SmartFall - Fall Detection & Health Monitoring",
@@ -16,12 +17,21 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
+  // return (
+  //   <html lang="en">
+  //     <head>
+  //       <meta name="theme-color" content="#111A96" />
+  //     </head>
+  //     <body>{children}</body>
+  //   </html>
+  // );
+    return (
     <html lang="en">
-      <head>
-        <meta name="theme-color" content="#111A96" />
-      </head>
-      <body>{children}</body>
+      <head />
+      <body>
+        <main>{children}</main>
+        <Toaster />
+      </body>
     </html>
-  );
+  )
 }

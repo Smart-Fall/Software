@@ -93,3 +93,24 @@
 .buttonRow button:active {
   transform: translateY(0);
 }
+.datepickerWrapper {
+  width: 100%;
+}
+
+.datepickerInput {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #111a96;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+/* Optional: match input focus styling */
+.datepickerInput:focus {
+  outline: none;
+  border-color: #111a96;
+  box-shadow: 0 0 5px rgba(17, 26, 150, 0.3);
+}
+
