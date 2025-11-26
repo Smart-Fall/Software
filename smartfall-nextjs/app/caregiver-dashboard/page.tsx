@@ -47,10 +47,10 @@ export default function CaregiverDashboard() {
   const [unassignedPatients, setUnassignedPatients] = useState<Patient[]>([]);
   const [myPatients, setMyPatients] = useState<Patient[]>([]);
   const [stats, setStats] = useState<Stats>({
-    totalPatients: 0,
-    recentFalls: 0,
-    avgHealthScore: 0,
-    highRiskPatients: 0
+    totalPatients: 12,
+    recentFalls: 3,
+    avgHealthScore: 67,
+    highRiskPatients: 1
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sheetOpen, setSheetOpen] = useState<boolean>(false);
@@ -207,7 +207,6 @@ export default function CaregiverDashboard() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
-              <Activity className="h-10 w-10 text-[#1a1a96]" strokeWidth={2.5} />
               <div>
                 <h1 className="text-2xl font-bold text-[#1a1a96]">
                   Welcome, {caregiver?.firstName || caregiver?.first_name} {caregiver?.lastName || caregiver?.last_name}
@@ -288,7 +287,7 @@ export default function CaregiverDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards - FORCE HORIZONTAL LAYOUT */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
           {/* Total Patients */}
           <Card className="rounded-3xl shadow-lg border-border hover:shadow-xl transition-shadow">
             <CardContent style={{ padding: '32px', paddingTop: '32px' }} className="flex flex-col items-center text-center">
