@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { UserPlus, Activity, Users, AlertTriangle, Heart, TrendingUp } from 'lucide-react';
+import { UserPlus, Activity, Users, AlertTriangle, Heart, TrendingUp, LogOut } from 'lucide-react';
 
 interface Patient {
   id?: number;
@@ -47,10 +47,10 @@ export default function CaregiverDashboard() {
   const [unassignedPatients, setUnassignedPatients] = useState<Patient[]>([]);
   const [myPatients, setMyPatients] = useState<Patient[]>([]);
   const [stats, setStats] = useState<Stats>({
-    totalPatients: 12,
-    recentFalls: 3,
-    avgHealthScore: 67,
-    highRiskPatients: 1
+    totalPatients: 0,
+    recentFalls: 0,
+    avgHealthScore: 0,
+    highRiskPatients: 0
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sheetOpen, setSheetOpen] = useState<boolean>(false);
@@ -115,6 +115,25 @@ export default function CaregiverDashboard() {
 
     fetchDashboardData();
   }, []);
+
+   const handleLogout = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        window.location.href = '/login';
+      } else {
+        throw new Error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Error logging out:', error);
+      alert('Failed to logout. Please try again.');
+    }
+  };
+
 
   const handleAddPatient = async (patient: Patient) => {
     try {
@@ -214,7 +233,15 @@ export default function CaregiverDashboard() {
                 <p className="text-sm text-muted-foreground">{caregiver?.facilityName || caregiver?.facility_name}</p>
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                onClick={handleLogout}
+                className="rounded-lg px-6"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
               <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetTrigger asChild>
                   <Button className="bg-[#1a1a96] hover:bg-[#15157a] text-white rounded-lg px-6">
