@@ -34,12 +34,14 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
 
   async create(data: {
     userId: string;
+    facilityName?: string;
     specialization?: string;
     yearsOfExperience?: number;
   }): Promise<Caregiver> {
     try {
       const caregiverId = await this.client.mutation(api.caregivers.create, {
         userId: data.userId as any,
+        facilityName: data.facilityName,
         specialization: data.specialization,
         yearsOfExperience: data.yearsOfExperience,
       });
@@ -59,6 +61,7 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
     try {
       await this.client.mutation(api.caregivers.update, {
         id: id as any,
+        facilityName: data.facilityName,
         specialization: data.specialization,
         yearsOfExperience: data.yearsOfExperience,
       });
@@ -76,6 +79,7 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
     return {
       id: caregiver._id,
       userId: caregiver.userId,
+      facilityName: caregiver.facilityName,
       specialization: caregiver.specialization,
       yearsOfExperience: caregiver.yearsOfExperience,
       createdAt: new Date(caregiver.createdAt),
