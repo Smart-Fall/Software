@@ -81,6 +81,7 @@ export interface ICaregiverRepository {
   findByUserId(userId: string): Promise<Caregiver | null>;
   create(data: {
     userId: string;
+    facilityName?: string;
     specialization?: string;
     yearsOfExperience?: number;
   }): Promise<Caregiver>;

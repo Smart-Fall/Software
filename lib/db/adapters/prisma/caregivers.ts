@@ -25,12 +25,14 @@ export class PrismaCaregiverRepository implements ICaregiverRepository {
 
   async create(data: {
     userId: string;
+    facilityName?: string;
     specialization?: string;
     yearsOfExperience?: number;
   }): Promise<Caregiver> {
     const caregiver = await prisma.caregiver.create({
       data: {
         userId: data.userId,
+        facilityName: data.facilityName,
         specialization: data.specialization,
         yearsOfExperience: data.yearsOfExperience,
       },
@@ -43,6 +45,7 @@ export class PrismaCaregiverRepository implements ICaregiverRepository {
     const caregiver = await prisma.caregiver.update({
       where: { id },
       data: {
+        facilityName: data.facilityName,
         specialization: data.specialization,
         yearsOfExperience: data.yearsOfExperience,
       },
@@ -55,6 +58,7 @@ export class PrismaCaregiverRepository implements ICaregiverRepository {
     return {
       id: caregiver.id,
       userId: caregiver.userId,
+      facilityName: caregiver.facilityName,
       specialization: caregiver.specialization,
       yearsOfExperience: caregiver.yearsOfExperience,
       createdAt: caregiver.createdAt,

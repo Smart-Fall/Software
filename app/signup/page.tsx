@@ -39,6 +39,7 @@ export default function SignUpPage() {
     emergencyContactName: '',
     emergencyContactPhone: '',
     medicalConditions: '',
+    initialHealthScore: '',
   })
 
   const TEST_USER_DATA = {
@@ -52,6 +53,7 @@ export default function SignUpPage() {
     emergencyContactName: 'Jane Doe',
     emergencyContactPhone: '(555) 987-6543',
     medicalConditions: 'None',
+    initialHealthScore: '75',
     facilityName: '',
     licenseNumber: '',
     specialization: ''
@@ -70,7 +72,8 @@ export default function SignUpPage() {
     specialization: 'Elderly Care',
     emergencyContactName: '',
     emergencyContactPhone: '',
-    medicalConditions: ''
+    medicalConditions: '',
+    initialHealthScore: ''
   }
 
   useEffect(() => {
@@ -430,7 +433,7 @@ export default function SignUpPage() {
 
               {step === 3 && formData.accountType === 'user' && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Emergency Contact Information</h3>
+                  <h3 className="text-lg font-semibold">Patient Information</h3>
                   <div className="space-y-2">
                     <label htmlFor="emergencyContactName" className="text-sm font-medium">
                       Emergency Contact Name
@@ -469,9 +472,27 @@ export default function SignUpPage() {
                       placeholder="Any medical conditions we should be aware of..."
                       value={formData.medicalConditions}
                       onChange={handleChange}
-                      rows={3}
+                      rows={2}
                       className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-vertical"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="initialHealthScore" className="text-sm font-medium">
+                      Initial Health Score (Optional, 0-100)
+                    </label>
+                    <Input
+                      id="initialHealthScore"
+                      type="number"
+                      name="initialHealthScore"
+                      placeholder="75"
+                      min="0"
+                      max="100"
+                      value={formData.initialHealthScore}
+                      onChange={handleChange}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Leave blank to use default score of 75
+                    </p>
                   </div>
                 </div>
               )}
@@ -533,6 +554,9 @@ export default function SignUpPage() {
                             <span className="text-xs">{formData.medicalConditions}</span>
                           </>
                         )}
+
+                        <span className="font-medium">Initial Health Score:</span>
+                        <span>{formData.initialHealthScore || '75 (default)'}</span>
                       </div>
                     )}
                   </div>

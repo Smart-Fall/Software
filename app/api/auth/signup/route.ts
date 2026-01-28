@@ -12,10 +12,12 @@ export async function POST(request: Request) {
       password,
       accountType,
       // Caregiver fields
+      facilityName,
       specialization,
       yearsOfExperience,
       // Patient fields
       medicalConditions,
+      initialHealthScore,
     } = await request.json();
 
     // Validate input
@@ -76,13 +78,28 @@ export async function POST(request: Request) {
 
       await dbService.caregivers.create({
         userId: newUser.id,
+        facilityName,
         specialization,
         yearsOfExperience,
       });
     } else if (accountType === "user") {
-      await dbService.patients.create({
+      const patient = await dbService.patients.create({
         userId: newUser.id,
         medicalConditions,
+      });
+
+      // Create initial health log for patient
+      let initialScore = 75; // Default to 75 if not provided
+      if (initialHealthScore) {
+        const scoreNum = parseInt(initialHealthScore, 10);
+        if (!isNaN(scoreNum) && scoreNum >= 0 && scoreNum <= 100) {
+          initialScore = scoreNum;
+        }
+      }
+      await dbService.healthLogs.create({
+        patientId: patient.id,
+        healthScore: initialScore,
+        recordedAt: new Date(),
       });
     }
 

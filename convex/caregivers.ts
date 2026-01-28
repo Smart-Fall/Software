@@ -51,6 +51,7 @@ export const getByExternalUserId = query({
 export const create = mutation({
   args: {
     userId: v.id('users'),
+    facilityName: v.optional(v.string()),
     specialization: v.optional(v.string()),
     yearsOfExperience: v.optional(v.number()),
   },
@@ -64,6 +65,7 @@ export const create = mutation({
       externalId: crypto.randomUUID(),
       userId: args.userId,
       externalUserId: user.externalId,
+      facilityName: args.facilityName,
       specialization: args.specialization,
       yearsOfExperience: args.yearsOfExperience,
       createdAt: Date.now(),
@@ -74,6 +76,7 @@ export const create = mutation({
 export const update = mutation({
   args: {
     id: v.id('caregivers'),
+    facilityName: v.optional(v.string()),
     specialization: v.optional(v.string()),
     yearsOfExperience: v.optional(v.number()),
   },
