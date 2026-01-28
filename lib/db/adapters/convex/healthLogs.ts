@@ -45,12 +45,12 @@ export class ConvexHealthLogRepository implements IHealthLogRepository {
     }
   }
 
-  async findByPatientId(patientId: string, options?: any): Promise<HealthLog[]> {
+  async findByPatientId(patientId: string, _options?: any): Promise<HealthLog[]> {
     try {
       const healthLogs = await this.client.query(api.healthLogs.getByPatientId, {
         patientId: patientId as any,
       });
-      return healthLogs.map((h) => this.mapToHealthLog(h));
+      return healthLogs.map((h: any) => this.mapToHealthLog(h));
     } catch (error) {
       console.error('Error finding health logs by patient id:', error);
       return [];
@@ -63,7 +63,7 @@ export class ConvexHealthLogRepository implements IHealthLogRepository {
         patientId: patientId as any,
         limit,
       });
-      return healthLogs.map((h) => this.mapToHealthLog(h));
+      return healthLogs.map((h: any) => this.mapToHealthLog(h));
     } catch (error) {
       console.error('Error finding recent health logs:', error);
       return [];
@@ -77,7 +77,7 @@ export class ConvexHealthLogRepository implements IHealthLogRepository {
         startTime: startDate.getTime(),
         endTime: endDate.getTime(),
       });
-      return healthLogs.map((h) => this.mapToHealthLog(h));
+      return healthLogs.map((h: any) => this.mapToHealthLog(h));
     } catch (error) {
       console.error('Error finding health logs between dates:', error);
       return [];

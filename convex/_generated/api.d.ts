@@ -13,6 +13,7 @@ import type * as caregivers from "../caregivers.js";
 import type * as deviceStatus from "../deviceStatus.js";
 import type * as devices from "../devices.js";
 import type * as falls from "../falls.js";
+import type * as healthLogs from "../healthLogs.js";
 import type * as patients from "../patients.js";
 import type * as sensorData from "../sensorData.js";
 import type * as sessions from "../sessions.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   deviceStatus: typeof deviceStatus;
   devices: typeof devices;
   falls: typeof falls;
+  healthLogs: typeof healthLogs;
   patients: typeof patients;
   sensorData: typeof sensorData;
   sessions: typeof sessions;
