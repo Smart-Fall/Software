@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getDbService } from '@/lib/db/service';
 import { getSession } from 'app/lib/auth';
-
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
@@ -15,21 +13,10 @@ export async function GET() {
       );
     }
 
-    const patient = await prisma.patient.findUnique({
-      where: { userId: session.userId },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            dob: true,
-            isActive: true
-          }
-        }
-      }
-    });
+    const dbService = getDbService();
+    const patient = await dbService.patients.findByUserId(session.userId);
 
-    if (!patient || !patient.user?.isActive) {
+    if (!patient) {
       return NextResponse.json(
         { error: 'Patient not found' },
         { status: 404 }
@@ -38,9 +25,9 @@ export async function GET() {
 
     return NextResponse.json({
       patient_id: patient.id,
-      first_name: patient.user.firstName,
-      last_name: patient.user.lastName,
-      dob: patient.user.dob,
+      first_name: patient.user?.firstName,
+      last_name: patient.user?.lastName,
+      dob: patient.user?.dob,
       risk_score: patient.riskScore,
       is_high_risk: patient.isHighRisk,
       medical_conditions: patient.medicalConditions

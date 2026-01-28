@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getDbService } from '@/lib/db/service';
 import { getSession } from 'app/lib/auth';
-
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
@@ -15,9 +13,8 @@ export async function GET() {
       );
     }
 
-    const patient = await prisma.patient.findUnique({
-      where: { userId: session.userId }
-    });
+    const dbService = getDbService();
+    const patient = await dbService.patients.findByUserId(session.userId);
 
     if (!patient) {
       return NextResponse.json(
@@ -29,6 +26,7 @@ export async function GET() {
     // Get last 12 months of data
     const yearlyData = [];
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const allFalls = await dbService.falls.findByPatientId(patient.id);
 
     for (let i = 11; i >= 0; i--) {
       const monthStart = new Date();
@@ -42,21 +40,10 @@ export async function GET() {
       monthEnd.setHours(0, 0, 0, 0);
 
       // Get falls for this month
-      const fallCount = await prisma.fall.count({
-        where: {
-          patientId: patient.id,
-          fallDatetime: { gte: monthStart, lt: monthEnd }
-        }
-      });
+      const fallCount = allFalls.filter(f => f.fallDatetime >= monthStart && f.fallDatetime < monthEnd).length;
 
       // Get health logs for this month to calculate average
-      const healthLogs = await prisma.healthLog.findMany({
-        where: {
-          patientId: patient.id,
-          recordedAt: { gte: monthStart, lt: monthEnd }
-        },
-        select: { healthScore: true }
-      });
+      const healthLogs = await dbService.healthLogs.findBetween(patient.id, monthStart, monthEnd);
 
       const healthScore = healthLogs.length > 0
         ? Math.round(healthLogs.reduce((sum, log) => sum + log.healthScore, 0) / healthLogs.length)

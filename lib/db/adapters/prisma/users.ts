@@ -1,0 +1,83 @@
+/**
+ * Prisma User Repository Implementation
+ */
+
+import { IUserRepository } from '../base';
+import { User } from '../../types';
+import prisma from '@/lib/prisma';
+
+export class PrismaUserRepository implements IUserRepository {
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    return user ? this.mapToUser(user) : null;
+  }
+
+  async findById(id: string): Promise<User | null> {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+    return user ? this.mapToUser(user) : null;
+  }
+
+  async create(data: {
+    email: string;
+    passwordHash: string;
+    accountType: 'user' | 'caregiver';
+    firstName?: string;
+    lastName?: string;
+    dob?: Date;
+  }): Promise<User> {
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        passwordHash: data.passwordHash,
+        accountType: data.accountType,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dob: data.dob,
+      },
+    });
+    return this.mapToUser(user);
+  }
+
+  async update(id: string, data: Partial<User>): Promise<User> {
+    const user = await prisma.user.update({
+      where: { id },
+      data: {
+        email: data.email,
+        passwordHash: data.passwordHash,
+        accountType: data.accountType,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dob: data.dob,
+        isActive: data.isActive,
+      },
+    });
+    return this.mapToUser(user);
+  }
+
+  async findAll(options?: any): Promise<User[]> {
+    const users = await prisma.user.findMany({
+      skip: options?.skip,
+      take: options?.take,
+      orderBy: options?.orderBy,
+    });
+    return users.map((u) => this.mapToUser(u));
+  }
+
+  private mapToUser(user: any): User {
+    return {
+      id: user.id,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      accountType: user.accountType as 'user' | 'caregiver',
+      firstName: user.firstName,
+      lastName: user.lastName,
+      dob: user.dob,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+    };
+  }
+}
