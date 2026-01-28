@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from "sonner"
+import { faker } from '@faker-js/faker'
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,39 +43,48 @@ export default function SignUpPage() {
     initialHealthScore: '',
   })
 
-  const TEST_USER_DATA = {
-    firstName: 'Test',
-    lastName: 'User',
-    dob: '1990-01-15',
-    email: 'testuser@example.com',
-    password: 'password123',
-    phone: '(555) 123-4567',
+  const STATIC_PASSWORD = 'password123'
+
+  const generateRandomUserData = () => ({
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    dob: faker.date.birthdate({ min: 50, max: 85, mode: 'age' }).toISOString().split('T')[0],
+    email: faker.internet.email(),
+    password: STATIC_PASSWORD,
+    phone: faker.phone.number('(###) ###-####'),
     accountType: 'user',
-    emergencyContactName: 'Jane Doe',
-    emergencyContactPhone: '(555) 987-6543',
-    medicalConditions: 'None',
-    initialHealthScore: '75',
+    emergencyContactName: faker.person.fullName(),
+    emergencyContactPhone: faker.phone.number('(###) ###-####'),
+    medicalConditions: faker.lorem.sentence(3),
+    initialHealthScore: String(faker.number.int({ min: 60, max: 90 })),
     facilityName: '',
     licenseNumber: '',
     specialization: ''
-  }
+  })
 
-  const TEST_CAREGIVER_DATA = {
-    firstName: 'Test',
-    lastName: 'Caregiver',
-    dob: '1985-05-20',
-    email: 'testcaregiver@example.com',
-    password: 'password123',
-    phone: '(555) 234-5678',
+  const generateRandomCaregiverData = () => ({
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    dob: faker.date.birthdate({ min: 25, max: 65, mode: 'age' }).toISOString().split('T')[0],
+    email: faker.internet.email(),
+    password: STATIC_PASSWORD,
+    phone: faker.phone.number('(###) ###-####'),
     accountType: 'caregiver',
-    facilityName: 'Sunny Care Center',
-    licenseNumber: 'RN123456',
-    specialization: 'Elderly Care',
+    facilityName: faker.company.name() + ' Care Center',
+    licenseNumber: faker.string.alphanumeric(8).toUpperCase(),
+    specialization: faker.helpers.arrayElement([
+      'Elderly Care',
+      'Hospice Care',
+      'Rehabilitation',
+      'Physical Therapy',
+      'Palliative Care',
+      'Home Health'
+    ]),
     emergencyContactName: '',
     emergencyContactPhone: '',
     medicalConditions: '',
     initialHealthScore: ''
-  }
+  })
 
   useEffect(() => {
     setIsDevelopment(process.env.NODE_ENV !== 'production')
@@ -86,13 +96,13 @@ export default function SignUpPage() {
   }
 
   const handleFillAsUser = () => {
-    setFormData(TEST_USER_DATA)
+    setFormData(generateRandomUserData())
     setStep(4)
     setError('')
   }
 
   const handleFillAsCaregiver = () => {
-    setFormData(TEST_CAREGIVER_DATA)
+    setFormData(generateRandomCaregiverData())
     setStep(4)
     setError('')
   }
