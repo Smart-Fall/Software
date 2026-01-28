@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getDbService } from '@/lib/db/service';
 import { getSession } from 'app/lib/auth';
-
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
@@ -15,9 +13,8 @@ export async function GET() {
       );
     }
 
-    const patient = await prisma.patient.findUnique({
-      where: { userId: session.userId }
-    });
+    const dbService = getDbService();
+    const patient = await dbService.patients.findByUserId(session.userId);
 
     if (!patient) {
       return NextResponse.json(
@@ -28,6 +25,7 @@ export async function GET() {
 
     // Get last 4 weeks of data
     const monthlyData = [];
+    const allFalls = await dbService.falls.findByPatientId(patient.id);
 
     for (let i = 3; i >= 0; i--) {
       const weekStart = new Date();
@@ -39,21 +37,10 @@ export async function GET() {
       weekEnd.setHours(0, 0, 0, 0);
 
       // Get falls for this week
-      const fallCount = await prisma.fall.count({
-        where: {
-          patientId: patient.id,
-          fallDatetime: { gte: weekStart, lt: weekEnd }
-        }
-      });
+      const fallCount = allFalls.filter(f => f.fallDatetime >= weekStart && f.fallDatetime < weekEnd).length;
 
       // Get health logs for this week to calculate average
-      const healthLogs = await prisma.healthLog.findMany({
-        where: {
-          patientId: patient.id,
-          recordedAt: { gte: weekStart, lt: weekEnd }
-        },
-        select: { healthScore: true }
-      });
+      const healthLogs = await dbService.healthLogs.findBetween(patient.id, weekStart, weekEnd);
 
       const healthScore = healthLogs.length > 0
         ? Math.round(healthLogs.reduce((sum, log) => sum + log.healthScore, 0) / healthLogs.length)

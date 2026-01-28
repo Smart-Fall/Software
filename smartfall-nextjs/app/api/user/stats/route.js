@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getDbService } from '@/lib/db/service';
 import { getSession } from 'app/lib/auth';
-
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
@@ -15,9 +13,8 @@ export async function GET() {
       );
     }
 
-    const patient = await prisma.patient.findUnique({
-      where: { userId: session.userId }
-    });
+    const dbService = getDbService();
+    const patient = await dbService.patients.findByUserId(session.userId);
 
     if (!patient) {
       return NextResponse.json(
@@ -32,30 +29,12 @@ export async function GET() {
     const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
     const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
 
-    const totalFalls = await prisma.fall.count({
-      where: { patientId: patient.id }
-    });
+    const allFalls = await dbService.falls.findByPatientId(patient.id);
 
-    const fallsThisWeek = await prisma.fall.count({
-      where: {
-        patientId: patient.id,
-        fallDatetime: { gte: oneWeekAgo }
-      }
-    });
-
-    const fallsThisMonth = await prisma.fall.count({
-      where: {
-        patientId: patient.id,
-        fallDatetime: { gte: oneMonthAgo }
-      }
-    });
-
-    const fallsThisYear = await prisma.fall.count({
-      where: {
-        patientId: patient.id,
-        fallDatetime: { gte: oneYearAgo }
-      }
-    });
+    const totalFalls = allFalls.length;
+    const fallsThisWeek = allFalls.filter(f => f.fallDatetime >= oneWeekAgo).length;
+    const fallsThisMonth = allFalls.filter(f => f.fallDatetime >= oneMonthAgo).length;
+    const fallsThisYear = allFalls.filter(f => f.fallDatetime >= oneYearAgo).length;
 
     const stats = {
       totalFalls,

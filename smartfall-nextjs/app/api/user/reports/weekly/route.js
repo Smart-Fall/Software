@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { getDbService } from '@/lib/db/service';
 import { getSession } from 'app/lib/auth';
-
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
@@ -15,9 +13,8 @@ export async function GET() {
       );
     }
 
-    const patient = await prisma.patient.findUnique({
-      where: { userId: session.userId }
-    });
+    const dbService = getDbService();
+    const patient = await dbService.patients.findByUserId(session.userId);
 
     if (!patient) {
       return NextResponse.json(
@@ -39,23 +36,12 @@ export async function GET() {
       nextDate.setDate(nextDate.getDate() + 1);
 
       // Get falls for this day
-      const fallCount = await prisma.fall.count({
-        where: {
-          patientId: patient.id,
-          fallDatetime: { gte: date, lt: nextDate }
-        }
-      });
+      const allFalls = await dbService.falls.findByPatientId(patient.id);
+      const fallCount = allFalls.filter(f => f.fallDatetime >= date && f.fallDatetime < nextDate).length;
 
       // Get health score for this day (latest for the day)
-      const healthLog = await prisma.healthLog.findFirst({
-        where: {
-          patientId: patient.id,
-          recordedAt: { gte: date, lt: nextDate }
-        },
-        orderBy: { recordedAt: 'desc' }
-      });
-
-      const healthScore = healthLog?.healthScore || 0;
+      const healthLogs = await dbService.healthLogs.findBetween(patient.id, date, nextDate);
+      const healthScore = healthLogs.length > 0 ? healthLogs[healthLogs.length - 1].healthScore : 0;
 
       weeklyData.push({
         name: daysOfWeek[date.getDay()],
