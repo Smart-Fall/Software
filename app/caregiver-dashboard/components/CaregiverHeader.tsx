@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Settings, Bell, Search } from 'lucide-react';
+import { LogOut, Settings, Bell, Search, User } from 'lucide-react';
 
 interface CaregiverHeaderProps {
   firstName?: string;
@@ -84,6 +84,10 @@ export const CaregiverHeader: React.FC<CaregiverHeaderProps> = ({
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem disabled>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
