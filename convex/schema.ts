@@ -61,6 +61,7 @@ export default defineSchema({
     externalId: v.string(), // Original Prisma UUID for migration
     userId: v.string(), // Convex ID reference
     externalUserId: v.string(), // Original Prisma UUID for migration
+    facilityName: v.optional(v.string()),
     specialization: v.optional(v.string()),
     yearsOfExperience: v.optional(v.number()),
     createdAt: v.number(), // Unix timestamp
