@@ -1,73 +1,71 @@
 import { NextResponse } from 'next/server';
-import pool from 'app/lib/db';
+import { PrismaClient } from '@prisma/client';
 import { getSession } from 'app/lib/auth';
+
+const prisma = new PrismaClient();
 
 export async function GET() {
   try {
     const session = await getSession();
-    
+
     if (!session) {
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
       );
     }
-    
-    // Get the patient's ID
-    const patientResult = await pool.query(`
-      SELECT id FROM patients WHERE user_id = $1
-    `, [session.userId]);
-    
-    if (patientResult.rows.length === 0) {
+
+    const patient = await prisma.patient.findUnique({
+      where: { userId: session.userId }
+    });
+
+    if (!patient) {
       return NextResponse.json(
         { error: 'Patient not found' },
         { status: 404 }
       );
     }
-    
-    const patientId = patientResult.rows[0].id;
-    
+
     // Get last 4 weeks of data
     const monthlyData = [];
-    
+
     for (let i = 3; i >= 0; i--) {
       const weekStart = new Date();
       weekStart.setDate(weekStart.getDate() - (i * 7) - 6);
       weekStart.setHours(0, 0, 0, 0);
-      
+
       const weekEnd = new Date();
       weekEnd.setDate(weekEnd.getDate() - (i * 7) + 1);
       weekEnd.setHours(0, 0, 0, 0);
-      
+
       // Get falls for this week
-      const fallsResult = await pool.query(`
-        SELECT COUNT(*) as count
-        FROM fall_incidents
-        WHERE patient_id = $1 
-        AND fall_datetime >= $2 
-        AND fall_datetime < $3
-      `, [patientId, weekStart, weekEnd]);
-      
-      // Get average health score for this week
-      const healthResult = await pool.query(`
-        SELECT AVG(health_score)::int as avg_score
-        FROM health_logs
-        WHERE patient_id = $1 
-        AND recorded_at >= $2 
-        AND recorded_at < $3
-      `, [patientId, weekStart, weekEnd]);
-      
-      const healthScore = healthResult.rows.length > 0 && healthResult.rows[0].avg_score
-        ? healthResult.rows[0].avg_score 
+      const fallCount = await prisma.fall.count({
+        where: {
+          patientId: patient.id,
+          fallDatetime: { gte: weekStart, lt: weekEnd }
+        }
+      });
+
+      // Get health logs for this week to calculate average
+      const healthLogs = await prisma.healthLog.findMany({
+        where: {
+          patientId: patient.id,
+          recordedAt: { gte: weekStart, lt: weekEnd }
+        },
+        select: { healthScore: true }
+      });
+
+      const healthScore = healthLogs.length > 0
+        ? Math.round(healthLogs.reduce((sum, log) => sum + log.healthScore, 0) / healthLogs.length)
         : 0;
-      
+
       monthlyData.push({
         name: `Week ${4 - i}`,
-        healthScore: healthScore,
-        falls: parseInt(fallsResult.rows[0].count)
+        healthScore,
+        falls: fallCount
       });
     }
-    
+
     return NextResponse.json(monthlyData);
   } catch (error) {
     return NextResponse.json(
