@@ -1,19 +1,20 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@radix-ui/react-select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { LogOut, Settings, Bell, Search, User } from 'lucide-react';
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { LogOut, Settings, Bell, Search, User } from "lucide-react";
 
 interface CaregiverHeaderProps {
   firstName?: string;
@@ -25,14 +26,15 @@ interface CaregiverHeaderProps {
 }
 
 export const CaregiverHeader: React.FC<CaregiverHeaderProps> = ({
-  firstName = 'Caregiver',
-  lastName = '',
-  facilityName = '',
+  firstName = "Caregiver",
+  lastName = "",
+  facilityName = "",
   alertCount = 0,
   onSearch,
-  onLogout
+  onLogout,
 }) => {
-  const initials = `${firstName.slice(0, 1)}${lastName.slice(0, 1)}`.toUpperCase();
+  const initials =
+    `${firstName.slice(0, 1)}${lastName.slice(0, 1)}`.toUpperCase();
 
   return (
     <header className="bg-white border-b border-border shadow-sm">
@@ -44,9 +46,7 @@ export const CaregiverHeader: React.FC<CaregiverHeaderProps> = ({
               Welcome, {firstName} {lastName}
             </p>
             {facilityName && (
-              <p className="text-xs text-muted-foreground">
-                {facilityName}
-              </p>
+              <p className="text-xs text-muted-foreground">{facilityName}</p>
             )}
           </div>
 
@@ -57,6 +57,9 @@ export const CaregiverHeader: React.FC<CaregiverHeaderProps> = ({
               onChange={(e) => onSearch(e.target.value)}
               className="pl-10"
             />
+            <p className="sr-only">
+              Results will be displayed in the patients table below.
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -84,7 +87,9 @@ export const CaregiverHeader: React.FC<CaregiverHeaderProps> = ({
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
+                <DropdownMenuItem
+                  onClick={() => (window.location.href = "/profile")}
+                >
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </DropdownMenuItem>
