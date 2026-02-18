@@ -1,3 +1,5 @@
+// 
+
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getSession } from '@/lib/auth';
@@ -18,7 +20,8 @@ export async function GET() {
       'SELECT id FROM caregivers WHERE user_id = $1',
       [session.userId]
     );
-    
+    console.log('Caregiver result:', caregiverResult.rows); 
+    console.log('Looking for user_id:', session.userId); 
     if (caregiverResult.rows.length === 0) {
       return NextResponse.json(
         { error: 'Caregiver not found' },
@@ -78,3 +81,5 @@ export async function GET() {
     );
   }
 }
+
+

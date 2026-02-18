@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import pool from 'app/lib/db';
+import pool from '@/lib/db';
 
 export async function POST(request: Request) {
   const client = await pool.connect();

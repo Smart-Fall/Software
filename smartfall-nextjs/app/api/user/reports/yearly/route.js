@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import pool from 'app/lib/db';
-import { getSession } from 'app/lib/auth';
+import pool from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
 export async function GET() {
   try {
