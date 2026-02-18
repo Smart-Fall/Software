@@ -46,7 +46,7 @@
     ".next/dev/types/**/*.ts",
     ".next\\dev/types/**/*.ts",
     ".next\\dev/types/**/*.ts"
-, "app/signup/page.jsx"  ],
+, "app/signup/page.jsx", "app/api/user/stats/route.js", "app/api/user/reports/yearly/route.js", "app/api/user/reports/weekly/route.js", "app/api/user/reports/monthly/route.js", "app/api/user/current/route.js", "app/api/user/caregiver/route.js"  ],
   "exclude": [
     "node_modules"
   ]
