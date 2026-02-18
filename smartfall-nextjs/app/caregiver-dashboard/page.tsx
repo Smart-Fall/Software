@@ -5,7 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { UserPlus, Activity, Users, AlertTriangle, Heart, TrendingUp, LogOut } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { UserPlus, Activity, Users, AlertTriangle, Heart, TrendingUp, LogOut, MessageSquare, Send } from 'lucide-react';
+import PatientDetailsDialog from '../PatientDetailsDialog';
 
 interface Patient {
   id?: number;
@@ -42,6 +48,12 @@ interface Stats {
   highRiskPatients: number;
 }
 
+interface MessageForm {
+  subject: string;
+  message: string;
+  isUrgent: boolean;
+}
+
 export default function CaregiverDashboard() {
   const [caregiver, setCaregiver] = useState<Caregiver | null>(null);
   const [unassignedPatients, setUnassignedPatients] = useState<Patient[]>([]);
@@ -54,6 +66,15 @@ export default function CaregiverDashboard() {
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sheetOpen, setSheetOpen] = useState<boolean>(false);
+  const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState<boolean>(false);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [messageForm, setMessageForm] = useState<MessageForm>({
+    subject: '',
+    message: '',
+    isUrgent: false
+  });
+  const [sendingMessage, setSendingMessage] = useState<boolean>(false);
 
   const API_BASE_URL = '/api';
 
@@ -61,12 +82,16 @@ export default function CaregiverDashboard() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
-        const caregiverRes = await fetch(`${API_BASE_URL}/caregiver/current`, {
+        const caregiverRes = await fetch(`${API_BASE_URL}/auth/caregiver/current`, {
           credentials: 'include'
         });
         
+        console.log('Caregiver response status:', caregiverRes.status);
+
         if (!caregiverRes.ok) {
-          throw new Error('Failed to fetch caregiver data');
+          const errorData = await caregiverRes.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('Caregiver fetch error:', errorData);
+          throw new Error(`Failed to fetch caregiver data: ${errorData.error || caregiverRes.statusText}`);
         }
         
         const caregiverData: Caregiver = await caregiverRes.json();
@@ -83,18 +108,22 @@ export default function CaregiverDashboard() {
         const unassignedData: Patient[] = await unassignedRes.json();
         setUnassignedPatients(unassignedData);
 
-        const myPatientsRes = await fetch(`${API_BASE_URL}/caregiver/patients`, {
+        const myPatientsRes = await fetch(`${API_BASE_URL}/auth/caregiver/patients`, {
           credentials: 'include'
         });
-        
+
+        console.log('Patients response status:', myPatientsRes.status);
+
         if (!myPatientsRes.ok) {
-          throw new Error('Failed to fetch assigned patients');
+          const errorData = await myPatientsRes.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('Patients fetch error:', errorData);
+          throw new Error(`Failed to fetch assigned patients: ${errorData.error || myPatientsRes.statusText}`);
         }
         
         const myPatientsData: Patient[] = await myPatientsRes.json();
         setMyPatients(myPatientsData);
 
-        const statsRes = await fetch(`${API_BASE_URL}/caregiver/stats`, {
+        const statsRes = await fetch(`${API_BASE_URL}/auth/caregiver/stats`, {
           credentials: 'include'
         });
         
@@ -116,7 +145,7 @@ export default function CaregiverDashboard() {
     fetchDashboardData();
   }, []);
 
-   const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
@@ -134,12 +163,11 @@ export default function CaregiverDashboard() {
     }
   };
 
-
   const handleAddPatient = async (patient: Patient) => {
     try {
       const patientId = patient.id || patient.patient_id;
       
-      const response = await fetch(`${API_BASE_URL}/caregiver-patients`, {
+      const response = await fetch(`${API_BASE_URL}/caregiver/patients`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -174,6 +202,68 @@ export default function CaregiverDashboard() {
     } catch (error) {
       console.error('Error assigning patient:', error);
       alert('Failed to assign patient. Please try again.');
+    }
+  };
+
+  const handleOpenMessageDialog = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setMessageForm({
+      subject: '',
+      message: '',
+      isUrgent: false
+    });
+    setMessageDialogOpen(true);
+  };
+
+  const handleOpenDetailsDialog = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setDetailsDialogOpen(true);
+  };
+
+  const handleSendMessage = async () => {
+    if (!selectedPatient || !messageForm.message.trim()) {
+      alert('Please enter a message');
+      return;
+    }
+
+    setSendingMessage(true);
+    try {
+      const patientId = selectedPatient.id || selectedPatient.patient_id;
+      
+      const response = await fetch(`${API_BASE_URL}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          patient_id: patientId,
+          subject: messageForm.subject.trim() || 'Message from your caregiver',
+          message_text: messageForm.message.trim(),
+          is_urgent: messageForm.isUrgent
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+
+      alert('Message sent successfully!');
+      setMessageDialogOpen(false);
+      setSelectedPatient(null);
+      setMessageForm({
+        subject: '',
+        message: '',
+        isUrgent: false
+      });
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to send message: ${errorMessage}`);
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -219,8 +309,8 @@ export default function CaregiverDashboard() {
     );
   }
 
-   return (
-  <div className="min-h-screen bg-[#f8f9fa]">
+  return (
+    <div className="min-h-screen bg-[#f8f9fa]">
       {/* Navbar */}
       <nav className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -313,7 +403,7 @@ export default function CaregiverDashboard() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards - FORCE HORIZONTAL LAYOUT */}
+        {/* Stats Cards */}
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
           {/* Total Patients */}
           <Card className="rounded-3xl shadow-lg border-border hover:shadow-xl transition-shadow">
@@ -399,9 +489,44 @@ export default function CaregiverDashboard() {
             </CardContent>
           </Card>
         </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-4">
+            <Card className="rounded-3xl shadow-md border-border hover:shadow-lg transition-shadow mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xl font-bold text-red-600 flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Emergency Actions
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button 
+                  className="w-full justify-start bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => {
+                    if (confirm('Are you sure you want to call Emergency Services (911)?\n\nThis will initiate a phone call.')) {
+                      window.location.href = 'tel:911';
+                    }
+                  }}
+                >
+                  <AlertTriangle className="mr-3 h-5 w-5" />
+                  Call 911
+                </Button>
+                <Button 
+                  className="w-full justify-start bg-orange-600 hover:bg-orange-700 text-white"
+                  onClick={() => {
+                    // You can replace this with your facility's emergency number
+                    if (confirm('Call facility security/emergency response team?')) {
+                      window.location.href = 'tel:+1234567890'; // Replace with actual number
+                    }
+                  }}
+                >
+                  <Activity className="mr-3 h-5 w-5" />
+                  Call Facility Security
+                </Button>
+              </CardContent>
+            </Card>
+            
             <Card className="rounded-3xl shadow-md border-border hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xl font-bold">Quick Actions</CardTitle>
@@ -458,9 +583,25 @@ export default function CaregiverDashboard() {
                                 </p>
                               </div>
                             </div>
-                            <Button variant="outline" size="default" className="w-full rounded-xl">
-                              View Details
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="default" 
+                                className="flex-1 rounded-xl"
+                                onClick={() => handleOpenDetailsDialog(patient)}
+                              >
+                                View Details
+                              </Button>
+                              <Button 
+                                variant="default" 
+                                size="default" 
+                                className="flex-1 rounded-xl bg-[#1a1a96] hover:bg-[#15157a]"
+                                onClick={() => handleOpenMessageDialog(patient)}
+                              >
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Send Message
+                              </Button>
+                            </div>
                           </CardContent>
                         </Card>
                       );
@@ -472,421 +613,83 @@ export default function CaregiverDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Message Dialog */}
+      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+        <DialogContent className="sm:max-w-[525px]">
+          <DialogHeader>
+            <DialogTitle>Send Message to {selectedPatient?.firstName || selectedPatient?.first_name} {selectedPatient?.lastName || selectedPatient?.last_name}</DialogTitle>
+            <DialogDescription>
+              Send an update, reminder, or important information to your patient.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="subject">Subject (Optional)</Label>
+              <Input
+                id="subject"
+                placeholder="e.g., Appointment Reminder"
+                value={messageForm.subject}
+                onChange={(e) => setMessageForm({ ...messageForm, subject: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="message">Message</Label>
+              <Textarea
+                id="message"
+                placeholder="Type your message here..."
+                value={messageForm.message}
+                onChange={(e) => setMessageForm({ ...messageForm, message: e.target.value })}
+                rows={6}
+                className="resize-none"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="urgent"
+                checked={messageForm.isUrgent}
+                onCheckedChange={(checked) => setMessageForm({ ...messageForm, isUrgent: checked })}
+              />
+              <Label htmlFor="urgent" className="cursor-pointer">
+                Mark as urgent
+              </Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setMessageDialogOpen(false)}
+              disabled={sendingMessage}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSendMessage}
+              disabled={sendingMessage || !messageForm.message.trim()}
+              className="bg-[#1a1a96] hover:bg-[#15157a]"
+            >
+              {sendingMessage ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Message
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Patient Details Dialog */}
+      <PatientDetailsDialog 
+        patient={selectedPatient}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+      />
     </div>
   );
 }
-
-
-
-
-
-// 'use client'
-
-// import React, { useState, useEffect } from 'react';
-// import { Button } from '@/components/ui/button';
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// import { ScrollArea } from '@/components/ui/scroll-area';
-// import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-// import { UserPlus, Activity, Users, AlertTriangle, Heart, TrendingUp } from 'lucide-react';
-
-// interface Patient {
-//   id?: number;
-//   patient_id?: number;
-//   firstName?: string;
-//   first_name?: string;
-//   lastName?: string;
-//   last_name?: string;
-//   dob: string;
-//   riskScore?: number;
-//   risk_score?: number;
-//   isHighRisk?: boolean;
-//   is_high_risk?: boolean;
-//   medicalConditions?: string;
-//   medical_conditions?: string;
-// }
-
-// interface Caregiver {
-//   id?: number;
-//   caregiver_id?: number;
-//   firstName?: string;
-//   first_name?: string;
-//   lastName?: string;
-//   last_name?: string;
-//   facilityName?: string;
-//   facility_name?: string;
-//   specialization?: string;
-// }
-
-// interface Stats {
-//   totalPatients: number;
-//   recentFalls: number;
-//   avgHealthScore: number;
-//   highRiskPatients: number;
-// }
-
-// export default function CaregiverDashboard() {
-//   const [caregiver, setCaregiver] = useState<Caregiver | null>(null);
-//   const [unassignedPatients, setUnassignedPatients] = useState<Patient[]>([]);
-//   const [myPatients, setMyPatients] = useState<Patient[]>([]);
-//   const [stats, setStats] = useState<Stats>({
-//     totalPatients: 0,
-//     recentFalls: 0,
-//     avgHealthScore: 0,
-//     highRiskPatients: 0
-//   });
-//   const [isLoading, setIsLoading] = useState<boolean>(true);
-//   const [sheetOpen, setSheetOpen] = useState<boolean>(false);
-
-//   const API_BASE_URL = '/api';
-
-//   useEffect(() => {
-//     const fetchDashboardData = async () => {
-//       setIsLoading(true);
-//       try {
-//         const caregiverRes = await fetch(`${API_BASE_URL}/caregiver/current`, {
-//           credentials: 'include'
-//         });
-        
-//         if (!caregiverRes.ok) {
-//           throw new Error('Failed to fetch caregiver data');
-//         }
-        
-//         const caregiverData: Caregiver = await caregiverRes.json();
-//         setCaregiver(caregiverData);
-
-//         const unassignedRes = await fetch(`${API_BASE_URL}/patients/unassigned`, {
-//           credentials: 'include'
-//         });
-        
-//         if (!unassignedRes.ok) {
-//           throw new Error('Failed to fetch unassigned patients');
-//         }
-        
-//         const unassignedData: Patient[] = await unassignedRes.json();
-//         setUnassignedPatients(unassignedData);
-
-//         const myPatientsRes = await fetch(`${API_BASE_URL}/caregiver/patients`, {
-//           credentials: 'include'
-//         });
-        
-//         if (!myPatientsRes.ok) {
-//           throw new Error('Failed to fetch assigned patients');
-//         }
-        
-//         const myPatientsData: Patient[] = await myPatientsRes.json();
-//         setMyPatients(myPatientsData);
-
-//         const statsRes = await fetch(`${API_BASE_URL}/caregiver/stats`, {
-//           credentials: 'include'
-//         });
-        
-//         if (!statsRes.ok) {
-//           throw new Error('Failed to fetch statistics');
-//         }
-        
-//         const statsData: Stats = await statsRes.json();
-//         setStats(statsData);
-
-//       } catch (error) {
-//         console.error('Error fetching dashboard data:', error);
-//         alert('Failed to load dashboard data. Please make sure you are logged in and try again.');
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-
-//     fetchDashboardData();
-//   }, []);
-
-//   const handleAddPatient = async (patient: Patient) => {
-//     try {
-//       const patientId = patient.id || patient.patient_id;
-      
-//       const response = await fetch(`${API_BASE_URL}/caregiver-patients`, {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         credentials: 'include',
-//         body: JSON.stringify({
-//           patient_id: patientId
-//         })
-//       });
-
-//       if (!response.ok) {
-//         throw new Error('Failed to assign patient');
-//       }
-
-//       const updatedPatients = [...myPatients, patient];
-//       setMyPatients(updatedPatients);
-//       setUnassignedPatients(unassignedPatients.filter(p => 
-//         (p.id || p.patient_id) !== patientId
-//       ));
-      
-//       const statsRes = await fetch(`${API_BASE_URL}/caregiver/stats`, {
-//         credentials: 'include'
-//       });
-      
-//       if (statsRes.ok) {
-//         const statsData: Stats = await statsRes.json();
-//         setStats(statsData);
-//       }
-      
-//       setSheetOpen(false);
-      
-//     } catch (error) {
-//       console.error('Error assigning patient:', error);
-//       alert('Failed to assign patient. Please try again.');
-//     }
-//   };
-
-//   const calculateAge = (dob: string): number => {
-//     const birthDate = new Date(dob);
-//     const today = new Date();
-//     let age = today.getFullYear() - birthDate.getFullYear();
-//     const monthDiff = today.getMonth() - birthDate.getMonth();
-//     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-//       age--;
-//     }
-//     return age;
-//   };
-
-//   const getRiskColor = (score: number): string => {
-//     if (score >= 75) return '#dc2626';
-//     if (score >= 50) return '#ea580c';
-//     return '#16a34a';
-//   };
-
-//   if (isLoading) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-//         <div className="text-center">
-//           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-//           <p className="mt-4 text-gray-600">Loading dashboard...</p>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (!caregiver) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-//         <div className="text-center">
-//           <AlertTriangle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-//           <p className="text-gray-600">Failed to load caregiver information.</p>
-//           <Button onClick={() => window.location.reload()} className="mt-4 bg-blue-900 hover:bg-blue-800">
-//             Retry
-//           </Button>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="min-h-screen bg-gray-50">
-//       {/* Navbar */}
-//       <nav className="bg-white border-b border-gray-200">
-//         <div className="max-w-7xl mx-auto px-6 py-4">
-//           <div className="flex justify-between items-center">
-//             <div className="flex items-center gap-3">
-//               <Activity className="h-8 w-8 text-blue-900" strokeWidth={2.5} />
-//               <div>
-//                 <h1 className="text-2xl font-bold text-gray-900">
-//                   Welcome, {caregiver?.firstName || caregiver?.first_name} {caregiver?.lastName || caregiver?.last_name}
-//                 </h1>
-//                 <p className="text-sm text-gray-500">{caregiver?.facilityName || caregiver?.facility_name}</p>
-//               </div>
-//             </div>
-//             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-//               <SheetTrigger asChild>
-//                 <Button className="bg-blue-900 hover:bg-blue-800 text-white">
-//                   <UserPlus className="mr-2 h-4 w-4" />
-//                   Add Patients
-//                 </Button>
-//               </SheetTrigger>
-//               <SheetContent side="right" className="w-96">
-//                 <SheetHeader>
-//                   <SheetTitle>Unassigned Patients</SheetTitle>
-//                   <SheetDescription>
-//                     Select patients to add to your care list
-//                   </SheetDescription>
-//                 </SheetHeader>
-//                 <ScrollArea className="h-[calc(100vh-120px)] mt-6">
-//                   {unassignedPatients.length === 0 ? (
-//                     <div className="text-center py-8 text-gray-500">
-//                       <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-//                       <p>No unassigned patients</p>
-//                     </div>
-//                   ) : (
-//                     <div className="space-y-3 pr-4">
-//                       {unassignedPatients.map((patient: Patient) => {
-//                         const patientId = patient.id || patient.patient_id;
-//                         const firstName = patient.firstName || patient.first_name;
-//                         const lastName = patient.lastName || patient.last_name;
-//                         const riskScore = patient.riskScore || patient.risk_score || 0;
-                        
-//                         return (
-//                           <Card key={patientId} className="border border-gray-200">
-//                             <CardContent className="pt-4">
-//                               <div className="flex justify-between items-start mb-3">
-//                                 <div>
-//                                   <h3 className="font-semibold text-base">
-//                                     {firstName} {lastName}
-//                                   </h3>
-//                                   <p className="text-sm text-gray-500">
-//                                     Age: {calculateAge(patient.dob)}
-//                                   </p>
-//                                 </div>
-//                                 <div className="text-right">
-//                                   <p className="text-xs text-gray-500 mb-1">Risk Score</p>
-//                                   <p className="text-lg font-bold" style={{ color: getRiskColor(riskScore) }}>
-//                                     {riskScore}
-//                                   </p>
-//                                 </div>
-//                               </div>
-//                               <Button 
-//                                 onClick={() => handleAddPatient(patient)}
-//                                 className="w-full bg-blue-900 hover:bg-blue-800"
-//                                 size="sm"
-//                               >
-//                                 <UserPlus className="mr-2 h-3 w-3" />
-//                                 Add to My Patients
-//                               </Button>
-//                             </CardContent>
-//                           </Card>
-//                         );
-//                       })}
-//                     </div>
-//                   )}
-//                 </ScrollArea>
-//               </SheetContent>
-//             </Sheet>
-//           </div>
-//         </div>
-//       </nav>
-
-//       {/* Main Content */}
-//       <main className="max-w-7xl mx-auto px-6 py-8">
-//         {/* Stats Grid - 4 Column Grid */}
-//         <div className="grid grid-cols-4 gap-4 mb-8">
-//           {/* Total Patients */}
-//           <Card className="border-0 bg-white shadow-sm">
-//             <CardContent className="pt-8 pb-8 px-6 flex flex-col items-center text-center">
-//               <div className="w-32 h-32 rounded-full bg-blue-50 flex items-center justify-center mb-6">
-//                 <Users className="w-10 h-10 text-blue-500" strokeWidth={2} />
-//               </div>
-//               <p className="text-sm font-medium text-gray-700 mb-3">Total Patients</p>
-//               <p className="text-5xl font-bold text-gray-900">{stats.totalPatients}</p>
-//             </CardContent>
-//           </Card>
-
-//           {/* Recent Falls */}
-//           <Card className="border-0 bg-white shadow-sm">
-//             <CardContent className="pt-8 pb-8 px-6 flex flex-col items-center text-center">
-//               <div className="w-32 h-32 rounded-full bg-red-50 flex items-center justify-center mb-6">
-//                 <AlertTriangle className="w-10 h-10 text-red-500" strokeWidth={2} />
-//               </div>
-//               <p className="text-sm font-medium text-gray-700 mb-3">Falls (Last 7 Days)</p>
-//               <p className="text-5xl font-bold text-gray-900">{stats.recentFalls}</p>
-//             </CardContent>
-//           </Card>
-
-//           {/* Average Health Score */}
-//           <Card className="border-0 bg-white shadow-sm">
-//             <CardContent className="pt-8 pb-8 px-6 flex flex-col items-center text-center">
-//               <div className="w-32 h-32 rounded-full bg-green-50 flex items-center justify-center mb-6">
-//                 <Heart className="w-10 h-10 text-green-500" strokeWidth={2} />
-//               </div>
-//               <p className="text-sm font-medium text-gray-700 mb-3">Avg Health Score</p>
-//               <p className="text-5xl font-bold text-gray-900">{stats.avgHealthScore}</p>
-//             </CardContent>
-//           </Card>
-
-//           {/* High Risk Patients */}
-//           <Card className="border-0 bg-white shadow-sm">
-//             <CardContent className="pt-8 pb-8 px-6 flex flex-col items-center text-center">
-//               <div className="w-32 h-32 rounded-full bg-orange-50 flex items-center justify-center mb-6">
-//                 <TrendingUp className="w-10 h-10 text-orange-500" strokeWidth={2} />
-//               </div>
-//               <p className="text-sm font-medium text-gray-700 mb-3">High Risk Patients</p>
-//               <p className="text-5xl font-bold text-gray-900">{stats.highRiskPatients}</p>
-//             </CardContent>
-//           </Card>
-//         </div>
-
-//         {/* Two Column Layout */}
-//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-//           {/* Quick Actions Sidebar */}
-//           <div className="lg:col-span-1">
-//             <Card className="border border-gray-200 shadow-sm">
-//               <CardHeader>
-//                 <CardTitle className="text-lg font-bold">Quick Actions</CardTitle>
-//               </CardHeader>
-//               <CardContent>
-//                 <Button variant="ghost" className="w-full justify-start text-gray-700 hover:bg-gray-100">
-//                   <Activity className="mr-3 h-5 w-5" />
-//                   View Analytics
-//                 </Button>
-//               </CardContent>
-//             </Card>
-//           </div>
-
-//           {/* My Patients Main Area */}
-//           <div className="lg:col-span-2">
-//             <Card className="border border-gray-200 shadow-sm">
-//               <CardHeader>
-//                 <CardTitle className="text-lg font-bold">My Patients</CardTitle>
-//                 <CardDescription>
-//                   Patients currently under your care
-//                 </CardDescription>
-//               </CardHeader>
-//               <CardContent>
-//                 {myPatients.length === 0 ? (
-//                   <div className="text-center py-12 text-gray-500">
-//                     <Users className="h-16 w-16 mx-auto mb-4 opacity-30" />
-//                     <p className="text-base font-medium mb-1">No patients assigned yet</p>
-//                   </div>
-//                 ) : (
-//                   <div className="space-y-4">
-//                     {myPatients.map((patient: Patient) => {
-//                       const patientId = patient.id || patient.patient_id;
-//                       const firstName = patient.firstName || patient.first_name;
-//                       const lastName = patient.lastName || patient.last_name;
-//                       const riskScore = patient.riskScore || patient.risk_score || 0;
-                      
-//                       return (
-//                         <Card key={patientId} className="border border-gray-200">
-//                           <CardContent className="p-6">
-//                             <div className="flex justify-between items-start mb-4">
-//                               <div>
-//                                 <h3 className="text-lg font-bold text-gray-900">
-//                                   {firstName} {lastName}
-//                                 </h3>
-//                                 <p className="text-sm text-gray-600 mt-1">
-//                                   Age: {calculateAge(patient.dob)}
-//                                 </p>
-//                               </div>
-//                               <div className="text-right">
-//                                 <p className="text-xs text-gray-500 mb-1">Risk</p>
-//                                 <p className="text-2xl font-bold" style={{ color: getRiskColor(riskScore) }}>
-//                                   {riskScore}
-//                                 </p>
-//                               </div>
-//                             </div>
-//                             <Button variant="outline" className="w-full border-gray-300 hover:bg-gray-50">
-//                               View Details
-//                             </Button>
-//                           </CardContent>
-//                         </Card>
-//                       );
-//                     })}
-//                   </div>
-//                 )}
-//               </CardContent>
-//             </Card>
-//           </div>
-//         </div>
-//       </main>
-//     </div>
-//   );
-// }
