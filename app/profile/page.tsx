@@ -38,7 +38,7 @@ interface Profile {
   };
 }
 
-type AccountType = 'user' | 'caregiver';
+type AccountType = 'patient' | 'caregiver';
 
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,7 +48,7 @@ const isValidEmail = (email: string): boolean => {
 export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [accountType, setAccountType] = useState<AccountType>('user');
+  const [accountType, setAccountType] = useState<AccountType>('patient');
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -84,7 +84,7 @@ export default function ProfilePage() {
 
         // Determine account type
         if (data.patient) {
-          setAccountType('user');
+          setAccountType('patient');
         } else if (data.caregiver) {
           setAccountType('caregiver');
         }
@@ -119,7 +119,7 @@ export default function ProfilePage() {
     }
 
     // Patient-specific validations
-    if (accountType === 'user') {
+    if (accountType === 'patient') {
       if (!editedProfile.user.dob) {
         newErrors.dob = 'Date of birth is required';
       }
@@ -191,7 +191,7 @@ export default function ProfilePage() {
           firstName: editedProfile.user.firstName,
           lastName: editedProfile.user.lastName,
           email: editedProfile.user.email,
-          ...(accountType === 'user' && { dob: editedProfile.user.dob }),
+          ...(accountType === 'patient' && { dob: editedProfile.user.dob }),
         }),
       });
 
@@ -201,7 +201,7 @@ export default function ProfilePage() {
       }
 
       // Save role-specific data
-      if (accountType === 'user' && editedProfile.patient) {
+      if (accountType === 'patient' && editedProfile.patient) {
         const patientResponse = await fetch(`${API_BASE_URL}/profile/patient`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -258,7 +258,7 @@ export default function ProfilePage() {
   };
 
   const handleBack = () => {
-    if (accountType === 'user') {
+    if (accountType === 'patient') {
       router.push('/user-dashboard');
     } else {
       router.push('/caregiver-dashboard');
@@ -301,7 +301,7 @@ export default function ProfilePage() {
           onBack={handleBack}
         />
 
-        {accountType === 'user' && editedProfile.patient ? (
+        {accountType === 'patient' && editedProfile.patient ? (
           <PatientProfileForm
             profile={editedProfile as any}
             isEditing={isEditing}
