@@ -76,12 +76,16 @@ export default function SignUpPage() {
     emergencyContactPhone: faker.phone.number("(###) ###-####"),
     medicalConditions: faker.lorem.sentence(3),
     initialHealthScore: String(faker.number.int({ min: 60, max: 90 })),
-    deviceMacAddress: faker.datatype.uuid().split("-")[0].toUpperCase().slice(0, 2) + ":" +
-      faker.string.hexaDecimal(2).toUpperCase() + ":" +
-      faker.string.hexaDecimal(2).toUpperCase() + ":" +
-      faker.string.hexaDecimal(2).toUpperCase() + ":" +
-      faker.string.hexaDecimal(2).toUpperCase() + ":" +
-      faker.string.hexaDecimal(2).toUpperCase(),
+    deviceMacAddress: [
+      faker.string.hexadecimal({ length: 2 }),
+      faker.string.hexadecimal({ length: 2 }),
+      faker.string.hexadecimal({ length: 2 }),
+      faker.string.hexadecimal({ length: 2 }),
+      faker.string.hexadecimal({ length: 2 }),
+      faker.string.hexadecimal({ length: 2 }),
+    ]
+      .join(":")
+      .toUpperCase(),
     facilityName: "",
     licenseNumber: "",
     specialization: "",
@@ -112,6 +116,7 @@ export default function SignUpPage() {
     emergencyContactPhone: "",
     medicalConditions: "",
     initialHealthScore: "",
+    deviceMacAddress: "",
   });
 
   useEffect(() => {
