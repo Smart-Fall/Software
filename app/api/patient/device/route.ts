@@ -28,7 +28,7 @@ export async function GET() {
     // Get latest status for each device
     const devicesWithStatus = await Promise.all(
       devices.map(async (d) => {
-        const latestStatus = await dbService.deviceStatus.findLatest(d.deviceId);
+        const latestStatus = await dbService.deviceStatus.findLatest(d.id);
         return { ...d, latestStatus };
       }),
     );

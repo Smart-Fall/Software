@@ -79,6 +79,7 @@ export default function DevicesPage() {
       setError(null);
 
       try {
+        console.log('[DevicesPage] Fetching device and sensor data from API...');
         // Fetch device and sensor data
         const sensorRes = await fetch(
           `${API_BASE_URL}/patient/device/sensor-data`,
@@ -87,19 +88,42 @@ export default function DevicesPage() {
           }
         );
 
+        console.log('[DevicesPage] Sensor API response status:', sensorRes.status);
+
         if (!sensorRes.ok) {
           if (sensorRes.status === 401) {
+            console.log('[DevicesPage] Unauthorized - redirecting to login');
             router.push('/login');
             return;
           }
-          throw new Error('Failed to fetch sensor data');
+          throw new Error(`Failed to fetch sensor data: ${sensorRes.status}`);
         }
 
         const sensorDataResponse = await sensorRes.json();
+        console.log('[DevicesPage] Sensor data response:', {
+          device: sensorDataResponse.device ? {
+            id: sensorDataResponse.device.id,
+            deviceId: sensorDataResponse.device.deviceId,
+            batteryLevel: sensorDataResponse.device.batteryLevel,
+            lastSeen: sensorDataResponse.device.lastSeen,
+          } : null,
+          sensorDataCount: (sensorDataResponse.sensorData || []).length,
+        });
+
         setDevice(sensorDataResponse.device);
         setSensorData(sensorDataResponse.sensorData || []);
+
+        if (!sensorDataResponse.device) {
+          console.warn('[DevicesPage] No device returned from API');
+        }
+
+        if (!sensorDataResponse.sensorData || sensorDataResponse.sensorData.length === 0) {
+          console.warn('[DevicesPage] No sensor data returned from API');
+        } else {
+          console.log('[DevicesPage] First sensor reading:', sensorDataResponse.sensorData[0]);
+        }
       } catch (err) {
-        console.error('Error fetching device data:', err);
+        console.error('[DevicesPage] Error fetching device data:', err);
         const message = err instanceof Error ? err.message : 'Failed to load device data';
         setError(message);
         toast.error(message);
