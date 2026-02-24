@@ -68,6 +68,7 @@ export class PrismaDeviceRepository implements IDeviceRepository {
     const device = await prisma.device.update({
       where: { id },
       data: {
+        deviceId: data.deviceId,
         patientId: data.patientId,
         deviceName: data.deviceName,
         isActive: data.isActive,

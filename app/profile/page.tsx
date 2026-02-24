@@ -7,6 +7,7 @@ import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
 import { PatientProfileForm } from '@/components/profile/PatientProfileForm';
 import { CaregiverProfileForm } from '@/components/profile/CaregiverProfileForm';
+import { DeviceProfileCard } from '@/components/profile/DeviceProfileCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -302,12 +303,19 @@ export default function ProfilePage() {
         />
 
         {accountType === 'patient' && editedProfile.patient ? (
-          <PatientProfileForm
-            profile={editedProfile as any}
-            isEditing={isEditing}
-            onChange={handleFieldChange}
-            errors={errors}
-          />
+          <>
+            <PatientProfileForm
+              profile={editedProfile as any}
+              isEditing={isEditing}
+              onChange={handleFieldChange}
+              errors={errors}
+            />
+
+            {/* Device Profile Card */}
+            <div className="mt-8">
+              <DeviceProfileCard patientId={editedProfile.patient.id} />
+            </div>
+          </>
         ) : (
           <CaregiverProfileForm
             profile={editedProfile as any}
