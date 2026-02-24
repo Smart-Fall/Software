@@ -56,6 +56,7 @@ export default function SignUpPage() {
     emergencyContactPhone: "",
     medicalConditions: "",
     initialHealthScore: "",
+    deviceMacAddress: "",
   });
 
   const STATIC_PASSWORD = "password123";
@@ -75,6 +76,12 @@ export default function SignUpPage() {
     emergencyContactPhone: faker.phone.number("(###) ###-####"),
     medicalConditions: faker.lorem.sentence(3),
     initialHealthScore: String(faker.number.int({ min: 60, max: 90 })),
+    deviceMacAddress: faker.datatype.uuid().split("-")[0].toUpperCase().slice(0, 2) + ":" +
+      faker.string.hexaDecimal(2).toUpperCase() + ":" +
+      faker.string.hexaDecimal(2).toUpperCase() + ":" +
+      faker.string.hexaDecimal(2).toUpperCase() + ":" +
+      faker.string.hexaDecimal(2).toUpperCase() + ":" +
+      faker.string.hexaDecimal(2).toUpperCase(),
     facilityName: "",
     licenseNumber: "",
     specialization: "",
@@ -173,6 +180,16 @@ export default function SignUpPage() {
       } else if (formData.accountType === "user") {
         if (!formData.emergencyContactName || !formData.emergencyContactPhone) {
           setError("Please fill in emergency contact information");
+          return;
+        }
+        if (!formData.deviceMacAddress) {
+          setError("Please enter your SmartFall device MAC address");
+          return;
+        }
+        // Validate MAC address format (XX:XX:XX:XX:XX:XX or XXXXXXXXXXXX)
+        const macRegex = /^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})|([0-9A-Fa-f]{12})$/;
+        if (!macRegex.test(formData.deviceMacAddress)) {
+          setError("Please enter a valid MAC address (e.g., AA:BB:CC:DD:EE:FF)");
           return;
         }
       }
@@ -580,6 +597,26 @@ export default function SignUpPage() {
                       Leave blank to use default score of 75
                     </p>
                   </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="deviceMacAddress"
+                      className="text-sm font-medium"
+                    >
+                      SmartFall Device MAC Address
+                    </label>
+                    <Input
+                      id="deviceMacAddress"
+                      type="text"
+                      name="deviceMacAddress"
+                      placeholder="AA:BB:CC:DD:EE:FF"
+                      value={formData.deviceMacAddress}
+                      onChange={handleChange}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      You'll find this as "Device ID" in your device's serial output
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -662,6 +699,11 @@ export default function SignUpPage() {
                         </span>
                         <span>
                           {formData.initialHealthScore || "75 (default)"}
+                        </span>
+
+                        <span className="font-medium">Device MAC Address:</span>
+                        <span className="font-mono text-sm">
+                          {formData.deviceMacAddress}
                         </span>
                       </div>
                     )}
