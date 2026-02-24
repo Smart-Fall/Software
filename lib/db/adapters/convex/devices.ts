@@ -82,7 +82,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
 
   async update(id: string, data: Partial<Device>): Promise<Device> {
     try {
-      await this.client.mutation(api.devices.update, {
+      const mutationData: any = {
         id: id as any,
         patientId: data.patientId as any,
         deviceName: data.deviceName,
@@ -90,7 +90,14 @@ export class ConvexDeviceRepository implements IDeviceRepository {
         batteryLevel: data.batteryLevel,
         firmwareVersion: data.firmwareVersion,
         lastSeen: data.lastSeen ? data.lastSeen.getTime() : undefined,
-      });
+      };
+
+      // Note: deviceId updates require Convex backend mutation updates
+      if (data.deviceId) {
+        mutationData.deviceId = data.deviceId;
+      }
+
+      await this.client.mutation(api.devices.update, mutationData);
 
       const device = await this.client.query(api.devices.getById, { id: id as any });
       if (!device) throw new Error('Device not found after update');

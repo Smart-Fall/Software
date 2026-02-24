@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, Heart, TrendingDown, User, LogOut } from 'lucide-react';
+import { AlertTriangle, Heart, TrendingDown, User, LogOut, Smartphone } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 
@@ -244,6 +244,14 @@ export default function UserDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => router.push('/devices')}
+                className="rounded-lg px-6"
+              >
+                <Smartphone className="mr-2 h-4 w-4" />
+                Devices
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => router.push('/profile')}
