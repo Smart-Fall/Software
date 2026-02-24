@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Heart, AlertTriangle, MessageSquare, TrendingDown, Activity, Calendar, CheckCircle2, XCircle, MapPin, Phone, ExternalLink } from 'lucide-react';
+import { Heart, AlertTriangle, MessageSquare, TrendingDown, Calendar, CheckCircle2, XCircle, MapPin } from 'lucide-react';
 
 interface Patient {
   id?: number;
