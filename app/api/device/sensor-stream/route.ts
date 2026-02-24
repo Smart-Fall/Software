@@ -29,12 +29,12 @@ export async function POST(request: Request) {
     // Rate limiting: only store 1 per second
     const oneSecondAgo = new Date(Date.now() - 1000);
     const recentData = await dbService.sensorData
-      .findByDeviceId(device.id, { take: 1 })
+      .findByDeviceId(device.deviceId, { take: 1 })
       .then((data) => data.find((d) => d.timestamp >= oneSecondAgo));
 
     if (!recentData) {
       await dbService.sensorData.create({
-        deviceId: device.id,
+        deviceId: device.deviceId, // Use MAC address, not database ID
         timestamp: new Date(),
         accelX: data.accel_x || 0,
         accelY: data.accel_y || 0,
