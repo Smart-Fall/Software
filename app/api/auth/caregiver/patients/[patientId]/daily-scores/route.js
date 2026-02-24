@@ -1,95 +1,110 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { getDbServiceAsync } from '@/lib/db/service';
 import { getSession } from '@/lib/auth';
 
 export async function GET(req, context) {
   try {
     const session = await getSession();
-    
+
     if (!session || !session.userId) {
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
       );
     }
-    
+
     const params = await context.params;
     const patientId = params.patientId;
-    
-    // Verify caregiver has access to this patient
-    const caregiverResult = await pool.query(
-      'SELECT id FROM caregivers WHERE user_id = $1',
-      [session.userId]
-    );
-    
-    if (caregiverResult.rows.length === 0) {
+
+    const db = await getDbServiceAsync();
+
+    // Verify caregiver exists
+    const caregiver = await db.caregivers.findByUserId(session.userId);
+
+    if (!caregiver) {
       return NextResponse.json(
         { error: 'Caregiver not found' },
         { status: 404 }
       );
     }
-    
-    const caregiverId = caregiverResult.rows[0].id;
-    
+
     // Check if caregiver has access to patient
-    const accessCheck = await pool.query(`
-      SELECT 1 FROM caregiver_patients 
-      WHERE caregiver_id = $1 AND patient_id = $2 AND is_active = true
-    `, [caregiverId, patientId]);
-    
-    if (accessCheck.rows.length === 0) {
+    const access = await db.caregiverPatients.findByCaregiverAndPatient(
+      caregiver.id,
+      patientId
+    );
+
+    if (!access || !access.isActive) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
       );
     }
-    
-    // Calculate daily scores for the last 7 days
-    // Group by date and calculate average health score and count falls
-    const result = await pool.query(`
-      WITH date_series AS (
-        SELECT generate_series(
-          CURRENT_DATE - INTERVAL '6 days',
-          CURRENT_DATE,
-          '1 day'::interval
-        )::date AS date
-      ),
-      daily_falls AS (
-        SELECT 
-          DATE(fall_datetime) as fall_date,
-          COUNT(*) as fall_count
-        FROM falls
-        WHERE patient_id = $1
-          AND fall_datetime >= CURRENT_DATE - INTERVAL '6 days'
-        GROUP BY DATE(fall_datetime)
-      ),
-      daily_health AS (
-        SELECT 
-          date,
-          COALESCE(100 - p.risk_score, 0) as health_score
-        FROM date_series
-        CROSS JOIN patients p
-        WHERE p.id = $1
-      )
-      SELECT 
-        dh.date,
-        dh.health_score as score,
-        COALESCE(df.fall_count, 0) as falls,
-        0 as alerts -- We'll add alert tracking later if you have an alerts table
-      FROM daily_health dh
-      LEFT JOIN daily_falls df ON dh.date = df.fall_date
-      ORDER BY dh.date ASC
-    `, [patientId]);
-    
-    // Format dates for display
-    const formattedData = result.rows.map(row => ({
-      date: new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      score: parseInt(row.score) || 0,
-      falls: parseInt(row.falls) || 0,
-      alerts: parseInt(row.alerts) || 0
-    }));
-    
-    return NextResponse.json(formattedData);
+
+    // Get last 7 days of data
+    const endDate = new Date();
+    const startDate = new Date(endDate);
+    startDate.setDate(startDate.getDate() - 6);
+
+    // Fetch health logs and falls for the period
+    const healthLogs = await db.healthLogs.findBetween(
+      patientId,
+      startDate,
+      endDate
+    );
+    const falls = await db.falls.findByPatientId(patientId);
+
+    // Group health logs by date
+    const healthByDate = {};
+    healthLogs.forEach((log) => {
+      const date = new Date(log.recordedAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+      if (!healthByDate[date]) {
+        healthByDate[date] = [];
+      }
+      healthByDate[date].push(log.healthScore);
+    });
+
+    // Group falls by date
+    const fallsByDate = {};
+    falls.forEach((fall) => {
+      const date = new Date(fall.fallDatetime).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+      if (!fallsByDate[date]) {
+        fallsByDate[date] = 0;
+      }
+      fallsByDate[date]++;
+    });
+
+    // Generate daily scores for the last 7 days
+    const dailyScores = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(endDate);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+
+      const scores = healthByDate[dateStr] || [];
+      const avgScore =
+        scores.length > 0
+          ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+          : 0;
+
+      dailyScores.push({
+        date: dateStr,
+        score: avgScore,
+        falls: fallsByDate[dateStr] || 0,
+        alerts: 0,
+      });
+    }
+
+    return NextResponse.json(dailyScores);
   } catch (error) {
     console.error('Error fetching daily scores:', error);
     return NextResponse.json(

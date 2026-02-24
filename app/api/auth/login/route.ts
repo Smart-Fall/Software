@@ -42,25 +42,6 @@ export async function POST(request: Request) {
     // Don't send password back to client
     const { passwordHash: _, ...userWithoutPassword } = user;
 
-    // Add patient_id or caregiver_id
-    if (user.account_type === 'caregiver') {
-      const caregiverResult = await pool.query(
-        'SELECT id FROM caregivers WHERE user_id = $1',
-        [user.id]
-      );
-      if (caregiverResult.rows.length > 0) {
-        userWithoutPassword.caregiver_id = caregiverResult.rows[0].id;
-      }
-    } else if (user.account_type === 'user') {
-      const patientResult = await pool.query(
-        'SELECT id FROM patients WHERE user_id = $1',
-        [user.id]
-      );
-      if (patientResult.rows.length > 0) {
-        userWithoutPassword.patient_id = patientResult.rows[0].id;
-      }
-    }
-
     console.log('Login response:', userWithoutPassword);
 
     return NextResponse.json(
