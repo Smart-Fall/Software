@@ -21,11 +21,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-<<<<<<< HEAD:components/ui/dialog.tsx
       "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-=======
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
->>>>>>> 4b081c1 (final software):smartfall-nextjs/components/ui/dialog.tsx
       className
     )}
     {...props}
@@ -116,13 +112,8 @@ export {
   Dialog,
   DialogPortal,
   DialogOverlay,
-<<<<<<< HEAD:components/ui/dialog.tsx
   DialogClose,
   DialogTrigger,
-=======
-  DialogTrigger,
-  DialogClose,
->>>>>>> 4b081c1 (final software):smartfall-nextjs/components/ui/dialog.tsx
   DialogContent,
   DialogHeader,
   DialogFooter,
