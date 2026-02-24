@@ -35,8 +35,8 @@ export async function GET() {
     // Get first device (patients typically have one)
     const device = devices[0];
 
-    // Fetch last 20 sensor readings
-    const sensorData = await dbService.sensorData.findRecent(device.id, 20);
+    // Fetch last 20 sensor readings (use deviceId which is the MAC address)
+    const sensorData = await dbService.sensorData.findRecent(device.deviceId, 20);
 
     return NextResponse.json({
       sensorData,
