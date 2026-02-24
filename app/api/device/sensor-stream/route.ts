@@ -46,6 +46,33 @@ export async function POST(request: Request) {
       });
     }
 
+    // Update device battery level if provided
+    if (data.battery_level !== undefined) {
+      console.log(`[API] Updating device ${device.id} battery to ${data.battery_level}%`);
+      await dbService.devices.update(device.id, {
+        batteryLevel: data.battery_level,
+        lastSeen: new Date(),
+      });
+    }
+
+    // Store device status if provided
+    if (
+      data.battery_level !== undefined ||
+      data.wifi_connected !== undefined ||
+      data.uptime_ms !== undefined
+    ) {
+      await dbService.deviceStatus.create({
+        deviceId: device.id,
+        timestamp: new Date(),
+        batteryPercentage: data.battery_level || 0,
+        wifiConnected: data.wifi_connected !== false,
+        bluetoothConnected: data.bluetooth_connected !== false,
+        sensorsInitialized: data.sensors_initialized !== false,
+        uptimeMs: BigInt(data.uptime_ms || 0),
+        currentStatus: data.status || 'active',
+      });
+    }
+
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("[API] Error processing sensor data:", error);
