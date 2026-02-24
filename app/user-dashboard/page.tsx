@@ -67,13 +67,17 @@ export default function UserDashboard() {
       setError(null);
 
       try {
+        console.log('[UserDashboard] Fetching user data from API...');
         // Fetch user data
         const userRes = await fetch(`${API_BASE_URL}/patient/stats`, {
           credentials: 'include',
         });
 
+        console.log('[UserDashboard] User API response status:', userRes.status);
+
         if (!userRes.ok) {
           if (userRes.status === 401) {
+            console.log('[UserDashboard] Unauthorized - redirecting to login');
             router.push('/login');
             return;
           }
@@ -82,6 +86,16 @@ export default function UserDashboard() {
         }
 
         const userDataRes = await userRes.json();
+        console.log('[UserDashboard] User data response:', {
+          patient: {
+            id: userDataRes.patient?.id,
+            firstName: userDataRes.patient?.firstName,
+            lastName: userDataRes.patient?.lastName,
+            isHighRisk: userDataRes.patient?.isHighRisk,
+          },
+          stats: userDataRes.stats,
+        });
+
         setUser(userDataRes.patient);
         setStats({
           totalFalls: userDataRes.stats.totalFalls,
@@ -93,50 +107,67 @@ export default function UserDashboard() {
         });
 
         // Fetch caregiver data
+        console.log('[UserDashboard] Fetching caregiver data...');
         const caregiverRes = await fetch(`${API_BASE_URL}/patient/caregiver`, {
           credentials: 'include',
         });
 
         if (caregiverRes.ok) {
           const caregiverData: Caregiver = await caregiverRes.json();
+          console.log('[UserDashboard] Caregiver data:', caregiverData);
           setCaregiver(caregiverData);
+        } else {
+          console.log('[UserDashboard] Caregiver fetch status:', caregiverRes.status);
         }
 
         // Fetch weekly data
+        console.log('[UserDashboard] Fetching weekly report data...');
         const weeklyRes = await fetch(`${API_BASE_URL}/patient/reports/weekly`, {
           credentials: 'include',
         });
 
         if (weeklyRes.ok) {
           const weekly: ChartData[] = await weeklyRes.json();
+          console.log('[UserDashboard] Weekly data points:', weekly.length);
           setWeeklyData(weekly);
           // Update health score from latest data
           if (weekly.length > 0) {
+            console.log('[UserDashboard] Latest health score:', weekly[weekly.length - 1].healthScore);
             setStats((prev) => ({
               ...prev,
               currentHealthScore: weekly[weekly.length - 1].healthScore,
             }));
           }
+        } else {
+          console.log('[UserDashboard] Weekly fetch status:', weeklyRes.status);
         }
 
         // Fetch monthly data
+        console.log('[UserDashboard] Fetching monthly report data...');
         const monthlyRes = await fetch(`${API_BASE_URL}/patient/reports/monthly`, {
           credentials: 'include',
         });
 
         if (monthlyRes.ok) {
           const monthly: ChartData[] = await monthlyRes.json();
+          console.log('[UserDashboard] Monthly data points:', monthly.length);
           setMonthlyData(monthly);
+        } else {
+          console.log('[UserDashboard] Monthly fetch status:', monthlyRes.status);
         }
 
         // Fetch yearly data
+        console.log('[UserDashboard] Fetching yearly report data...');
         const yearlyRes = await fetch(`${API_BASE_URL}/patient/reports/yearly`, {
           credentials: 'include',
         });
 
         if (yearlyRes.ok) {
           const yearly: ChartData[] = await yearlyRes.json();
+          console.log('[UserDashboard] Yearly data points:', yearly.length);
           setYearlyData(yearly);
+        } else {
+          console.log('[UserDashboard] Yearly fetch status:', yearlyRes.status);
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);

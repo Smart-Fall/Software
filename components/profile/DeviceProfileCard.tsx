@@ -45,27 +45,42 @@ export const DeviceProfileCard: React.FC<DeviceProfileCardProps> = () => {
     const fetchDevice = async () => {
       setIsLoading(true);
       try {
+        console.log('[DeviceProfileCard] Fetching device from API...');
         const response = await fetch(`${API_BASE_URL}/patient/device`, {
           credentials: 'include',
         });
 
+        console.log('[DeviceProfileCard] Response status:', response.status);
+
         if (!response.ok) {
           if (response.status === 404) {
+            console.log('[DeviceProfileCard] Device not found (404)');
             setDevice(null);
             return;
           }
-          throw new Error('Failed to fetch device');
+          throw new Error(`Failed to fetch device: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('[DeviceProfileCard] Fetched data:', data);
+
         if (data.devices && data.devices.length > 0) {
-          setDevice(data.devices[0]);
-          setEditedMac(data.devices[0].deviceId);
+          const device = data.devices[0];
+          console.log('[DeviceProfileCard] Device found:', {
+            id: device.id,
+            deviceId: device.deviceId,
+            batteryLevel: device.batteryLevel,
+            lastSeen: device.lastSeen,
+            firmwareVersion: device.firmwareVersion,
+          });
+          setDevice(device);
+          setEditedMac(device.deviceId);
         } else {
+          console.log('[DeviceProfileCard] No devices in response');
           setDevice(null);
         }
       } catch (err) {
-        console.error('Error fetching device:', err);
+        console.error('[DeviceProfileCard] Error fetching device:', err);
         toast.error('Failed to load device information');
       } finally {
         setIsLoading(false);
