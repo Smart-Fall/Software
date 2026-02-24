@@ -2,6 +2,10 @@
 
 A modern fall detection and health monitoring system built with **Next.js**, **TypeScript**, and **Prisma ORM**.
 
+## Live Demo
+
+The SmartFall application is live and accessible at: **https://smartfall.vercel.app/**
+
 ## What's New
 
 - **Next.js 16** - Modern React framework with App Router
@@ -77,6 +81,12 @@ A modern fall detection and health monitoring system built with **Next.js**, **T
 ```
 
 ## Getting Started
+
+### Quick Access
+
+To access the application immediately, visit: **https://smartfall.vercel.app/**
+
+For local development, follow the installation steps below.
 
 ### Prerequisites
 
