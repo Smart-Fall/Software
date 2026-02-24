@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut } from "lucide-react";
 
@@ -36,12 +37,16 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div
-            className="flex items-center cursor-pointer"
+            className="flex items-center cursor-pointer gap-2"
             onClick={() => handleNavigation("/")}
           >
-            <h1 className="text-2xl font-bold text-[hsl(var(--primary))]">
-              SmartFall
-            </h1>
+            <Image
+              src="/SmartFall_logo.png"
+              alt="SmartFall Logo"
+              width={120}
+              height={120}
+              priority
+            />
           </div>
 
           {/* Desktop Navigation */}
@@ -52,21 +57,23 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-accent/50">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">
-                    {user.firstName || 'User'}
+                    {user.firstName || "User"}
                   </span>
                 </div>
-                {user.accountType === 'caregiver' && (
+                {user.accountType === "caregiver" && (
                   <Button
-                    variant={isActive('/caregiver-dashboard') ? 'default' : 'ghost'}
-                    onClick={() => handleNavigation('/caregiver-dashboard')}
+                    variant={
+                      isActive("/caregiver-dashboard") ? "default" : "ghost"
+                    }
+                    onClick={() => handleNavigation("/caregiver-dashboard")}
                   >
                     Dashboard
                   </Button>
                 )}
-                {user.accountType === 'patient' && (
+                {user.accountType === "patient" && (
                   <Button
-                    variant={isActive('/user-dashboard') ? 'default' : 'ghost'}
-                    onClick={() => handleNavigation('/user-dashboard')}
+                    variant={isActive("/user-dashboard") ? "default" : "ghost"}
+                    onClick={() => handleNavigation("/user-dashboard")}
                   >
                     Dashboard
                   </Button>
@@ -86,14 +93,14 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
               <>
                 {/* Guest Links */}
                 <Button
-                  variant={isActive('/login') ? 'default' : 'ghost'}
-                  onClick={() => handleNavigation('/login')}
+                  variant={isActive("/login") ? "default" : "ghost"}
+                  onClick={() => handleNavigation("/login")}
                 >
                   Login
                 </Button>
                 <Button
-                  variant={isActive('/signup') ? 'default' : 'outline'}
-                  onClick={() => handleNavigation('/signup')}
+                  variant={isActive("/signup") ? "default" : "outline"}
+                  onClick={() => handleNavigation("/signup")}
                 >
                   Sign Up
                 </Button>
@@ -128,22 +135,26 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                   <div className="px-3 py-2 rounded-md bg-accent/50 flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium">
-                      {user.firstName || 'User'}
+                      {user.firstName || "User"}
                     </span>
                   </div>
-                  {user.accountType === 'caregiver' && (
+                  {user.accountType === "caregiver" && (
                     <Button
-                      variant={isActive('/caregiver-dashboard') ? 'default' : 'ghost'}
-                      onClick={() => handleNavigation('/caregiver-dashboard')}
+                      variant={
+                        isActive("/caregiver-dashboard") ? "default" : "ghost"
+                      }
+                      onClick={() => handleNavigation("/caregiver-dashboard")}
                       className="w-full justify-start"
                     >
                       Dashboard
                     </Button>
                   )}
-                  {user.accountType === 'patient' && (
+                  {user.accountType === "patient" && (
                     <Button
-                      variant={isActive('/user-dashboard') ? 'default' : 'ghost'}
-                      onClick={() => handleNavigation('/user-dashboard')}
+                      variant={
+                        isActive("/user-dashboard") ? "default" : "ghost"
+                      }
+                      onClick={() => handleNavigation("/user-dashboard")}
                       className="w-full justify-start"
                     >
                       Dashboard
@@ -166,15 +177,15 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
               ) : (
                 <>
                   <Button
-                    variant={isActive('/login') ? 'default' : 'ghost'}
-                    onClick={() => handleNavigation('/login')}
+                    variant={isActive("/login") ? "default" : "ghost"}
+                    onClick={() => handleNavigation("/login")}
                     className="w-full justify-start"
                   >
                     Login
                   </Button>
                   <Button
-                    variant={isActive('/signup') ? 'default' : 'outline'}
-                    onClick={() => handleNavigation('/signup')}
+                    variant={isActive("/signup") ? "default" : "outline"}
+                    onClick={() => handleNavigation("/signup")}
                     className="w-full justify-start"
                   >
                     Sign Up

@@ -83,12 +83,7 @@ export async function POST(request: Request) {
         yearsOfExperience,
       });
     } else if (accountType === "user") {
-      const patient = await dbService.patients.create({
-        userId: newUser.id,
-        medicalConditions,
-      });
-
-      // Create initial health log for patient
+      // Determine initial health score
       let initialScore = 75; // Default to 75 if not provided
       if (initialHealthScore) {
         const scoreNum = parseInt(initialHealthScore, 10);
@@ -96,6 +91,18 @@ export async function POST(request: Request) {
           initialScore = scoreNum;
         }
       }
+
+      // Calculate risk score as inverse of health score
+      const initialRiskScore = 100 - initialScore;
+
+      const patient = await dbService.patients.create({
+        userId: newUser.id,
+        riskScore: initialRiskScore,
+        isHighRisk: initialRiskScore >= 75,
+        medicalConditions,
+      });
+
+      // Create initial health log for patient
       await dbService.healthLogs.create({
         patientId: patient.id,
         healthScore: initialScore,
