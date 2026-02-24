@@ -1,191 +1,223 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from "sonner"
-import { faker } from '@faker-js/faker'
-import Navbar from '@/components/Navbar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, ChevronLeft, ChevronRight, UserPlus, Heart } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { faker } from "@faker-js/faker";
+import Navbar from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  UserPlus,
+  Heart,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 export default function SignUpPage() {
-  const router = useRouter()
-  const [step, setStep] = useState(1)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [isDevelopment, setIsDevelopment] = useState(false)
+  const router = useRouter();
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isDevelopment, setIsDevelopment] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     // Basic info (Step 1)
-    firstName: '',
-    lastName: '',
-    dob: '',
-    email: '',
-    password: '',
-    phone: '',
+    firstName: "",
+    lastName: "",
+    dob: "",
+    email: "",
+    password: "",
+    phone: "",
 
     // Account type (Step 2)
-    accountType: '',
+    accountType: "",
 
     // Caregiver specific (Step 3 if caregiver)
-    facilityName: '',
-    licenseNumber: '',
-    specialization: '',
+    facilityName: "",
+    licenseNumber: "",
+    specialization: "",
 
     // Patient specific (Step 3 if user)
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    medicalConditions: '',
-    initialHealthScore: '',
-  })
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    medicalConditions: "",
+    initialHealthScore: "",
+  });
 
-  const STATIC_PASSWORD = 'password123'
+  const STATIC_PASSWORD = "password123";
 
   const generateRandomUserData = () => ({
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
-    dob: faker.date.birthdate({ min: 50, max: 85, mode: 'age' }).toISOString().split('T')[0],
+    dob: faker.date
+      .birthdate({ min: 50, max: 85, mode: "age" })
+      .toISOString()
+      .split("T")[0],
     email: faker.internet.email(),
     password: STATIC_PASSWORD,
-    phone: faker.phone.number('(###) ###-####'),
-    accountType: 'user',
+    phone: faker.phone.number("(###) ###-####"),
+    accountType: "user",
     emergencyContactName: faker.person.fullName(),
-    emergencyContactPhone: faker.phone.number('(###) ###-####'),
+    emergencyContactPhone: faker.phone.number("(###) ###-####"),
     medicalConditions: faker.lorem.sentence(3),
     initialHealthScore: String(faker.number.int({ min: 60, max: 90 })),
-    facilityName: '',
-    licenseNumber: '',
-    specialization: ''
-  })
+    facilityName: "",
+    licenseNumber: "",
+    specialization: "",
+  });
 
   const generateRandomCaregiverData = () => ({
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
-    dob: faker.date.birthdate({ min: 25, max: 65, mode: 'age' }).toISOString().split('T')[0],
+    dob: faker.date
+      .birthdate({ min: 25, max: 65, mode: "age" })
+      .toISOString()
+      .split("T")[0],
     email: faker.internet.email(),
     password: STATIC_PASSWORD,
-    phone: faker.phone.number('(###) ###-####'),
-    accountType: 'caregiver',
-    facilityName: faker.company.name() + ' Care Center',
+    phone: faker.phone.number("(###) ###-####"),
+    accountType: "caregiver",
+    facilityName: faker.company.name() + " Care Center",
     licenseNumber: faker.string.alphanumeric(8).toUpperCase(),
     specialization: faker.helpers.arrayElement([
-      'Elderly Care',
-      'Hospice Care',
-      'Rehabilitation',
-      'Physical Therapy',
-      'Palliative Care',
-      'Home Health'
+      "Elderly Care",
+      "Hospice Care",
+      "Rehabilitation",
+      "Physical Therapy",
+      "Palliative Care",
+      "Home Health",
     ]),
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    medicalConditions: '',
-    initialHealthScore: ''
-  })
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    medicalConditions: "",
+    initialHealthScore: "",
+  });
 
   useEffect(() => {
-    setIsDevelopment(process.env.NODE_ENV !== 'production')
-  }, [])
+    setIsDevelopment(process.env.NODE_ENV !== "production");
+  }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-    setError('')
-  }
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
+  };
 
   const handleFillAsUser = () => {
-    setFormData(generateRandomUserData())
-    setStep(4)
-    setError('')
-  }
+    setFormData(generateRandomUserData());
+    setStep(4);
+    setError("");
+  };
 
   const handleFillAsCaregiver = () => {
-    setFormData(generateRandomCaregiverData())
-    setStep(4)
-    setError('')
-  }
+    setFormData(generateRandomCaregiverData());
+    setStep(4);
+    setError("");
+  };
 
   const nextStep = () => {
     // Validate step 1
     if (step === 1) {
-      if (!formData.firstName || !formData.lastName || !formData.dob || !formData.email || !formData.password || !formData.phone) {
-        setError('Please fill in all fields')
-        return
+      if (
+        !formData.firstName ||
+        !formData.lastName ||
+        !formData.dob ||
+        !formData.email ||
+        !formData.password ||
+        !formData.phone
+      ) {
+        setError("Please fill in all fields");
+        return;
       }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
-        setError('Please enter a valid email')
-        return
+        setError("Please enter a valid email");
+        return;
       }
       if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters')
-        return
+        setError("Password must be at least 6 characters");
+        return;
       }
     }
 
     // Validate step 2
     if (step === 2 && !formData.accountType) {
-      setError('Please select an account type')
-      return
+      setError("Please select an account type");
+      return;
     }
 
     // Validate step 3 based on account type
     if (step === 3) {
-      if (formData.accountType === 'caregiver') {
+      if (formData.accountType === "caregiver") {
         if (!formData.facilityName || !formData.specialization) {
-          setError('Please fill in all caregiver fields')
-          return
+          setError("Please fill in all caregiver fields");
+          return;
         }
-      } else if (formData.accountType === 'user') {
+      } else if (formData.accountType === "user") {
         if (!formData.emergencyContactName || !formData.emergencyContactPhone) {
-          setError('Please fill in emergency contact information')
-          return
+          setError("Please fill in emergency contact information");
+          return;
         }
       }
     }
 
-    setError('')
-    setStep(step + 1)
-  }
+    setError("");
+    setStep(step + 1);
+  };
 
   const prevStep = () => {
-    setError('')
-    setStep(step - 1)
-  }
+    setError("");
+    setStep(step - 1);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('user', JSON.stringify(data.user))
-        toast.success("Account created successfully, please login")
-        router.push('/login')
+        localStorage.setItem("user", JSON.stringify(data.user));
+        toast.success("Account created successfully, please login");
+        router.push("/login");
       } else {
-        setError(data.error || 'Signup failed')
+        setError(data.error || "Signup failed");
       }
     } catch (err) {
-      console.error('Signup failed:', err)
-      toast.error('An error occurred. Please try again.')
-      setError('An error occurred. Please try again.')
+      console.error("Signup failed:", err);
+      toast.error("An error occurred. Please try again.");
+      setError("An error occurred. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
@@ -205,7 +237,7 @@ export default function SignUpPage() {
                 <div
                   key={i}
                   className={`h-2 w-12 rounded-full transition-colors ${
-                    i <= step ? 'bg-[hsl(var(--primary))]' : 'bg-muted'
+                    i <= step ? "bg-[hsl(var(--primary))]" : "bg-muted"
                   }`}
                 />
               ))}
@@ -249,7 +281,10 @@ export default function SignUpPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label htmlFor="firstName" className="text-sm font-medium">
+                      <label
+                        htmlFor="firstName"
+                        className="text-sm font-medium"
+                      >
                         First Name
                       </label>
                       <Input
@@ -311,16 +346,29 @@ export default function SignUpPage() {
                     <label htmlFor="password" className="text-sm font-medium">
                       Password
                     </label>
-                    <Input
-                      id="password"
-                      type="password"
-                      name="password"
-                      placeholder="Minimum 6 characters"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                      minLength={6}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        placeholder="Minimum 6 characters"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -344,7 +392,10 @@ export default function SignUpPage() {
               {step === 2 && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="accountType" className="text-sm font-medium">
+                    <label
+                      htmlFor="accountType"
+                      className="text-sm font-medium"
+                    >
                       Select Account Type
                     </label>
                     <select
@@ -365,13 +416,14 @@ export default function SignUpPage() {
                     <Card className="bg-accent/50">
                       <CardContent className="pt-6">
                         <div className="flex items-start gap-3">
-                          {formData.accountType === 'caregiver' ? (
+                          {formData.accountType === "caregiver" ? (
                             <>
                               <UserPlus className="h-5 w-5 text-[hsl(var(--primary))] mt-0.5" />
                               <div>
                                 <p className="font-medium">Caregiver Account</p>
                                 <p className="text-sm text-muted-foreground">
-                                  As a caregiver, you will be able to monitor and manage multiple patients.
+                                  As a caregiver, you will be able to monitor
+                                  and manage multiple patients.
                                 </p>
                               </div>
                             </>
@@ -381,7 +433,8 @@ export default function SignUpPage() {
                               <div>
                                 <p className="font-medium">Patient Account</p>
                                 <p className="text-sm text-muted-foreground">
-                                  As a patient, you will be able to track your health and receive care from caregivers.
+                                  As a patient, you will be able to track your
+                                  health and receive care from caregivers.
                                 </p>
                               </div>
                             </>
@@ -394,11 +447,16 @@ export default function SignUpPage() {
               )}
 
               {/* STEP 3: Account-Specific Information */}
-              {step === 3 && formData.accountType === 'caregiver' && (
+              {step === 3 && formData.accountType === "caregiver" && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Caregiver Information</h3>
+                  <h3 className="text-lg font-semibold">
+                    Caregiver Information
+                  </h3>
                   <div className="space-y-2">
-                    <label htmlFor="facilityName" className="text-sm font-medium">
+                    <label
+                      htmlFor="facilityName"
+                      className="text-sm font-medium"
+                    >
                       Facility/Organization Name
                     </label>
                     <Input
@@ -412,7 +470,10 @@ export default function SignUpPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="licenseNumber" className="text-sm font-medium">
+                    <label
+                      htmlFor="licenseNumber"
+                      className="text-sm font-medium"
+                    >
                       License Number (Optional)
                     </label>
                     <Input
@@ -425,7 +486,10 @@ export default function SignUpPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="specialization" className="text-sm font-medium">
+                    <label
+                      htmlFor="specialization"
+                      className="text-sm font-medium"
+                    >
                       Specialization
                     </label>
                     <Input
@@ -441,11 +505,14 @@ export default function SignUpPage() {
                 </div>
               )}
 
-              {step === 3 && formData.accountType === 'user' && (
+              {step === 3 && formData.accountType === "user" && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Patient Information</h3>
                   <div className="space-y-2">
-                    <label htmlFor="emergencyContactName" className="text-sm font-medium">
+                    <label
+                      htmlFor="emergencyContactName"
+                      className="text-sm font-medium"
+                    >
                       Emergency Contact Name
                     </label>
                     <Input
@@ -459,7 +526,10 @@ export default function SignUpPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="emergencyContactPhone" className="text-sm font-medium">
+                    <label
+                      htmlFor="emergencyContactPhone"
+                      className="text-sm font-medium"
+                    >
                       Emergency Contact Phone
                     </label>
                     <Input
@@ -473,7 +543,10 @@ export default function SignUpPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="medicalConditions" className="text-sm font-medium">
+                    <label
+                      htmlFor="medicalConditions"
+                      className="text-sm font-medium"
+                    >
                       Medical Conditions (Optional)
                     </label>
                     <textarea
@@ -487,7 +560,10 @@ export default function SignUpPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="initialHealthScore" className="text-sm font-medium">
+                    <label
+                      htmlFor="initialHealthScore"
+                      className="text-sm font-medium"
+                    >
                       Initial Health Score (Optional, 0-100)
                     </label>
                     <Input
@@ -510,11 +586,15 @@ export default function SignUpPage() {
               {/* STEP 4: Confirmation */}
               {step === 4 && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Confirm Your Information</h3>
+                  <h3 className="text-lg font-semibold">
+                    Confirm Your Information
+                  </h3>
                   <div className="space-y-3 bg-accent/30 p-4 rounded-lg">
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <span className="font-medium">Name:</span>
-                      <span>{formData.firstName} {formData.lastName}</span>
+                      <span>
+                        {formData.firstName} {formData.lastName}
+                      </span>
 
                       <span className="font-medium">Date of Birth:</span>
                       <span>{formData.dob}</span>
@@ -527,13 +607,21 @@ export default function SignUpPage() {
 
                       <span className="font-medium">Account Type:</span>
                       <span>
-                        <Badge variant={formData.accountType === 'caregiver' ? 'default' : 'secondary'}>
-                          {formData.accountType === 'caregiver' ? 'Caregiver' : 'Patient/User'}
+                        <Badge
+                          variant={
+                            formData.accountType === "caregiver"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {formData.accountType === "caregiver"
+                            ? "Caregiver"
+                            : "Patient/User"}
                         </Badge>
                       </span>
                     </div>
 
-                    {formData.accountType === 'caregiver' && (
+                    {formData.accountType === "caregiver" && (
                       <div className="grid grid-cols-2 gap-2 text-sm pt-3 border-t">
                         <span className="font-medium">Facility:</span>
                         <span>{formData.facilityName}</span>
@@ -550,7 +638,7 @@ export default function SignUpPage() {
                       </div>
                     )}
 
-                    {formData.accountType === 'user' && (
+                    {formData.accountType === "user" && (
                       <div className="grid grid-cols-2 gap-2 text-sm pt-3 border-t">
                         <span className="font-medium">Emergency Contact:</span>
                         <span>{formData.emergencyContactName}</span>
@@ -560,13 +648,21 @@ export default function SignUpPage() {
 
                         {formData.medicalConditions && (
                           <>
-                            <span className="font-medium">Medical Conditions:</span>
-                            <span className="text-xs">{formData.medicalConditions}</span>
+                            <span className="font-medium">
+                              Medical Conditions:
+                            </span>
+                            <span className="text-xs">
+                              {formData.medicalConditions}
+                            </span>
                           </>
                         )}
 
-                        <span className="font-medium">Initial Health Score:</span>
-                        <span>{formData.initialHealthScore || '75 (default)'}</span>
+                        <span className="font-medium">
+                          Initial Health Score:
+                        </span>
+                        <span>
+                          {formData.initialHealthScore || "75 (default)"}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -597,12 +693,8 @@ export default function SignUpPage() {
                   </Button>
                 )}
                 {step === 4 && (
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1"
-                  >
-                    {loading ? 'Creating Account...' : 'Create Account'}
+                  <Button type="submit" disabled={loading} className="flex-1">
+                    {loading ? "Creating Account..." : "Create Account"}
                   </Button>
                 )}
               </div>
@@ -610,12 +702,12 @@ export default function SignUpPage() {
 
             <div className="mt-4 text-center text-sm">
               <span className="text-muted-foreground">
-                Already have an account?{' '}
+                Already have an account?{" "}
               </span>
               <Button
                 variant="link"
                 className="p-0 h-auto font-semibold"
-                onClick={() => router.push('/login')}
+                onClick={() => router.push("/login")}
               >
                 Login
               </Button>
@@ -624,5 +716,5 @@ export default function SignUpPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
