@@ -18,6 +18,7 @@ export async function POST(request: Request) {
       // Patient fields
       medicalConditions,
       initialHealthScore,
+      deviceMacAddress,
     } = await request.json();
 
     // Validate input
@@ -83,6 +84,23 @@ export async function POST(request: Request) {
         yearsOfExperience,
       });
     } else if (accountType === "user") {
+      // Validate device MAC address
+      if (!deviceMacAddress) {
+        return NextResponse.json(
+          { error: "Device MAC address is required for patient accounts" },
+          { status: 400 },
+        );
+      }
+
+      // Validate MAC address format (XX:XX:XX:XX:XX:XX or XXXXXXXXXXXX)
+      const macRegex = /^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})|([0-9A-Fa-f]{12})$/;
+      if (!macRegex.test(deviceMacAddress)) {
+        return NextResponse.json(
+          { error: "Invalid MAC address format" },
+          { status: 400 },
+        );
+      }
+
       // Determine initial health score
       let initialScore = 75; // Default to 75 if not provided
       if (initialHealthScore) {
@@ -100,6 +118,13 @@ export async function POST(request: Request) {
         riskScore: initialRiskScore,
         isHighRisk: initialRiskScore >= 75,
         medicalConditions,
+      });
+
+      // Create device with MAC address
+      await dbService.devices.create({
+        deviceId: deviceMacAddress,
+        patientId: patient.id,
+        isActive: true,
       });
 
       // Create initial health log for patient
