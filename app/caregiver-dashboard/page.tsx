@@ -14,15 +14,7 @@ import { MetricCard } from '@/components/dashboard/MetricCard';
 import { LoadingSpinner } from '@/components/dashboard/LoadingSpinner';
 import { EmptyState } from '@/components/dashboard/EmptyState';
 import { Users, Heart, TrendingUp } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { RiskScoreBadge } from '@/components/dashboard/RiskScoreBadge';
-import { calculateAge } from '@/lib/dashboard-utils';
+import PatientDetailsDialog from '@/app/PatientDetailsDialog';
 
 interface Patient {
   id?: number;
@@ -409,75 +401,12 @@ export default function CaregiverDashboard() {
         </Tabs>
       </main>
 
-      {/* Patient Details Dialog */}
-      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Patient Details</DialogTitle>
-            <DialogDescription>
-              Detailed information for {selectedPatient?.firstName} {selectedPatient?.lastName}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedPatient && (
-            <div className="grid gap-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">First Name</label>
-                  <p className="text-lg font-semibold">
-                    {selectedPatient.firstName || selectedPatient.first_name || 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Last Name</label>
-                  <p className="text-lg font-semibold">
-                    {selectedPatient.lastName || selectedPatient.last_name || 'N/A'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
-                  <p className="text-lg font-semibold">
-                    {new Date(selectedPatient.dob).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Age</label>
-                  <p className="text-lg font-semibold">{calculateAge(selectedPatient.dob)} years</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Risk Score</label>
-                  <div className="mt-2">
-                    <RiskScoreBadge
-                      score={selectedPatient.riskScore || selectedPatient.risk_score || 0}
-                      showLabel
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">High Risk Status</label>
-                  <p className="text-lg font-semibold">
-                    {selectedPatient.isHighRisk || selectedPatient.is_high_risk ? 'Yes' : 'No'}
-                  </p>
-                </div>
-              </div>
-
-              {(selectedPatient.medicalConditions || selectedPatient.medical_conditions) && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Medical Conditions</label>
-                  <p className="text-sm text-foreground mt-2">
-                    {selectedPatient.medicalConditions || selectedPatient.medical_conditions}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Patient Details Dialog with Notifications and Messaging */}
+      <PatientDetailsDialog
+        patient={selectedPatient}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+      />
     </div>
   );
 }
