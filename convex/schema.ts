@@ -149,6 +149,7 @@ export default defineSchema({
     gyroY: v.number(),
     gyroZ: v.number(),
     pressure: v.optional(v.number()),
+    fsr: v.optional(v.number()),
   })
     .index('by_device_id', ['deviceId'])
     .index('by_external_device_id', ['externalDeviceId'])

@@ -64,14 +64,14 @@ export const create = mutation({
     firmwareVersion: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Check for duplicate device
+    // Upsert: return existing device rather than throwing on duplicate
     const existing = await ctx.db
       .query('devices')
       .withIndex('by_device_id', (q) => q.eq('deviceId', args.deviceId))
       .unique();
 
     if (existing) {
-      throw new Error(`Device with ID ${args.deviceId} already exists`);
+      return existing._id;
     }
 
     const externalPatientId = args.patientId

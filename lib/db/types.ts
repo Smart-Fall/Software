@@ -118,6 +118,7 @@ export interface SensorData {
   gyroY: number;
   gyroZ: number;
   pressure?: number;
+  fsr?: number;
   device?: Device;
 }
 
