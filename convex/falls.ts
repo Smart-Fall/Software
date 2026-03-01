@@ -43,10 +43,11 @@ export const getByDeviceId = query({
 export const getRecent = query({
   args: { limit: v.number() },
   handler: async (ctx, args) => {
-    const falls = await ctx.db.query('falls').collect();
-    return falls
-      .sort((a, b) => (b.fallDatetime || 0) - (a.fallDatetime || 0))
-      .slice(0, args.limit);
+    return await ctx.db
+      .query('falls')
+      .withIndex('by_created_at')
+      .order('desc')
+      .take(args.limit);
   },
 });
 
@@ -84,7 +85,11 @@ export const list = query({
 
 export const count = query({
   handler: async (ctx) => {
-    const falls = await ctx.db.query('falls').collect();
+    // Convex has no native COUNT — use a bounded collect on an indexed field
+    const falls = await ctx.db
+      .query('falls')
+      .withIndex('by_created_at')
+      .collect();
     return falls.length;
   },
 });

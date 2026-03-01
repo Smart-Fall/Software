@@ -42,8 +42,6 @@ export async function POST(request: Request) {
     // Don't send password back to client
     const { passwordHash: _, ...userWithoutPassword } = user;
 
-    console.log('Login response:', userWithoutPassword);
-
     return NextResponse.json(
       {
         message: "Login successful",

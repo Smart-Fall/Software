@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const fall = await dbService.falls.create({
       patientId: device.patientId || undefined,
       deviceId: device.id,
-      fallDatetime: new Date(data.timestamp || Date.now()),
+      fallDatetime: new Date(),
       confidenceScore: data.confidence_score || null,
       confidenceLevel: confidenceLevel,
       sosTriggered: data.sos_triggered || false,
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     if (data.sensor_data) {
       await dbService.sensorData.create({
         deviceId: device.id,
-        timestamp: new Date(data.timestamp || Date.now()),
+        timestamp: new Date(),
         accelX: data.sensor_data.accel_x || 0,
         accelY: data.sensor_data.accel_y || 0,
         accelZ: data.sensor_data.accel_z || 0,

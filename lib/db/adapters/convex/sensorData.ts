@@ -60,9 +60,10 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
     gyroY: number;
     gyroZ: number;
     pressure?: number;
+    fsr?: number;
   }): Promise<SensorData> {
     try {
-      const sensorDataId = await this.client.mutation(api.sensorData.create, {
+      const mutationData: any = {
         deviceId: data.deviceId as any,
         timestamp: data.timestamp.getTime(),
         accelX: data.accelX,
@@ -72,7 +73,14 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
         gyroY: data.gyroY,
         gyroZ: data.gyroZ,
         pressure: data.pressure,
-      });
+      };
+
+      // Note: FSR support requires Convex backend mutation updates
+      if (data.fsr !== undefined) {
+        mutationData.fsr = data.fsr;
+      }
+
+      const sensorDataId = await this.client.mutation(api.sensorData.create, mutationData);
 
       const sensorData = await this.client.query(api.sensorData.getById, {
         id: sensorDataId as any,
@@ -111,6 +119,7 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
       gyroY: data.gyroY,
       gyroZ: data.gyroZ,
       pressure: data.pressure,
+      fsr: data.fsr,
       device: data.device,
     };
   }

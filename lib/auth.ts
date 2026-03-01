@@ -2,6 +2,13 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { getDbServiceAsync } from "./db/service";
 
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    "[AUTH] WARNING: JWT_SECRET is not set. Using insecure hardcoded fallback. " +
+    "Set JWT_SECRET in your .env file before deploying to production."
+  );
+}
+
 const secret = new TextEncoder().encode(
   process.env.JWT_SECRET || "smartfallCapstone",
 );

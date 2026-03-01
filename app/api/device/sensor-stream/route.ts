@@ -14,16 +14,15 @@ export async function POST(request: Request) {
     }
 
     const dbService = await getDbServiceAsync();
-    const device = await dbService.devices.findByDeviceId(deviceId);
+    let device = await dbService.devices.findByDeviceId(deviceId);
 
     if (!device) {
-      console.log(
-        `[API] Sensor data from unregistered device: ${deviceId} (sensor data will not be stored)`
-      );
-      return NextResponse.json(
-        { success: true, message: "Device not registered" },
-        { status: 200 },
-      );
+      console.log(`[API] Auto-registering new device from sensor stream: ${deviceId}`);
+      device = await dbService.devices.create({
+        deviceId: deviceId,
+        deviceName: `SmartFall Device ${deviceId}`,
+        isActive: true,
+      });
     }
 
     // Rate limiting: only store 1 per second
@@ -43,6 +42,7 @@ export async function POST(request: Request) {
         gyroY: data.gyro_y || 0,
         gyroZ: data.gyro_z || 0,
         pressure: data.pressure || null,
+        fsr: data.fsr || null,
       });
     }
 
