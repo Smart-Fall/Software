@@ -3,8 +3,13 @@
  */
 
 import { ISensorDataRepository } from '../base';
-import { SensorData } from '../../types';
+import { FindOptions, SensorData } from '../../types';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+
+type PrismaSensorDataWithDevice = Prisma.SensorDataGetPayload<{
+  include: { device: true };
+}>;
 
 export class PrismaSensorDataRepository implements ISensorDataRepository {
   async findById(id: string): Promise<SensorData | null> {
@@ -15,7 +20,10 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
     return data ? this.mapToSensorData(data) : null;
   }
 
-  async findByDeviceId(deviceId: string, options?: any): Promise<SensorData[]> {
+  async findByDeviceId(
+    deviceId: string,
+    options?: FindOptions<SensorData>,
+  ): Promise<SensorData[]> {
     const data = await prisma.sensorData.findMany({
       where: { deviceId },
       include: { device: true },
@@ -48,7 +56,7 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
     pressure?: number;
     fsr?: number;
   }): Promise<SensorData> {
-    const createData: any = {
+    const createData: Prisma.SensorDataCreateInput = {
       deviceId: data.deviceId,
       timestamp: data.timestamp,
       accelX: data.accelX,
@@ -87,7 +95,7 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
     return data.map((d) => this.mapToSensorData(d));
   }
 
-  private mapToSensorData(data: any): SensorData {
+  private mapToSensorData(data: PrismaSensorDataWithDevice): SensorData {
     return {
       id: data.id,
       deviceId: data.deviceId,

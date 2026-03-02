@@ -2,9 +2,10 @@
  * Prisma User Repository Implementation
  */
 
-import { IUserRepository } from '../base';
-import { User } from '../../types';
-import prisma from '@/lib/prisma';
+import { IUserRepository } from "../base";
+import { FindOptions, User } from "../../types";
+import prisma from "@/lib/prisma";
+import type { User as PrismaUser } from "@prisma/client";
 
 export class PrismaUserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
@@ -24,7 +25,7 @@ export class PrismaUserRepository implements IUserRepository {
   async create(data: {
     email: string;
     passwordHash: string;
-    accountType: 'user' | 'caregiver';
+    accountType: "user" | "caregiver" | "admin";
     firstName?: string;
     lastName?: string;
     dob?: Date;
@@ -58,7 +59,7 @@ export class PrismaUserRepository implements IUserRepository {
     return this.mapToUser(user);
   }
 
-  async findAll(options?: any): Promise<User[]> {
+  async findAll(options?: FindOptions<User>): Promise<User[]> {
     const users = await prisma.user.findMany({
       skip: options?.skip,
       take: options?.take,
@@ -67,12 +68,20 @@ export class PrismaUserRepository implements IUserRepository {
     return users.map((u) => this.mapToUser(u));
   }
 
-  private mapToUser(user: any): User {
+  async count(): Promise<number> {
+    return await prisma.user.count();
+  }
+
+  async delete(id: string): Promise<void> {
+    await prisma.user.delete({ where: { id } });
+  }
+
+  private mapToUser(user: PrismaUser): User {
     return {
       id: user.id,
       email: user.email,
       passwordHash: user.passwordHash,
-      accountType: user.accountType as 'user' | 'caregiver',
+      accountType: user.accountType as "user" | "caregiver" | "admin",
       firstName: user.firstName,
       lastName: user.lastName,
       dob: user.dob,

@@ -17,13 +17,14 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
 import prisma from '@/lib/prisma';
+import type { Id } from '@/convex/_generated/dataModel';
 
-let idMappings = {
-  users: new Map<string, string>(),
-  patients: new Map<string, string>(),
-  caregivers: new Map<string, string>(),
-  devices: new Map<string, string>(),
-  falls: new Map<string, string>(),
+const idMappings = {
+  users: new Map<string, Id<'users'>>(),
+  patients: new Map<string, Id<'patients'>>(),
+  caregivers: new Map<string, Id<'caregivers'>>(),
+  devices: new Map<string, Id<'devices'>>(),
+  falls: new Map<string, Id<'falls'>>(),
 };
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
@@ -47,13 +48,13 @@ async function migrateUsers(): Promise<void> {
       const convexId = await client.mutation(api.users.create, {
         email: user.email,
         passwordHash: user.passwordHash,
-        accountType: user.accountType as 'user' | 'caregiver',
+        accountType: user.accountType as 'user' | 'caregiver' | 'admin',
         firstName: user.firstName || undefined,
         lastName: user.lastName || undefined,
         dob: user.dob ? user.dob.getTime() : undefined,
       });
 
-      idMappings.users.set(user.id, convexId as string);
+      idMappings.users.set(user.id, convexId as Id<'users'>);
       console.log(`   ✓ User ${user.email}`);
     } catch (error) {
       console.error(`   ✗ Error migrating user ${user.email}:`, error);
@@ -79,13 +80,13 @@ async function migratePatients(): Promise<void> {
       }
 
       const convexId = await client.mutation(api.patients.create, {
-        userId: userConvexId as any,
+        userId: userConvexId,
         riskScore: patient.riskScore,
         isHighRisk: patient.isHighRisk,
         medicalConditions: patient.medicalConditions || undefined,
       });
 
-      idMappings.patients.set(patient.id, convexId as string);
+      idMappings.patients.set(patient.id, convexId as Id<'patients'>);
       console.log(`   ✓ Patient ${patient.id}`);
     } catch (error) {
       console.error(`   ✗ Error migrating patient ${patient.id}:`, error);
@@ -111,12 +112,12 @@ async function migrateCaregiversTable(): Promise<void> {
       }
 
       const convexId = await client.mutation(api.caregivers.create, {
-        userId: userConvexId as any,
+        userId: userConvexId,
         specialization: caregiver.specialization || undefined,
         yearsOfExperience: caregiver.yearsOfExperience || undefined,
       });
 
-      idMappings.caregivers.set(caregiver.id, convexId as string);
+      idMappings.caregivers.set(caregiver.id, convexId as Id<'caregivers'>);
       console.log(`   ✓ Caregiver ${caregiver.id}`);
     } catch (error) {
       console.error(`   ✗ Error migrating caregiver ${caregiver.id}:`, error);
@@ -140,14 +141,14 @@ async function migrateDevices(): Promise<void> {
 
       const convexId = await client.mutation(api.devices.create, {
         deviceId: device.deviceId,
-        patientId: patientConvexId as any,
+        patientId: patientConvexId,
         deviceName: device.deviceName || undefined,
         isActive: device.isActive,
         batteryLevel: device.batteryLevel || undefined,
         firmwareVersion: device.firmwareVersion || undefined,
       });
 
-      idMappings.devices.set(device.id, convexId as string);
+      idMappings.devices.set(device.id, convexId as Id<'devices'>);
       console.log(`   ✓ Device ${device.deviceId}`);
     } catch (error) {
       console.error(`   ✗ Error migrating device ${device.deviceId}:`, error);
@@ -171,8 +172,8 @@ async function migrateFalls(): Promise<void> {
       const deviceConvexId = fall.deviceId ? idMappings.devices.get(fall.deviceId) : undefined;
 
       const convexId = await client.mutation(api.falls.create, {
-        patientId: patientConvexId as any,
-        deviceId: deviceConvexId as any,
+        patientId: patientConvexId,
+        deviceId: deviceConvexId,
         fallDatetime: fall.fallDatetime.getTime(),
         confidenceScore: fall.confidenceScore || undefined,
         confidenceLevel: fall.confidenceLevel || undefined,
@@ -184,7 +185,7 @@ async function migrateFalls(): Promise<void> {
         batteryLevel: fall.batteryLevel || undefined,
       });
 
-      idMappings.falls.set(fall.id, convexId as string);
+      idMappings.falls.set(fall.id, convexId as Id<'falls'>);
       console.log(`   ✓ Fall ${fall.id}`);
     } catch (error) {
       console.error(`   ✗ Error migrating fall ${fall.id}:`, error);
@@ -214,8 +215,8 @@ async function migrateCaregiverPatients(): Promise<void> {
       }
 
       await client.mutation(api.caregiverPatients.create, {
-        caregiverId: caregiverConvexId as any,
-        patientId: patientConvexId as any,
+        caregiverId: caregiverConvexId,
+        patientId: patientConvexId,
         isActive: assignment.isActive,
       });
 
@@ -250,7 +251,7 @@ async function migrateSensorData(): Promise<void> {
         }
 
         await client.mutation(api.sensorData.create, {
-          deviceId: deviceConvexId as any,
+          deviceId: deviceConvexId,
           timestamp: record.timestamp.getTime(),
           accelX: record.accelX,
           accelY: record.accelY,
@@ -293,7 +294,7 @@ async function migrateDeviceStatus(): Promise<void> {
         }
 
         await client.mutation(api.deviceStatus.create, {
-          deviceId: deviceConvexId as any,
+          deviceId: deviceConvexId,
           timestamp: record.timestamp.getTime(),
           batteryPercentage: record.batteryPercentage,
           wifiConnected: record.wifiConnected,

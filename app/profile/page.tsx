@@ -41,6 +41,9 @@ interface Profile {
 
 type AccountType = 'patient' | 'caregiver';
 
+type PatientProfile = Profile & { patient: NonNullable<Profile['patient']> };
+type CaregiverProfile = Profile & { caregiver: NonNullable<Profile['caregiver']> };
+
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -305,7 +308,7 @@ export default function ProfilePage() {
         {accountType === 'patient' && editedProfile.patient ? (
           <>
             <PatientProfileForm
-              profile={editedProfile as any}
+              profile={editedProfile as PatientProfile}
               isEditing={isEditing}
               onChange={handleFieldChange}
               errors={errors}
@@ -318,7 +321,7 @@ export default function ProfilePage() {
           </>
         ) : (
           <CaregiverProfileForm
-            profile={editedProfile as any}
+            profile={editedProfile as CaregiverProfile}
             isEditing={isEditing}
             onChange={handleFieldChange}
             errors={errors}
