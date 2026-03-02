@@ -5,6 +5,7 @@
 import { ISessionRepository } from '../base';
 import { Session } from '../../types';
 import prisma from '@/lib/prisma';
+import type { Session as PrismaSession } from '@prisma/client';
 
 export class PrismaSessionRepository implements ISessionRepository {
   async create(data: {
@@ -59,7 +60,7 @@ export class PrismaSessionRepository implements ISessionRepository {
     return result.count;
   }
 
-  private mapToSession(session: any): Session {
+  private mapToSession(session: PrismaSession): Session {
     return {
       id: session.id,
       userId: session.userId,

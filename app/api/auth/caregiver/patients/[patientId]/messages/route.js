@@ -41,9 +41,8 @@ export async function GET(req, context) {
       );
     }
 
-    // TODO: Implement messages repository in database adapter
-    // For now, return empty array
-    return NextResponse.json([]);
+    const messages = await db.messages.findByCaregiverAndPatient(caregiver.id, patientId);
+    return NextResponse.json(messages);
   } catch (error) {
     console.error('Error fetching patient messages:', error);
     return NextResponse.json(

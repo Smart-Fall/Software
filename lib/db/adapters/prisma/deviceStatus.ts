@@ -3,8 +3,13 @@
  */
 
 import { IDeviceStatusRepository } from '../base';
-import { DeviceStatus } from '../../types';
+import { DeviceStatus, FindOptions } from '../../types';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+
+type PrismaDeviceStatusWithDevice = Prisma.DeviceStatusGetPayload<{
+  include: { device: true };
+}>;
 
 export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
   async findById(id: string): Promise<DeviceStatus | null> {
@@ -15,7 +20,10 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
     return status ? this.mapToDeviceStatus(status) : null;
   }
 
-  async findByDeviceId(deviceId: string, options?: any): Promise<DeviceStatus[]> {
+  async findByDeviceId(
+    deviceId: string,
+    options?: FindOptions<DeviceStatus>,
+  ): Promise<DeviceStatus[]> {
     const statuses = await prisma.deviceStatus.findMany({
       where: { deviceId },
       include: { device: true },
@@ -71,7 +79,7 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
     return this.mapToDeviceStatus(status);
   }
 
-  private mapToDeviceStatus(status: any): DeviceStatus {
+  private mapToDeviceStatus(status: PrismaDeviceStatusWithDevice): DeviceStatus {
     return {
       id: status.id,
       deviceId: status.deviceId,

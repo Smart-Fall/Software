@@ -39,3 +39,9 @@ next-env.d.ts
 
 # prisma
 /prisma/migrations/migration_lock.toml
+
+# vscode
+.vscode
+
+# playwright-mcp
+.playwright-mcp

@@ -78,6 +78,14 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                     Dashboard
                   </Button>
                 )}
+                {user.accountType === "admin" && (
+                  <Button
+                    variant={isActive("/admin") ? "default" : "ghost"}
+                    onClick={() => handleNavigation("/admin")}
+                  >
+                    Admin Dashboard
+                  </Button>
+                )}
                 {onLogout && (
                   <Button
                     variant="outline"
@@ -158,6 +166,15 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                       className="w-full justify-start"
                     >
                       Dashboard
+                    </Button>
+                  )}
+                  {user.accountType === "admin" && (
+                    <Button
+                      variant={isActive("/admin") ? "default" : "ghost"}
+                      onClick={() => handleNavigation("/admin")}
+                      className="w-full justify-start"
+                    >
+                      Admin Dashboard
                     </Button>
                   )}
                   {onLogout && (

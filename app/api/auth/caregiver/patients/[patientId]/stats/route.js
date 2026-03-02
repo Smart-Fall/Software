@@ -41,9 +41,10 @@ export async function GET(req, context) {
       );
     }
 
-    // Get patient and falls data
+    // Get patient, falls, and messages data
     const patient = await db.patients.findById(patientId);
     const allFalls = await db.falls.findByPatientId(patientId);
+    const allMessages = await db.messages.findByCaregiverAndPatient(caregiver.id, patientId);
 
     // Calculate statistics
     const now = new Date();
@@ -61,8 +62,8 @@ export async function GET(req, context) {
 
     const stats = {
       totalAlerts: allFalls.length,
-      totalMessages: 0, // TODO: implement messages repository
-      unreadMessages: 0, // TODO: implement messages repository
+      totalMessages: allMessages.length,
+      unreadMessages: allMessages.filter((m) => !m.isRead).length,
       currentHealthScore: patient ? Math.max(0, 100 - (patient.riskScore || 0)) : 0,
       fallsThisWeek,
       fallsThisMonth,

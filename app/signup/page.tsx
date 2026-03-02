@@ -77,12 +77,12 @@ export default function SignUpPage() {
     medicalConditions: faker.lorem.sentence(3),
     initialHealthScore: String(faker.number.int({ min: 60, max: 90 })),
     deviceMacAddress: [
-      faker.string.hexadecimal({ length: 2 }),
-      faker.string.hexadecimal({ length: 2 }),
-      faker.string.hexadecimal({ length: 2 }),
-      faker.string.hexadecimal({ length: 2 }),
-      faker.string.hexadecimal({ length: 2 }),
-      faker.string.hexadecimal({ length: 2 }),
+      faker.string.hexadecimal({ length: 2, prefix: '' }),
+      faker.string.hexadecimal({ length: 2, prefix: '' }),
+      faker.string.hexadecimal({ length: 2, prefix: '' }),
+      faker.string.hexadecimal({ length: 2, prefix: '' }),
+      faker.string.hexadecimal({ length: 2, prefix: '' }),
+      faker.string.hexadecimal({ length: 2, prefix: '' }),
     ]
       .join(":")
       .toUpperCase(),
@@ -619,7 +619,7 @@ export default function SignUpPage() {
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      You'll find this as "Device ID" in your device's serial output
+                      You&apos;ll find this as &quot;Device ID&quot; in your device&apos;s serial output
                     </p>
                   </div>
                 </div>

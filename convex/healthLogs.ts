@@ -113,7 +113,7 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const { id, ...data } = args;
-    const updateData: any = {};
+    const updateData: Partial<{ healthScore: number; recordedAt: number }> = {};
 
     if (data.healthScore !== undefined) {
       updateData.healthScore = data.healthScore;

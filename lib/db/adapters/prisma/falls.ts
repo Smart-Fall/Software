@@ -3,8 +3,13 @@
  */
 
 import { IFallRepository } from '../base';
-import { Fall } from '../../types';
+import { FindOptions, Fall } from '../../types';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+
+type PrismaFallWithRelations = Prisma.FallGetPayload<{
+  include: { patient: true; device: true };
+}>;
 
 export class PrismaFallRepository implements IFallRepository {
   async create(data: {
@@ -47,7 +52,7 @@ export class PrismaFallRepository implements IFallRepository {
     return fall ? this.mapToFall(fall) : null;
   }
 
-  async findMany(options?: any): Promise<Fall[]> {
+  async findMany(options?: FindOptions<Fall>): Promise<Fall[]> {
     const falls = await prisma.fall.findMany({
       where: options?.where,
       include: { patient: true, device: true },
@@ -114,7 +119,7 @@ export class PrismaFallRepository implements IFallRepository {
     return await prisma.fall.count();
   }
 
-  private mapToFall(fall: any): Fall {
+  private mapToFall(fall: PrismaFallWithRelations): Fall {
     return {
       id: fall.id,
       patientId: fall.patientId,

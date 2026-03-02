@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -85,13 +85,7 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
   // FIX: Change this from '/api' to '/api/auth'
   const API_BASE_URL = '/api/auth';
 
-  useEffect(() => {
-    if (patient && open) {
-      fetchPatientDetails();
-    }
-  }, [patient, open]);
-
-  const fetchPatientDetails = async () => {
+  const fetchPatientDetails = useCallback(async () => {
     if (!patient) return;
     
     setIsLoading(true);
@@ -174,7 +168,13 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [API_BASE_URL, patient]);
+
+  useEffect(() => {
+    if (patient && open) {
+      fetchPatientDetails();
+    }
+  }, [fetchPatientDetails, open, patient]);
 
   const calculateAge = (dob: string): number => {
     const birthDate = new Date(dob);

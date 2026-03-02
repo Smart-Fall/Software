@@ -5,6 +5,12 @@
 import { ICaregiverPatientRepository } from '../base';
 import { CaregiverPatient } from '../../types';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+
+type PrismaCaregiverPatientResult = Prisma.CaregiverPatient & {
+  caregiver?: Prisma.Caregiver | null;
+  patient?: Prisma.Patient | null;
+};
 
 export class PrismaCaregiverPatientRepository implements ICaregiverPatientRepository {
   async create(data: {
@@ -81,7 +87,9 @@ export class PrismaCaregiverPatientRepository implements ICaregiverPatientReposi
     });
   }
 
-  private mapToCaregiverPatient(assignment: any): CaregiverPatient {
+  private mapToCaregiverPatient(
+    assignment: PrismaCaregiverPatientResult,
+  ): CaregiverPatient {
     return {
       id: assignment.id,
       caregiverId: assignment.caregiverId,

@@ -3,8 +3,8 @@
  * Defines all tables and indexes for the SmartFall application
  */
 
-import { defineSchema, defineTable } from 'convex/server';
-import { v } from 'convex/values';
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
 
 export default defineSchema({
   // ============================================================================
@@ -14,15 +14,19 @@ export default defineSchema({
     externalId: v.string(), // Original Prisma UUID for migration
     email: v.string(),
     passwordHash: v.string(),
-    accountType: v.union(v.literal('user'), v.literal('caregiver')),
+    accountType: v.union(
+      v.literal("user"),
+      v.literal("caregiver"),
+      v.literal("admin"),
+    ),
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
     dob: v.optional(v.number()), // Unix timestamp
     isActive: v.boolean(),
     createdAt: v.number(), // Unix timestamp
   })
-    .index('by_email', ['email'])
-    .index('by_external_id', ['externalId']),
+    .index("by_email", ["email"])
+    .index("by_external_id", ["externalId"]),
 
   // ============================================================================
   // Sessions Table
@@ -35,9 +39,9 @@ export default defineSchema({
     createdAt: v.number(), // Unix timestamp
     expiresAt: v.optional(v.number()), // Unix timestamp
   })
-    .index('by_token', ['sessionToken'])
-    .index('by_user_id', ['userId'])
-    .index('by_external_user_id', ['externalUserId']),
+    .index("by_token", ["sessionToken"])
+    .index("by_user_id", ["userId"])
+    .index("by_external_user_id", ["externalUserId"]),
 
   // ============================================================================
   // Patients Table
@@ -51,8 +55,8 @@ export default defineSchema({
     medicalConditions: v.optional(v.string()),
     createdAt: v.number(), // Unix timestamp
   })
-    .index('by_user_id', ['userId'])
-    .index('by_external_user_id', ['externalUserId']),
+    .index("by_user_id", ["userId"])
+    .index("by_external_user_id", ["externalUserId"]),
 
   // ============================================================================
   // Caregivers Table
@@ -66,8 +70,8 @@ export default defineSchema({
     yearsOfExperience: v.optional(v.number()),
     createdAt: v.number(), // Unix timestamp
   })
-    .index('by_user_id', ['userId'])
-    .index('by_external_user_id', ['externalUserId']),
+    .index("by_user_id", ["userId"])
+    .index("by_external_user_id", ["externalUserId"]),
 
   // ============================================================================
   // CaregiverPatient Assignments
@@ -81,10 +85,10 @@ export default defineSchema({
     assignedDate: v.number(), // Unix timestamp
     isActive: v.boolean(),
   })
-    .index('by_caregiver_id', ['caregiverId'])
-    .index('by_patient_id', ['patientId'])
-    .index('by_external_caregiver_id', ['externalCaregiverId'])
-    .index('by_external_patient_id', ['externalPatientId']),
+    .index("by_caregiver_id", ["caregiverId"])
+    .index("by_patient_id", ["patientId"])
+    .index("by_external_caregiver_id", ["externalCaregiverId"])
+    .index("by_external_patient_id", ["externalPatientId"]),
 
   // ============================================================================
   // Falls Table
@@ -108,12 +112,12 @@ export default defineSchema({
     resolvedAt: v.optional(v.number()), // Unix timestamp
     createdAt: v.number(), // Unix timestamp
   })
-    .index('by_patient_id', ['patientId'])
-    .index('by_device_id', ['deviceId'])
-    .index('by_external_patient_id', ['externalPatientId'])
-    .index('by_external_device_id', ['externalDeviceId'])
-    .index('by_created_at', ['createdAt'])
-    .index('by_resolved', ['resolved']),
+    .index("by_patient_id", ["patientId"])
+    .index("by_device_id", ["deviceId"])
+    .index("by_external_patient_id", ["externalPatientId"])
+    .index("by_external_device_id", ["externalDeviceId"])
+    .index("by_created_at", ["createdAt"])
+    .index("by_resolved", ["resolved"]),
 
   // ============================================================================
   // Devices Table
@@ -130,9 +134,9 @@ export default defineSchema({
     firmwareVersion: v.optional(v.string()),
     createdAt: v.number(), // Unix timestamp
   })
-    .index('by_device_id', ['deviceId'])
-    .index('by_patient_id', ['patientId'])
-    .index('by_external_patient_id', ['externalPatientId']),
+    .index("by_device_id", ["deviceId"])
+    .index("by_patient_id", ["patientId"])
+    .index("by_external_patient_id", ["externalPatientId"]),
 
   // ============================================================================
   // Sensor Data (Time Series)
@@ -151,9 +155,9 @@ export default defineSchema({
     pressure: v.optional(v.number()),
     fsr: v.optional(v.number()),
   })
-    .index('by_device_id', ['deviceId'])
-    .index('by_external_device_id', ['externalDeviceId'])
-    .index('by_device_timestamp', ['deviceId', 'timestamp']),
+    .index("by_device_id", ["deviceId"])
+    .index("by_external_device_id", ["externalDeviceId"])
+    .index("by_device_timestamp", ["deviceId", "timestamp"]),
 
   // ============================================================================
   // Device Status (Time Series)
@@ -170,9 +174,9 @@ export default defineSchema({
     uptimeMs: v.number(),
     currentStatus: v.optional(v.string()),
   })
-    .index('by_device_id', ['deviceId'])
-    .index('by_external_device_id', ['externalDeviceId'])
-    .index('by_device_timestamp', ['deviceId', 'timestamp']),
+    .index("by_device_id", ["deviceId"])
+    .index("by_external_device_id", ["externalDeviceId"])
+    .index("by_device_timestamp", ["deviceId", "timestamp"]),
 
   // ============================================================================
   // Health Logs (Time Series)
@@ -184,7 +188,24 @@ export default defineSchema({
     healthScore: v.number(),
     recordedAt: v.number(), // Unix timestamp
   })
-    .index('by_patient_id', ['patientId'])
-    .index('by_external_patient_id', ['externalPatientId'])
-    .index('by_patient_recorded_at', ['patientId', 'recordedAt']),
+    .index("by_patient_id", ["patientId"])
+    .index("by_external_patient_id", ["externalPatientId"])
+    .index("by_patient_recorded_at", ["patientId", "recordedAt"]),
+
+  // ============================================================================
+  // Messages (Caregiver → Patient)
+  // ============================================================================
+  messages: defineTable({
+    caregiverId: v.string(), // Convex ID reference
+    patientId: v.string(), // Convex ID reference
+    subject: v.optional(v.string()),
+    messageText: v.string(),
+    isRead: v.boolean(),
+    isUrgent: v.boolean(),
+    sentAt: v.number(), // Unix timestamp
+    readAt: v.optional(v.number()), // Unix timestamp, set on read
+  })
+    .index("by_patient_id", ["patientId"])
+    .index("by_caregiver_id", ["caregiverId"])
+    .index("by_caregiver_patient", ["caregiverId", "patientId"]),
 });

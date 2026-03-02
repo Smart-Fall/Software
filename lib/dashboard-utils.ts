@@ -1,5 +1,22 @@
 import { Battery, BatteryLow, BatteryMedium, BatteryFull } from 'lucide-react';
 
+type FallLike = {
+  fallDatetime?: string | Date;
+  fall_datetime?: string | Date;
+};
+
+type PatientNameLike = {
+  firstName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+};
+
+type PatientRiskLike = PatientNameLike & {
+  riskScore?: number;
+  risk_score?: number;
+};
+
 // Time formatting utilities
 export const formatLastSeen = (lastSeen: string | null): string => {
   if (!lastSeen) return 'Never';
@@ -109,7 +126,7 @@ export interface FallTrendDataPoint {
   falls: number;
 }
 
-export const formatFallTrendData = (falls: any[]): FallTrendDataPoint[] => {
+export const formatFallTrendData = (falls: FallLike[]): FallTrendDataPoint[] => {
   // Group falls by date over last 30 days
   const last30Days = new Date();
   last30Days.setDate(last30Days.getDate() - 30);
@@ -125,8 +142,10 @@ export const formatFallTrendData = (falls: any[]): FallTrendDataPoint[] => {
   }
 
   // Count falls by date
-  falls.forEach((fall: any) => {
-    const fallDate = new Date(fall.fallDatetime).toISOString().split('T')[0];
+  falls.forEach((fall) => {
+    const fallDateValue = fall.fallDatetime ?? fall.fall_datetime;
+    if (!fallDateValue) return;
+    const fallDate = new Date(fallDateValue).toISOString().split('T')[0];
     if (fallsByDate.hasOwnProperty(fallDate)) {
       fallsByDate[fallDate]++;
     }
@@ -152,7 +171,7 @@ export const calculateAge = (dob: string): number => {
 };
 
 // Sorting utilities
-export const sortPatientsByRisk = (patients: any[]): any[] => {
+export const sortPatientsByRisk = (patients: PatientRiskLike[]): PatientRiskLike[] => {
   return [...patients].sort((a, b) => {
     const scoreA = a.riskScore || a.risk_score || 0;
     const scoreB = b.riskScore || b.risk_score || 0;
@@ -160,7 +179,7 @@ export const sortPatientsByRisk = (patients: any[]): any[] => {
   });
 };
 
-export const sortPatientsByName = (patients: any[]): any[] => {
+export const sortPatientsByName = (patients: PatientRiskLike[]): PatientRiskLike[] => {
   return [...patients].sort((a, b) => {
     const nameA = `${a.firstName || a.first_name} ${a.lastName || a.last_name}`.toLowerCase();
     const nameB = `${b.firstName || b.first_name} ${b.lastName || b.last_name}`.toLowerCase();
@@ -169,19 +188,19 @@ export const sortPatientsByName = (patients: any[]): any[] => {
 };
 
 // Filtering utilities
-export const filterPatientsBySearch = (patients: any[], query: string): any[] => {
+export const filterPatientsBySearch = (patients: PatientRiskLike[], query: string): PatientRiskLike[] => {
   if (!query) return patients;
   const lowerQuery = query.toLowerCase();
-  return patients.filter((patient: any) => {
+  return patients.filter((patient) => {
     const firstName = (patient.firstName || patient.first_name || '').toLowerCase();
     const lastName = (patient.lastName || patient.last_name || '').toLowerCase();
     return firstName.includes(lowerQuery) || lastName.includes(lowerQuery);
   });
 };
 
-export const filterPatientsByRisk = (patients: any[], riskLevel: 'all' | 'low' | 'medium' | 'high'): any[] => {
+export const filterPatientsByRisk = (patients: PatientRiskLike[], riskLevel: 'all' | 'low' | 'medium' | 'high'): PatientRiskLike[] => {
   if (riskLevel === 'all') return patients;
-  return patients.filter((patient: any) => {
+  return patients.filter((patient) => {
     const score = patient.riskScore || patient.risk_score || 0;
     return getRiskLevel(score) === riskLevel;
   });
