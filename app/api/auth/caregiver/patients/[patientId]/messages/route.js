@@ -46,7 +46,7 @@ export async function GET(req, context) {
   } catch (error) {
     console.error('Error fetching patient messages:', error);
     return NextResponse.json(
-      { error: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -319,13 +319,19 @@ export default function ProfilePage() {
               <DeviceProfileCard patientId={editedProfile.patient.id} />
             </div>
           </>
-        ) : (
+        ) : accountType === 'caregiver' && editedProfile.caregiver ? (
           <CaregiverProfileForm
             profile={editedProfile as CaregiverProfile}
             isEditing={isEditing}
             onChange={handleFieldChange}
             errors={errors}
           />
+        ) : (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-amber-800">
+              Caregiver profile data is missing. Please contact support.
+            </p>
+          </div>
         )}
 
         {/* Cancel Confirmation Dialog */}

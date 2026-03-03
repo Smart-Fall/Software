@@ -120,6 +120,7 @@ export const bulkCreate = mutation({
         gyroY: v.number(),
         gyroZ: v.number(),
         pressure: v.optional(v.number()),
+        fsr: v.optional(v.number()),
       })
     ),
   },
@@ -143,6 +144,7 @@ export const bulkCreate = mutation({
         gyroY: record.gyroY,
         gyroZ: record.gyroZ,
         pressure: record.pressure,
+        fsr: record.fsr,
       });
       ids.push(id);
     }

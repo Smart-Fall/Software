@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import {
   Table,
   TableBody,
@@ -192,10 +192,10 @@ export function FallsTable({ falls, total, onRefresh }: FallsTableProps) {
                         : "Unknown"}
                     </TableCell>
                     <TableCell>
-                      {format(
+                      {isValid(new Date(fall.fallDatetime)) ? format(
                         new Date(fall.fallDatetime),
                         "MMM d, yyyy h:mm a",
-                      )}
+                      ) : "-"}
                     </TableCell>
                     <TableCell>{getSeverityBadge(fall.severity)}</TableCell>
                     <TableCell>

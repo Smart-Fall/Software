@@ -114,13 +114,16 @@ export async function POST(request: Request) {
         medicalConditions,
       });
     } else if (accountType === "caregiver") {
+      let parsedYears: number | undefined = undefined;
+      if (yearsOfExperience) {
+        const parsed = parseInt(yearsOfExperience, 10);
+        parsedYears = Number.isNaN(parsed) ? undefined : parsed;
+      }
       await dbService.caregivers.create({
         userId: user.id,
         facilityName,
         specialization,
-        yearsOfExperience: yearsOfExperience
-          ? parseInt(yearsOfExperience)
-          : undefined,
+        yearsOfExperience: parsedYears,
       });
     }
 

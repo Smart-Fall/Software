@@ -181,8 +181,8 @@ export const sortPatientsByRisk = (patients: PatientRiskLike[]): PatientRiskLike
 
 export const sortPatientsByName = (patients: PatientRiskLike[]): PatientRiskLike[] => {
   return [...patients].sort((a, b) => {
-    const nameA = `${a.firstName || a.first_name} ${a.lastName || a.last_name}`.toLowerCase();
-    const nameB = `${b.firstName || b.first_name} ${b.lastName || b.last_name}`.toLowerCase();
+    const nameA = `${a.firstName || a.first_name || ''} ${a.lastName || a.last_name || ''}`.toLowerCase();
+    const nameB = `${b.firstName || b.first_name || ''} ${b.lastName || b.last_name || ''}`.toLowerCase();
     return nameA.localeCompare(nameB);
   });
 };

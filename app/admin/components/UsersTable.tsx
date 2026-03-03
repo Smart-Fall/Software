@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import {
   Table,
   TableBody,
@@ -300,7 +300,7 @@ export function UsersTable({ users, total, onRefresh }: UsersTableProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      {format(new Date(user.createdAt), "MMM d, yyyy")}
+                      {isValid(new Date(user.createdAt)) ? format(new Date(user.createdAt), "MMM d, yyyy") : "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
