@@ -102,7 +102,7 @@ export default function UserDashboard() {
 
       // Trigger notification only when unread count increases
       if (newUnread > prevUnreadCountRef.current) {
-        const newest = data.find((m) => !m.isRead) ?? null;
+        const newest = [...data].filter(m => !m.isRead).sort((a,b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())[0] ?? null;
         setLatestMessage(newest);
         setShowNotification(true);
 

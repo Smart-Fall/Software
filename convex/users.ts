@@ -109,6 +109,7 @@ export const update = mutation({
     lastName: v.optional(v.string()),
     dob: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
+    accountType: v.optional(v.union(v.literal("user"), v.literal("caregiver"), v.literal("admin"))),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;

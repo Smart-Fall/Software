@@ -87,21 +87,20 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
 
   const fetchPatientDetails = useCallback(async () => {
     if (!patient) return;
-    
+
+    const controller = new AbortController();
+
     setIsLoading(true);
     try {
       const patientId = patient.id || patient.patient_id;
 
-      console.log('Fetching details for patient:', patientId); // Debug log
-
       // Fetch daily scores (last 7 days)
       const scoresRes = await fetch(
         `${API_BASE_URL}/caregiver/patients/${patientId}/daily-scores`,
-        { credentials: 'include' }
+        { credentials: 'include', signal: controller.signal }
       );
       if (scoresRes.ok) {
         const scoresData = await scoresRes.json();
-        console.log('Daily scores:', scoresData); // Debug log
         setDailyScores(scoresData);
       } else {
         console.error('Failed to fetch daily scores:', scoresRes.status);
@@ -110,11 +109,10 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
       // Fetch alerts
       const alertsRes = await fetch(
         `${API_BASE_URL}/caregiver/patients/${patientId}/alerts`,
-        { credentials: 'include' }
+        { credentials: 'include', signal: controller.signal }
       );
       if (alertsRes.ok) {
         const alertsData = await alertsRes.json();
-        console.log('Alerts:', alertsData); // Debug log
         setAlerts(alertsData);
       } else {
         console.error('Failed to fetch alerts:', alertsRes.status);
@@ -123,11 +121,10 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
       // Fetch messages sent to this patient
       const messagesRes = await fetch(
         `${API_BASE_URL}/caregiver/patients/${patientId}/messages`,
-        { credentials: 'include' }
+        { credentials: 'include', signal: controller.signal }
       );
       if (messagesRes.ok) {
         const messagesData = await messagesRes.json();
-        console.log('Messages:', messagesData); // Debug log
         setMessages(messagesData);
       } else {
         console.error('Failed to fetch messages:', messagesRes.status);
@@ -136,11 +133,10 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
       // Fetch patient stats
       const statsRes = await fetch(
         `${API_BASE_URL}/caregiver/patients/${patientId}/stats`,
-        { credentials: 'include' }
+        { credentials: 'include', signal: controller.signal }
       );
       if (statsRes.ok) {
         const statsData = await statsRes.json();
-        console.log('Stats:', statsData); // Debug log
         setStats(statsData);
       } else {
         console.error('Failed to fetch stats:', statsRes.status);
@@ -149,22 +145,20 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
       // Fetch current location
       const locationRes = await fetch(
         `${API_BASE_URL}/caregiver/patients/${patientId}/location`,
-        { credentials: 'include' }
+        { credentials: 'include', signal: controller.signal }
       );
-      
-      console.log('Location response status:', locationRes.status);
-      
+
       if (locationRes.ok) {
         const locationData = await locationRes.json();
-        console.log('Location data received:', locationData);
         setLocation(locationData);
       } else {
-        console.log('No location data available for patient');
         setLocation(null);
       }
 
     } catch (error) {
-      console.error('Error fetching patient details:', error);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Error fetching patient details:', error);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -173,8 +167,11 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
   useEffect(() => {
     if (patient && open) {
       fetchPatientDetails();
+    } else if (!patient || !open) {
+      // Cleanup: abort any pending requests
     }
   }, [fetchPatientDetails, open, patient]);
+
 
   const calculateAge = (dob: string): number => {
     const birthDate = new Date(dob);

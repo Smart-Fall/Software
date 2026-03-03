@@ -142,7 +142,7 @@ export function AssignmentsTable({
     if (!selectedAssignment) return;
     try {
       const res = await fetch(
-        `/api/admin/assignments/${selectedAssignment.id}?caregiverId=${selectedAssignment.caregiverId}&patientId=${selectedAssignment.patientId}`,
+        `/api/admin/assignments/${selectedAssignment.id}?caregiverId=${encodeURIComponent(selectedAssignment.caregiverId)}&patientId=${encodeURIComponent(selectedAssignment.patientId)}`,
         {
           method: "DELETE",
           credentials: "include",
