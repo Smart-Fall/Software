@@ -43,6 +43,8 @@ export async function POST(request: Request) {
         gyroZ: data.gyro_z || 0,
         pressure: data.pressure || null,
         fsr: data.fsr || null,
+        heartRate: data.heart_rate != null ? Number(data.heart_rate) : undefined,
+        spo2: data.spo2 != null ? Number(data.spo2) : undefined,
       });
     }
 
@@ -68,7 +70,7 @@ export async function POST(request: Request) {
         wifiConnected: data.wifi_connected !== false,
         bluetoothConnected: data.bluetooth_connected !== false,
         sensorsInitialized: data.sensors_initialized !== false,
-        uptimeMs: BigInt(data.uptime_ms || 0),
+        uptimeMs: BigInt(Math.floor(Number.isFinite(Number(data.uptime_ms)) ? Number(data.uptime_ms) : 0)),
         currentStatus: data.status || 'active',
       });
     }

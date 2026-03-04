@@ -151,6 +151,8 @@ model SensorData {
   gyroZ     Float    @map("gyro_z")
   pressure  Float?
   fsr       Float?   @map("fsr")
+  heartRate Int?     @map("heart_rate")
+  spo2      Int?     @map("spo2")
 
   device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 

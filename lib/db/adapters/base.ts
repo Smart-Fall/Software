@@ -189,6 +189,8 @@ export interface ISensorDataRepository {
     gyroZ: number;
     pressure?: number;
     fsr?: number;
+    heartRate?: number;
+    spo2?: number;
   }): Promise<SensorData>;
   findBetween(
     deviceId: string,
