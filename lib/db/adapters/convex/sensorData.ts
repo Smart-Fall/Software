@@ -20,6 +20,8 @@ type ConvexSensorData = {
   gyroZ: number;
   pressure?: number;
   fsr?: number;
+  heartRate?: number;
+  spo2?: number;
   device?: SensorData['device'];
 };
 
@@ -82,10 +84,12 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
     gyroZ: number;
     pressure?: number;
     fsr?: number;
+    heartRate?: number;
+    spo2?: number;
   }): Promise<SensorData> {
     try {
-      const mutationData: Record<string, unknown> = {
-        deviceId: data.deviceId,
+      const sensorDataId = await this.client.mutation(api.sensorData.create, {
+        deviceId: data.deviceId as Id<'devices'>,
         timestamp: data.timestamp.getTime(),
         accelX: data.accelX,
         accelY: data.accelY,
@@ -94,14 +98,10 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
         gyroY: data.gyroY,
         gyroZ: data.gyroZ,
         pressure: data.pressure,
-      };
-
-      // Note: FSR support requires Convex backend mutation updates
-      if (data.fsr !== undefined) {
-        mutationData.fsr = data.fsr;
-      }
-
-      const sensorDataId = await this.client.mutation(api.sensorData.create, mutationData);
+        fsr: data.fsr,
+        heartRate: data.heartRate,
+        spo2: data.spo2,
+      });
 
       const sensorData = await this.client.query(api.sensorData.getById, {
         id: sensorDataId as Id<'sensorData'>,
@@ -141,6 +141,8 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
       gyroZ: data.gyroZ,
       pressure: data.pressure,
       fsr: data.fsr,
+      heartRate: data.heartRate,
+      spo2: data.spo2,
       device: data.device,
     };
   }

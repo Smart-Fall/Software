@@ -154,6 +154,8 @@ export default defineSchema({
     gyroZ: v.number(),
     pressure: v.optional(v.number()),
     fsr: v.optional(v.number()),
+    heartRate: v.optional(v.number()),
+    spo2: v.optional(v.number()),
   })
     .index("by_device_id", ["deviceId"])
     .index("by_external_device_id", ["externalDeviceId"])

@@ -83,6 +83,8 @@ export const create = mutation({
     gyroZ: v.number(),
     pressure: v.optional(v.number()),
     fsr: v.optional(v.number()),
+    heartRate: v.optional(v.number()),
+    spo2: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const device = await ctx.db.get(args.deviceId);
@@ -103,6 +105,8 @@ export const create = mutation({
       gyroZ: args.gyroZ,
       pressure: args.pressure,
       fsr: args.fsr,
+      heartRate: args.heartRate,
+      spo2: args.spo2,
     });
   },
 });
@@ -121,6 +125,8 @@ export const bulkCreate = mutation({
         gyroZ: v.number(),
         pressure: v.optional(v.number()),
         fsr: v.optional(v.number()),
+        heartRate: v.optional(v.number()),
+        spo2: v.optional(v.number()),
       })
     ),
   },
@@ -145,6 +151,8 @@ export const bulkCreate = mutation({
         gyroZ: record.gyroZ,
         pressure: record.pressure,
         fsr: record.fsr,
+        heartRate: record.heartRate,
+        spo2: record.spo2,
       });
       ids.push(id);
     }

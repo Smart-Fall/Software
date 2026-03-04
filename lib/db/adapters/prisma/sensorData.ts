@@ -55,6 +55,8 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
     gyroZ: number;
     pressure?: number;
     fsr?: number;
+    heartRate?: number;
+    spo2?: number;
   }): Promise<SensorData> {
     const createData: Prisma.SensorDataCreateInput = {
       deviceId: data.deviceId,
@@ -66,12 +68,10 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
       gyroY: data.gyroY,
       gyroZ: data.gyroZ,
       pressure: data.pressure,
+      fsr: data.fsr,
+      heartRate: data.heartRate,
+      spo2: data.spo2,
     };
-
-    // Note: FSR support requires Prisma schema migration
-    if (data.fsr !== undefined) {
-      createData.fsr = data.fsr;
-    }
 
     const sensorData = await prisma.sensorData.create({
       data: createData,
@@ -96,6 +96,8 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
   }
 
   private mapToSensorData(data: PrismaSensorDataWithDevice): SensorData {
+    // Cast to access heartRate/spo2 which are in the schema but require `prisma generate` to appear in the generated types
+    const d = data as typeof data & { heartRate?: number | null; spo2?: number | null };
     return {
       id: data.id,
       deviceId: data.deviceId,
@@ -108,6 +110,8 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
       gyroZ: data.gyroZ,
       pressure: data.pressure,
       fsr: data.fsr,
+      heartRate: d.heartRate ?? undefined,
+      spo2: d.spo2 ?? undefined,
       device: data.device,
     };
   }
