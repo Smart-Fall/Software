@@ -25,7 +25,7 @@ export class ConvexHealthLogRepository implements IHealthLogRepository {
   }): Promise<HealthLog> {
     try {
       const healthLogId = await this.client.mutation(api.healthLogs.create, {
-        patientId: data.patientId,
+        patientId: data.patientId as unknown as Id<'patients'>,
         healthScore: data.healthScore,
         recordedAt: data.recordedAt?.getTime() || Date.now(),
       });
@@ -56,7 +56,7 @@ export class ConvexHealthLogRepository implements IHealthLogRepository {
   async findByPatientId(patientId: string): Promise<HealthLog[]> {
     try {
       const healthLogs = await this.client.query(api.healthLogs.getByPatientId, {
-        patientId,
+        patientId: patientId as unknown as Id<'patients'>,
       });
       return (healthLogs as ConvexHealthLog[]).map((h) => this.mapToHealthLog(h));
     } catch (error) {
@@ -68,7 +68,7 @@ export class ConvexHealthLogRepository implements IHealthLogRepository {
   async findRecent(patientId: string, limit: number): Promise<HealthLog[]> {
     try {
       const healthLogs = await this.client.query(api.healthLogs.getRecent, {
-        patientId,
+        patientId: patientId as unknown as Id<'patients'>,
         limit,
       });
       return (healthLogs as ConvexHealthLog[]).map((h) => this.mapToHealthLog(h));
@@ -81,7 +81,7 @@ export class ConvexHealthLogRepository implements IHealthLogRepository {
   async findBetween(patientId: string, startDate: Date, endDate: Date): Promise<HealthLog[]> {
     try {
       const healthLogs = await this.client.query(api.healthLogs.getBetween, {
-        patientId,
+        patientId: patientId as unknown as Id<'patients'>,
         startTime: startDate.getTime(),
         endTime: endDate.getTime(),
       });

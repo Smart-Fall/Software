@@ -3,7 +3,7 @@
  */
 
 import { ISensorDataRepository } from '../base';
-import { FindOptions, SensorData } from '../../types';
+import { Device, FindOptions, SensorData } from '../../types';
 import prisma from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 
@@ -29,7 +29,7 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
       include: { device: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy || { timestamp: 'desc' },
+      orderBy: (options?.orderBy || { timestamp: 'desc' }) as Prisma.SensorDataOrderByWithRelationInput,
     });
     return data.map((d) => this.mapToSensorData(d));
   }
@@ -59,7 +59,7 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
     spo2?: number;
   }): Promise<SensorData> {
     const createData: Prisma.SensorDataCreateInput = {
-      deviceId: data.deviceId,
+      device: { connect: { id: data.deviceId } },
       timestamp: data.timestamp,
       accelX: data.accelX,
       accelY: data.accelY,
@@ -108,11 +108,11 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
       gyroX: data.gyroX,
       gyroY: data.gyroY,
       gyroZ: data.gyroZ,
-      pressure: data.pressure,
-      fsr: data.fsr,
+      pressure: data.pressure ?? undefined,
+      fsr: data.fsr ?? undefined,
       heartRate: d.heartRate ?? undefined,
       spo2: d.spo2 ?? undefined,
-      device: data.device,
+      device: data.device as unknown as Device | undefined,
     };
   }
 }

@@ -3,7 +3,7 @@
  */
 
 import { ICaregiverRepository } from "../base";
-import { Caregiver, FindOptions } from "../../types";
+import { Caregiver, FindOptions, User } from "../../types";
 import prisma from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
@@ -65,7 +65,7 @@ export class PrismaCaregiverRepository implements ICaregiverRepository {
       include: { user: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy,
+      orderBy: options?.orderBy as Prisma.CaregiverOrderByWithRelationInput | undefined,
     });
     return caregivers.map((c) => this.mapToCaregiver(c));
   }
@@ -78,11 +78,11 @@ export class PrismaCaregiverRepository implements ICaregiverRepository {
     return {
       id: caregiver.id,
       userId: caregiver.userId,
-      facilityName: caregiver.facilityName,
-      specialization: caregiver.specialization,
-      yearsOfExperience: caregiver.yearsOfExperience,
+      facilityName: caregiver.facilityName ?? undefined,
+      specialization: caregiver.specialization ?? undefined,
+      yearsOfExperience: caregiver.yearsOfExperience ?? undefined,
       createdAt: caregiver.createdAt,
-      user: caregiver.user,
+      user: caregiver.user as unknown as User,
     };
   }
 }

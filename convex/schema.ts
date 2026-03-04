@@ -195,6 +195,23 @@ export default defineSchema({
     .index("by_patient_recorded_at", ["patientId", "recordedAt"]),
 
   // ============================================================================
+  // Device Logs (Hardware → Server pipeline)
+  // ============================================================================
+  deviceLogs: defineTable({
+    externalId: v.string(),
+    deviceId: v.string(),            // Convex ID reference to devices
+    externalDeviceId: v.optional(v.string()),
+    level: v.string(),               // DEBUG | INFO | WARN | ERROR
+    category: v.string(),            // SYSTEM | FALL_DETECTION | SENSOR | WIFI | EMERGENCY
+    message: v.string(),
+    metadata: v.optional(v.any()),   // { value, threshold } numerics from firmware
+    createdAt: v.number(),           // Unix timestamp (ms)
+  })
+    .index("by_device_id", ["deviceId"])
+    .index("by_device_timestamp", ["deviceId", "createdAt"])
+    .index("by_created_at", ["createdAt"]),
+
+  // ============================================================================
   // Messages (Caregiver → Patient)
   // ============================================================================
   messages: defineTable({

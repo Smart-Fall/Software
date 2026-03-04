@@ -5,7 +5,7 @@
 import { IUserRepository } from "../base";
 import { FindOptions, User } from "../../types";
 import prisma from "@/lib/prisma";
-import type { User as PrismaUser } from "@prisma/client";
+import type { Prisma, User as PrismaUser } from "@prisma/client";
 
 export class PrismaUserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
@@ -63,7 +63,7 @@ export class PrismaUserRepository implements IUserRepository {
     const users = await prisma.user.findMany({
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy,
+      orderBy: options?.orderBy as Prisma.UserOrderByWithRelationInput | undefined,
     });
     return users.map((u) => this.mapToUser(u));
   }
@@ -82,9 +82,9 @@ export class PrismaUserRepository implements IUserRepository {
       email: user.email,
       passwordHash: user.passwordHash,
       accountType: user.accountType as "user" | "caregiver" | "admin",
-      firstName: user.firstName,
-      lastName: user.lastName,
-      dob: user.dob,
+      firstName: user.firstName ?? undefined,
+      lastName: user.lastName ?? undefined,
+      dob: user.dob ?? undefined,
       isActive: user.isActive,
       createdAt: user.createdAt,
     };

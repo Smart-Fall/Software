@@ -3,7 +3,7 @@
  */
 
 import { IDeviceRepository } from "../base";
-import { Device, FindOptions } from "../../types";
+import { Device, FindOptions, Patient } from "../../types";
 import prisma from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
@@ -38,11 +38,11 @@ export class PrismaDeviceRepository implements IDeviceRepository {
 
   async findMany(options?: FindOptions<Device>): Promise<Device[]> {
     const devices = await prisma.device.findMany({
-      where: options?.where,
+      where: options?.where as Prisma.DeviceWhereInput | undefined,
       include: { patient: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy,
+      orderBy: options?.orderBy as Prisma.DeviceOrderByWithRelationInput | undefined,
     });
     return devices.map((d) => this.mapToDevice(d));
   }
@@ -113,14 +113,14 @@ export class PrismaDeviceRepository implements IDeviceRepository {
     return {
       id: device.id,
       deviceId: device.deviceId,
-      patientId: device.patientId,
-      deviceName: device.deviceName,
+      patientId: device.patientId ?? undefined,
+      deviceName: device.deviceName ?? undefined,
       isActive: device.isActive,
-      lastSeen: device.lastSeen,
-      batteryLevel: device.batteryLevel,
-      firmwareVersion: device.firmwareVersion,
+      lastSeen: device.lastSeen ?? undefined,
+      batteryLevel: device.batteryLevel ?? undefined,
+      firmwareVersion: device.firmwareVersion ?? undefined,
       createdAt: device.createdAt,
-      patient: device.patient,
+      patient: (device.patient ?? undefined) as unknown as Patient | undefined,
     };
   }
 }

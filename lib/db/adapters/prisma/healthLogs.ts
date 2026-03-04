@@ -3,7 +3,7 @@
  */
 
 import { IHealthLogRepository } from '../base';
-import { FindOptions, HealthLog } from '../../types';
+import { FindOptions, HealthLog, Patient } from '../../types';
 import prisma from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 
@@ -41,7 +41,7 @@ export class PrismaHealthLogRepository implements IHealthLogRepository {
     options?: FindOptions<HealthLog>,
   ): Promise<HealthLog[]> {
     const healthLogs = await prisma.healthLog.findMany({
-      where: { patientId, ...options?.where },
+      where: { patientId, ...(options?.where as Prisma.HealthLogWhereInput | undefined) },
       include: { patient: true },
       orderBy: { recordedAt: 'desc' },
       skip: options?.skip,
@@ -90,7 +90,7 @@ export class PrismaHealthLogRepository implements IHealthLogRepository {
       patientId: data.patientId,
       healthScore: data.healthScore,
       recordedAt: data.recordedAt,
-      patient: data.patient,
+      patient: data.patient as unknown as Patient | undefined,
     };
   }
 }

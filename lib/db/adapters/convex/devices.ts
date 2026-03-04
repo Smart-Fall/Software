@@ -51,7 +51,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
   async findByPatientId(patientId: string): Promise<Device[]> {
     try {
       const devices = await this.client.query(api.devices.getByPatientId, {
-        patientId,
+        patientId: patientId as unknown as Id<'patients'>,
       });
       return (devices as ConvexDevice[]).map((d) => this.mapToDevice(d));
     } catch (error) {
@@ -84,7 +84,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
     try {
       const newDeviceId = await this.client.mutation(api.devices.create, {
         deviceId: data.deviceId,
-        patientId: data.patientId,
+        patientId: data.patientId as unknown as Id<'patients'> | undefined,
         deviceName: data.deviceName,
         isActive: data.isActive,
         batteryLevel: data.batteryLevel,
@@ -104,22 +104,16 @@ export class ConvexDeviceRepository implements IDeviceRepository {
 
   async update(id: string, data: Partial<Device>): Promise<Device> {
     try {
-      const mutationData: Record<string, unknown> = {
-        id: id as Id<"devices">,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (this.client.mutation as any)(api.devices.update, {
+        id: id,
         patientId: data.patientId,
         deviceName: data.deviceName,
         isActive: data.isActive,
         batteryLevel: data.batteryLevel,
         firmwareVersion: data.firmwareVersion,
         lastSeen: data.lastSeen ? data.lastSeen.getTime() : undefined,
-      };
-
-      // Note: deviceId updates require Convex backend mutation updates
-      if (data.deviceId) {
-        mutationData.deviceId = data.deviceId;
-      }
-
-      await this.client.mutation(api.devices.update, mutationData);
+      });
 
       const device = await this.client.query(api.devices.getById, {
         id: id as Id<"devices">,
@@ -139,7 +133,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
     try {
       await this.client.mutation(api.devices.updateByDeviceId, {
         deviceId,
-        patientId: data.patientId,
+        patientId: data.patientId as unknown as Id<'patients'> | undefined,
         deviceName: data.deviceName,
         isActive: data.isActive,
         batteryLevel: data.batteryLevel,

@@ -3,7 +3,7 @@
  */
 
 import { IDeviceStatusRepository } from '../base';
-import { DeviceStatus, FindOptions } from '../../types';
+import { Device, DeviceStatus, FindOptions } from '../../types';
 import prisma from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 
@@ -29,7 +29,7 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
       include: { device: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy || { timestamp: 'desc' },
+      orderBy: (options?.orderBy || { timestamp: 'desc' }) as Prisma.DeviceStatusOrderByWithRelationInput,
     });
     return statuses.map((s) => this.mapToDeviceStatus(s));
   }
@@ -89,8 +89,8 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
       bluetoothConnected: status.bluetoothConnected,
       sensorsInitialized: status.sensorsInitialized,
       uptimeMs: status.uptimeMs,
-      currentStatus: status.currentStatus,
-      device: status.device,
+      currentStatus: status.currentStatus ?? undefined,
+      device: status.device as unknown as Device,
     };
   }
 }
