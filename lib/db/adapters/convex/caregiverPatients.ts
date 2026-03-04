@@ -37,7 +37,7 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
         caregiverId: data.caregiverId as Id<'caregivers'>,
       });
 
-      const found = (assignment as ConvexCaregiverPatient[]).find(
+      const found = (assignment as unknown as ConvexCaregiverPatient[]).find(
         (a) => a._id === assignmentId,
       );
       if (!found) throw new Error('Failed to create assignment');
@@ -53,7 +53,7 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
       const assignments = await this.client.query(api.caregiverPatients.getByCaregiverId, {
         caregiverId: caregiverId as Id<'caregivers'>,
       });
-      return (assignments as ConvexCaregiverPatient[]).map((a) =>
+      return (assignments as unknown as ConvexCaregiverPatient[]).map((a) =>
         this.mapToCaregiverPatient(a),
       );
     } catch (error) {
@@ -67,7 +67,7 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
       const assignments = await this.client.query(api.caregiverPatients.getByPatientId, {
         patientId: patientId as Id<'patients'>,
       });
-      return (assignments as ConvexCaregiverPatient[]).map((a) =>
+      return (assignments as unknown as ConvexCaregiverPatient[]).map((a) =>
         this.mapToCaregiverPatient(a),
       );
     } catch (error) {
@@ -82,7 +82,7 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
         caregiverId: caregiverId as Id<'caregivers'>,
       });
       const patientIdValue = patientId as Id<'patients'>;
-      const found = (assignments as ConvexCaregiverPatient[]).find(
+      const found = (assignments as unknown as ConvexCaregiverPatient[]).find(
         (a) => a.patientId === patientIdValue,
       );
       return found ? this.mapToCaregiverPatient(found) : null;

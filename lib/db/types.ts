@@ -137,6 +137,17 @@ export interface DeviceStatus {
   device?: Device;
 }
 
+export interface DeviceLog {
+  id: string;
+  deviceId: string;
+  level: string;
+  category: string;
+  message: string;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
+  device?: Device;
+}
+
 export interface Message {
   id: string;
   caregiverId: string;

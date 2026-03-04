@@ -32,8 +32,8 @@ export class ConvexMessageRepository implements IMessageRepository {
   }): Promise<Message> {
     try {
       const messageId = await this.client.mutation(api.messages.create, {
-        caregiverId: data.caregiverId,
-        patientId: data.patientId,
+        caregiverId: data.caregiverId as unknown as Id<'caregivers'>,
+        patientId: data.patientId as unknown as Id<'patients'>,
         subject: data.subject,
         messageText: data.messageText,
         isUrgent: data.isUrgent,
@@ -53,7 +53,7 @@ export class ConvexMessageRepository implements IMessageRepository {
   async findByPatientId(patientId: string): Promise<Message[]> {
     try {
       const messages = await this.client.query(api.messages.getByPatientId, {
-        patientId,
+        patientId: patientId as unknown as Id<'patients'>,
       });
       return (messages as ConvexMessage[]).map((m) => this.mapToMessage(m));
     } catch (error) {
@@ -65,8 +65,8 @@ export class ConvexMessageRepository implements IMessageRepository {
   async findByCaregiverAndPatient(caregiverId: string, patientId: string): Promise<Message[]> {
     try {
       const messages = await this.client.query(api.messages.getByCaregiverAndPatient, {
-        caregiverId,
-        patientId,
+        caregiverId: caregiverId as unknown as Id<'caregivers'>,
+        patientId: patientId as unknown as Id<'patients'>,
       });
       return (messages as ConvexMessage[]).map((m) => this.mapToMessage(m));
     } catch (error) {
@@ -78,7 +78,7 @@ export class ConvexMessageRepository implements IMessageRepository {
   async getUnreadCount(patientId: string): Promise<number> {
     try {
       return await this.client.query(api.messages.getUnreadCountByPatient, {
-        patientId,
+        patientId: patientId as unknown as Id<'patients'>,
       });
     } catch (error) {
       console.error('Error getting unread message count:', error);

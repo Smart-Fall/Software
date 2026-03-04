@@ -3,7 +3,7 @@
  */
 
 import { IFallRepository } from '../base';
-import { FindOptions, Fall } from '../../types';
+import { Device, FindOptions, Fall, Patient } from '../../types';
 import prisma from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 
@@ -54,11 +54,11 @@ export class PrismaFallRepository implements IFallRepository {
 
   async findMany(options?: FindOptions<Fall>): Promise<Fall[]> {
     const falls = await prisma.fall.findMany({
-      where: options?.where,
+      where: options?.where as Prisma.FallWhereInput | undefined,
       include: { patient: true, device: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy,
+      orderBy: options?.orderBy as Prisma.FallOrderByWithRelationInput | undefined,
     });
     return falls.map((f) => this.mapToFall(f));
   }
@@ -122,22 +122,22 @@ export class PrismaFallRepository implements IFallRepository {
   private mapToFall(fall: PrismaFallWithRelations): Fall {
     return {
       id: fall.id,
-      patientId: fall.patientId,
-      deviceId: fall.deviceId,
+      patientId: fall.patientId ?? undefined,
+      deviceId: fall.deviceId ?? undefined,
       fallDatetime: fall.fallDatetime,
-      confidenceScore: fall.confidenceScore,
-      confidenceLevel: fall.confidenceLevel,
+      confidenceScore: fall.confidenceScore ?? undefined,
+      confidenceLevel: fall.confidenceLevel ?? undefined,
       sosTriggered: fall.sosTriggered,
-      severity: fall.severity,
-      location: fall.location,
-      wasInjured: fall.wasInjured,
-      notes: fall.notes,
-      batteryLevel: fall.batteryLevel,
+      severity: fall.severity ?? undefined,
+      location: fall.location ?? undefined,
+      wasInjured: fall.wasInjured ?? undefined,
+      notes: fall.notes ?? undefined,
+      batteryLevel: fall.batteryLevel ?? undefined,
       resolved: fall.resolved,
-      resolvedAt: fall.resolvedAt,
+      resolvedAt: fall.resolvedAt ?? undefined,
       createdAt: fall.createdAt,
-      patient: fall.patient,
-      device: fall.device,
+      patient: (fall.patient ?? undefined) as unknown as Patient | undefined,
+      device: (fall.device ?? undefined) as unknown as Device | undefined,
     };
   }
 }

@@ -46,8 +46,8 @@ export class ConvexFallRepository implements IFallRepository {
   }): Promise<Fall> {
     try {
       const fallId = await this.client.mutation(api.falls.create, {
-        patientId: data.patientId,
-        deviceId: data.deviceId,
+        patientId: data.patientId as unknown as Id<'patients'> | undefined,
+        deviceId: data.deviceId as unknown as Id<'devices'> | undefined,
         fallDatetime: data.fallDatetime.getTime(),
         confidenceScore: data.confidenceScore,
         confidenceLevel: data.confidenceLevel,
@@ -85,7 +85,7 @@ export class ConvexFallRepository implements IFallRepository {
   async findMany(options?: FindOptions<Fall>): Promise<Fall[]> {
     try {
       const falls = await this.client.query(api.falls.list, {
-        patientId: options?.where?.patientId,
+        patientId: options?.where?.patientId as unknown as Id<'patients'> | undefined,
         skip: options?.skip,
         take: options?.take,
       });
@@ -99,7 +99,7 @@ export class ConvexFallRepository implements IFallRepository {
   async findByPatientId(patientId: string): Promise<Fall[]> {
     try {
       const falls = await this.client.query(api.falls.getByPatientId, {
-        patientId,
+        patientId: patientId as unknown as Id<'patients'>,
       });
       return (falls as ConvexFall[]).map((f) => this.mapToFall(f));
     } catch (error) {
@@ -111,7 +111,7 @@ export class ConvexFallRepository implements IFallRepository {
   async findByDeviceId(deviceId: string): Promise<Fall[]> {
     try {
       const falls = await this.client.query(api.falls.getByDeviceId, {
-        deviceId,
+        deviceId: deviceId as unknown as Id<'devices'>,
       });
       return (falls as ConvexFall[]).map((f) => this.mapToFall(f));
     } catch (error) {

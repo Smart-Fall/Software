@@ -26,7 +26,7 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
       const caregiver = await this.client.query(api.caregivers.getById, {
         id: id as Id<"caregivers">,
       });
-      return caregiver ? this.mapToCaregiver(caregiver as ConvexCaregiver) : null;
+      return caregiver ? this.mapToCaregiver(caregiver as unknown as ConvexCaregiver) : null;
     } catch (error) {
       console.error("Error finding caregiver by id:", error);
       return null;
@@ -36,9 +36,9 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
   async findByUserId(userId: string): Promise<Caregiver | null> {
     try {
       const caregiver = await this.client.query(api.caregivers.getByUserId, {
-        userId,
+        userId: userId as unknown as Id<'users'>,
       });
-      return caregiver ? this.mapToCaregiver(caregiver as ConvexCaregiver) : null;
+      return caregiver ? this.mapToCaregiver(caregiver as unknown as ConvexCaregiver) : null;
     } catch (error) {
       console.error("Error finding caregiver by user id:", error);
       return null;
@@ -53,7 +53,7 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
   }): Promise<Caregiver> {
     try {
       const caregiverId = await this.client.mutation(api.caregivers.create, {
-        userId: data.userId,
+        userId: data.userId as unknown as Id<'users'>,
         facilityName: data.facilityName,
         specialization: data.specialization,
         yearsOfExperience: data.yearsOfExperience,
@@ -63,7 +63,7 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
         id: caregiverId as Id<"caregivers">,
       });
       if (!caregiver) throw new Error("Failed to create caregiver");
-      return this.mapToCaregiver(caregiver as ConvexCaregiver);
+      return this.mapToCaregiver(caregiver as unknown as ConvexCaregiver);
     } catch (error) {
       console.error("Error creating caregiver:", error);
       throw error;
@@ -83,7 +83,7 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
         id: id as Id<"caregivers">,
       });
       if (!caregiver) throw new Error("Caregiver not found after update");
-      return this.mapToCaregiver(caregiver as ConvexCaregiver);
+      return this.mapToCaregiver(caregiver as unknown as ConvexCaregiver);
     } catch (error) {
       console.error("Error updating caregiver:", error);
       throw error;
@@ -99,7 +99,7 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
         skip,
         take,
       });
-      return (caregivers as ConvexCaregiver[]).map((c) =>
+      return (caregivers as unknown as ConvexCaregiver[]).map((c) =>
         this.mapToCaregiver(c),
       );
     } catch (error) {

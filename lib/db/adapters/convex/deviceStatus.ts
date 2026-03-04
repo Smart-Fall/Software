@@ -45,7 +45,7 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
       const take = options?.take ?? 20;
 
       const statuses = await this.client.query(api.deviceStatus.getByDeviceId, {
-        deviceId,
+        deviceId: deviceId as unknown as Id<'devices'>,
         skip,
         take,
       });
@@ -61,7 +61,7 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
   async findRecent(deviceId: string, limit: number): Promise<DeviceStatus[]> {
     try {
       const statuses = await this.client.query(api.deviceStatus.getRecent, {
-        deviceId,
+        deviceId: deviceId as unknown as Id<'devices'>,
         limit,
       });
       return (statuses as ConvexDeviceStatus[]).map((s) =>
@@ -76,7 +76,7 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
   async findLatest(deviceId: string): Promise<DeviceStatus | null> {
     try {
       const status = await this.client.query(api.deviceStatus.getLatest, {
-        deviceId,
+        deviceId: deviceId as unknown as Id<'devices'>,
       });
       return status ? this.mapToDeviceStatus(status as ConvexDeviceStatus) : null;
     } catch (error) {
@@ -97,7 +97,7 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
   }): Promise<DeviceStatus> {
     try {
       const statusId = await this.client.mutation(api.deviceStatus.create, {
-        deviceId: data.deviceId,
+        deviceId: data.deviceId as unknown as Id<'devices'>,
         timestamp: data.timestamp.getTime(),
         batteryPercentage: data.batteryPercentage,
         wifiConnected: data.wifiConnected,

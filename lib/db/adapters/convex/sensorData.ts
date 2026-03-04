@@ -49,7 +49,7 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
       const take = options?.take ?? 20;
 
       const data = await this.client.query(api.sensorData.getByDeviceId, {
-        deviceId,
+        deviceId: deviceId as unknown as Id<'devices'>,
         skip,
         take,
       });
@@ -63,7 +63,7 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
   async findRecent(deviceId: string, limit: number): Promise<SensorData[]> {
     try {
       const data = await this.client.query(api.sensorData.getRecent, {
-        deviceId,
+        deviceId: deviceId as unknown as Id<'devices'>,
         limit,
       });
       return (data as ConvexSensorData[]).map((d) => this.mapToSensorData(d));
@@ -117,7 +117,7 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
   async findBetween(deviceId: string, startTime: Date, endTime: Date): Promise<SensorData[]> {
     try {
       const data = await this.client.query(api.sensorData.getBetween, {
-        deviceId,
+        deviceId: deviceId as unknown as Id<'devices'>,
         startTime: startTime.getTime(),
         endTime: endTime.getTime(),
       });

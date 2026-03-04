@@ -26,7 +26,7 @@ export class ConvexSessionRepository implements ISessionRepository {
   }): Promise<Session> {
     try {
       const sessionId = await this.client.mutation(api.sessions.create, {
-        userId: data.userId,
+        userId: data.userId as unknown as Id<'users'>,
         sessionToken: data.sessionToken,
         expiresAt: data.expiresAt ? data.expiresAt.getTime() : undefined,
       });
@@ -55,7 +55,7 @@ export class ConvexSessionRepository implements ISessionRepository {
   async findByUserId(userId: string): Promise<Session[]> {
     try {
       const sessions = await this.client.query(api.sessions.getByUserId, {
-        userId,
+        userId: userId as unknown as Id<'users'>,
       });
       return (sessions as ConvexSession[]).map((s) => this.mapToSession(s));
     } catch (error) {
@@ -75,7 +75,7 @@ export class ConvexSessionRepository implements ISessionRepository {
   async deleteByUserId(userId: string): Promise<void> {
     try {
       await this.client.mutation(api.sessions.deleteByUserId, {
-        userId,
+        userId: userId as unknown as Id<'users'>,
       });
     } catch (error) {
       console.error('Error deleting sessions by user id:', error);

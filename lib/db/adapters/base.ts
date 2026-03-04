@@ -14,6 +14,7 @@ import {
   Device,
   SensorData,
   DeviceStatus,
+  DeviceLog,
   Message,
   FindOptions,
 } from "../types";
@@ -248,6 +249,32 @@ export interface IHealthLogRepository {
 }
 
 // ============================================================================
+// DeviceLog Repository
+// ============================================================================
+
+export interface IDeviceLogRepository {
+  create(data: {
+    deviceId: string;
+    level: string;
+    category: string;
+    message: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<DeviceLog>;
+  findByDeviceId(
+    deviceId: string,
+    options?: { take?: number; skip?: number },
+  ): Promise<DeviceLog[]>;
+  findAll(options?: {
+    take?: number;
+    skip?: number;
+    deviceId?: string;
+    level?: string;
+    category?: string;
+  }): Promise<{ logs: DeviceLog[]; total: number }>;
+  countByDeviceId(deviceId: string): Promise<number>;
+}
+
+// ============================================================================
 // Message Repository
 // ============================================================================
 
@@ -284,4 +311,5 @@ export interface IDatabaseAdapter {
   deviceStatus: IDeviceStatusRepository;
   healthLogs: IHealthLogRepository;
   messages: IMessageRepository;
+  deviceLogs: IDeviceLogRepository;
 }

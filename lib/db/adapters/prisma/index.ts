@@ -15,6 +15,7 @@ import { ISensorDataRepository } from '../base';
 import { IDeviceStatusRepository } from '../base';
 import { IHealthLogRepository } from '../base';
 import { IMessageRepository } from '../base';
+import { IDeviceLogRepository } from '../base';
 
 import { PrismaUserRepository } from './users';
 import { PrismaSessionRepository } from './sessions';
@@ -27,6 +28,7 @@ import { PrismaSensorDataRepository } from './sensorData';
 import { PrismaDeviceStatusRepository } from './deviceStatus';
 import { PrismaHealthLogRepository } from './healthLogs';
 import { PrismaMessageRepository } from './messages';
+import { PrismaDeviceLogRepository } from './deviceLogs';
 
 /**
  * Prisma adapter implementation
@@ -44,6 +46,7 @@ export class PrismaAdapter implements IDatabaseAdapter {
   deviceStatus: IDeviceStatusRepository;
   healthLogs: IHealthLogRepository;
   messages: IMessageRepository;
+  deviceLogs: IDeviceLogRepository;
 
   constructor() {
     this.users = new PrismaUserRepository();
@@ -57,5 +60,6 @@ export class PrismaAdapter implements IDatabaseAdapter {
     this.deviceStatus = new PrismaDeviceStatusRepository();
     this.healthLogs = new PrismaHealthLogRepository();
     this.messages = new PrismaMessageRepository();
+    this.deviceLogs = new PrismaDeviceLogRepository();
   }
 }

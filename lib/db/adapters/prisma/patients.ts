@@ -3,7 +3,7 @@
  */
 
 import { IPatientRepository } from '../base';
-import { FindOptions, Patient } from '../../types';
+import { FindOptions, Patient, User } from '../../types';
 import prisma from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 
@@ -33,7 +33,7 @@ export class PrismaPatientRepository implements IPatientRepository {
       include: { user: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy,
+      orderBy: options?.orderBy as Prisma.PatientOrderByWithRelationInput | undefined,
     });
     return patients.map((p) => this.mapToPatient(p));
   }
@@ -89,9 +89,9 @@ export class PrismaPatientRepository implements IPatientRepository {
       userId: patient.userId,
       riskScore: patient.riskScore,
       isHighRisk: patient.isHighRisk,
-      medicalConditions: patient.medicalConditions,
+      medicalConditions: patient.medicalConditions ?? undefined,
       createdAt: patient.createdAt,
-      user: patient.user,
+      user: patient.user as unknown as User | undefined,
     };
   }
 }

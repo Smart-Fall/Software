@@ -135,6 +135,7 @@ model Device {
   falls         Fall[]
   sensorData    SensorData[]
   statusUpdates DeviceStatus[]
+  logs          DeviceLog[]
 
   @@map("devices")
 }
@@ -158,6 +159,21 @@ model SensorData {
 
   @@index([deviceId, timestamp])
   @@map("sensor_data")
+}
+
+model DeviceLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  deviceId  String   @map("device_id") @db.Uuid
+  level     String   @db.VarChar(10)
+  category  String   @db.VarChar(50)
+  message   String   @db.Text
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId, createdAt])
+  @@map("device_logs")
 }
 
 model DeviceStatus {

@@ -63,10 +63,10 @@ export class PrismaSessionRepository implements ISessionRepository {
   private mapToSession(session: PrismaSession): Session {
     return {
       id: session.id,
-      userId: session.userId,
+      userId: session.userId ?? undefined,
       sessionToken: session.sessionToken,
       createdAt: session.createdAt,
-      expiresAt: session.expiresAt,
+      expiresAt: session.expiresAt ?? undefined,
     };
   }
 }

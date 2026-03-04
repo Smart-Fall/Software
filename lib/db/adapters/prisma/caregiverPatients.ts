@@ -3,13 +3,13 @@
  */
 
 import { ICaregiverPatientRepository } from '../base';
-import { CaregiverPatient } from '../../types';
+import { Caregiver, CaregiverPatient, Patient } from '../../types';
 import prisma from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import type { CaregiverPatient as PrismaCPModel, Caregiver as PrismaCaregiverModel, Patient as PrismaPatientModel } from '@prisma/client';
 
-type PrismaCaregiverPatientResult = Prisma.CaregiverPatient & {
-  caregiver?: Prisma.Caregiver | null;
-  patient?: Prisma.Patient | null;
+type PrismaCaregiverPatientResult = PrismaCPModel & {
+  caregiver?: PrismaCaregiverModel | null;
+  patient?: PrismaPatientModel | null;
 };
 
 export class PrismaCaregiverPatientRepository implements ICaregiverPatientRepository {
@@ -96,8 +96,8 @@ export class PrismaCaregiverPatientRepository implements ICaregiverPatientReposi
       patientId: assignment.patientId,
       assignedDate: assignment.assignedDate,
       isActive: assignment.isActive,
-      caregiver: assignment.caregiver,
-      patient: assignment.patient,
+      caregiver: (assignment.caregiver ?? undefined) as unknown as Caregiver | undefined,
+      patient: (assignment.patient ?? undefined) as unknown as Patient | undefined,
     };
   }
 }

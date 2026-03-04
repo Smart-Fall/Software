@@ -28,9 +28,9 @@ export class ConvexPatientRepository implements IPatientRepository {
   async findById(id: string): Promise<Patient | null> {
     try {
       const patient = await this.client.query(api.patients.getById, {
-        id: id as Id<'patients'>,
+        id: id as unknown as Id<'patients'>,
       });
-      return patient ? this.mapToPatient(patient as ConvexPatient) : null;
+      return patient ? this.mapToPatient(patient as unknown as ConvexPatient) : null;
     } catch (error) {
       console.error('Error finding patient by id:', error);
       return null;
@@ -39,8 +39,8 @@ export class ConvexPatientRepository implements IPatientRepository {
 
   async findByUserId(userId: string): Promise<Patient | null> {
     try {
-      const patient = await this.client.query(api.patients.getByUserId, { userId });
-      return patient ? this.mapToPatient(patient as ConvexPatient) : null;
+      const patient = await this.client.query(api.patients.getByUserId, { userId: userId as unknown as Id<'users'> });
+      return patient ? this.mapToPatient(patient as unknown as ConvexPatient) : null;
     } catch (error) {
       console.error('Error finding patient by user id:', error);
       return null;
@@ -53,7 +53,7 @@ export class ConvexPatientRepository implements IPatientRepository {
       const take = options?.take ?? 20;
 
       const patients = await this.client.query(api.patients.list, { skip, take });
-      return (patients as ConvexPatient[]).map((p) => this.mapToPatient(p));
+      return (patients as unknown as ConvexPatient[]).map((p) => this.mapToPatient(p));
     } catch (error) {
       console.error('Error listing patients:', error);
       return [];
@@ -69,11 +69,11 @@ export class ConvexPatientRepository implements IPatientRepository {
 
       // Get patient details for each assignment
       const patients = await Promise.all(
-        (assignments as ConvexCaregiverPatient[]).map(async (a) => {
+        (assignments as unknown as ConvexCaregiverPatient[]).map(async (a) => {
           const patient = await this.client.query(api.patients.getById, {
             id: a.patientId,
           });
-          return patient ? this.mapToPatient(patient as ConvexPatient) : null;
+          return patient ? this.mapToPatient(patient as unknown as ConvexPatient) : null;
         }),
       );
 
@@ -92,17 +92,17 @@ export class ConvexPatientRepository implements IPatientRepository {
   }): Promise<Patient> {
     try {
       const patientId = await this.client.mutation(api.patients.create, {
-        userId: data.userId,
+        userId: data.userId as unknown as Id<'users'>,
         riskScore: data.riskScore,
         isHighRisk: data.isHighRisk,
         medicalConditions: data.medicalConditions,
       });
 
       const patient = await this.client.query(api.patients.getById, {
-        id: patientId as Id<'patients'>,
+        id: patientId as unknown as Id<'patients'>,
       });
       if (!patient) throw new Error('Failed to create patient');
-      return this.mapToPatient(patient as ConvexPatient);
+      return this.mapToPatient(patient as unknown as ConvexPatient);
     } catch (error) {
       console.error('Error creating patient:', error);
       throw error;
@@ -112,17 +112,17 @@ export class ConvexPatientRepository implements IPatientRepository {
   async update(id: string, data: Partial<Patient>): Promise<Patient> {
     try {
       await this.client.mutation(api.patients.update, {
-        id: id as Id<'patients'>,
+        id: id as unknown as Id<'patients'>,
         riskScore: data.riskScore,
         isHighRisk: data.isHighRisk,
         medicalConditions: data.medicalConditions,
       });
 
       const patient = await this.client.query(api.patients.getById, {
-        id: id as Id<'patients'>,
+        id: id as unknown as Id<'patients'>,
       });
       if (!patient) throw new Error('Patient not found after update');
-      return this.mapToPatient(patient as ConvexPatient);
+      return this.mapToPatient(patient as unknown as ConvexPatient);
     } catch (error) {
       console.error('Error updating patient:', error);
       throw error;
