@@ -41,8 +41,8 @@ export async function POST(request: Request) {
         gyroX: data.gyro_x || 0,
         gyroY: data.gyro_y || 0,
         gyroZ: data.gyro_z || 0,
-        pressure: data.pressure || null,
-        fsr: data.fsr || null,
+        pressure: data.pressure != null ? Number(data.pressure) : undefined,
+        fsr: data.fsr != null ? Number(data.fsr) : undefined,
         heartRate: data.heart_rate != null ? Number(data.heart_rate) : undefined,
         spo2: data.spo2 != null ? Number(data.spo2) : undefined,
       });
