@@ -42,14 +42,11 @@ export const getRecent = query({
     limit: v.number(),
   },
   handler: async (ctx, args) => {
-    const data = await ctx.db
+    return await ctx.db
       .query('sensorData')
-      .withIndex('by_device_id', (q) => q.eq('deviceId', args.deviceId))
-      .collect();
-
-    return data
-      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-      .slice(0, args.limit);
+      .withIndex('by_device_timestamp', (q) => q.eq('deviceId', args.deviceId))
+      .order('desc')
+      .take(args.limit);
   },
 });
 
@@ -85,6 +82,9 @@ export const create = mutation({
     gyroY: v.number(),
     gyroZ: v.number(),
     pressure: v.optional(v.number()),
+    fsr: v.optional(v.number()),
+    heartRate: v.optional(v.number()),
+    spo2: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const device = await ctx.db.get(args.deviceId);
@@ -104,6 +104,9 @@ export const create = mutation({
       gyroY: args.gyroY,
       gyroZ: args.gyroZ,
       pressure: args.pressure,
+      fsr: args.fsr,
+      heartRate: args.heartRate,
+      spo2: args.spo2,
     });
   },
 });
@@ -121,6 +124,9 @@ export const bulkCreate = mutation({
         gyroY: v.number(),
         gyroZ: v.number(),
         pressure: v.optional(v.number()),
+        fsr: v.optional(v.number()),
+        heartRate: v.optional(v.number()),
+        spo2: v.optional(v.number()),
       })
     ),
   },
@@ -144,6 +150,9 @@ export const bulkCreate = mutation({
         gyroY: record.gyroY,
         gyroZ: record.gyroZ,
         pressure: record.pressure,
+        fsr: record.fsr,
+        heartRate: record.heartRate,
+        spo2: record.spo2,
       });
       ids.push(id);
     }

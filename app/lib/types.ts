@@ -134,7 +134,7 @@ export interface SignupFormData {
   dob: string | Date;
   email: string;
   password: string;
-  accountType: "user" | "caregiver";
+  accountType: "user" | "caregiver" | "admin";
   specialization?: string;
   yearsOfExperience?: number;
   medicalConditions?: string;
@@ -149,4 +149,4 @@ export interface SessionPayload {
 }
 
 // Utility types
-export type AccountType = "user" | "caregiver";
+export type AccountType = "user" | "caregiver" | "admin";

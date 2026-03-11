@@ -10,10 +10,12 @@
 
 import type * as caregiverPatients from "../caregiverPatients.js";
 import type * as caregivers from "../caregivers.js";
+import type * as deviceLogs from "../deviceLogs.js";
 import type * as deviceStatus from "../deviceStatus.js";
 import type * as devices from "../devices.js";
 import type * as falls from "../falls.js";
 import type * as healthLogs from "../healthLogs.js";
+import type * as messages from "../messages.js";
 import type * as patients from "../patients.js";
 import type * as sensorData from "../sensorData.js";
 import type * as sessions from "../sessions.js";
@@ -28,10 +30,12 @@ import type {
 declare const fullApi: ApiFromModules<{
   caregiverPatients: typeof caregiverPatients;
   caregivers: typeof caregivers;
+  deviceLogs: typeof deviceLogs;
   deviceStatus: typeof deviceStatus;
   devices: typeof devices;
   falls: typeof falls;
   healthLogs: typeof healthLogs;
+  messages: typeof messages;
   patients: typeof patients;
   sensorData: typeof sensorData;
   sessions: typeof sessions;

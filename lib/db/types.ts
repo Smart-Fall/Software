@@ -11,7 +11,7 @@ export interface User {
   id: string;
   email: string;
   passwordHash: string;
-  accountType: "user" | "caregiver";
+  accountType: "user" | "caregiver" | "admin";
   firstName?: string;
   lastName?: string;
   dob?: Date;
@@ -118,6 +118,9 @@ export interface SensorData {
   gyroY: number;
   gyroZ: number;
   pressure?: number;
+  fsr?: number;
+  heartRate?: number;
+  spo2?: number;
   device?: Device;
 }
 
@@ -134,11 +137,43 @@ export interface DeviceStatus {
   device?: Device;
 }
 
+export interface DeviceLog {
+  id: string;
+  deviceId: string;
+  level: string;
+  category: string;
+  message: string;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
+  device?: Device;
+}
+
+export interface Message {
+  id: string;
+  caregiverId: string;
+  patientId: string;
+  subject?: string;
+  messageText: string;
+  isRead: boolean;
+  isUrgent: boolean;
+  sentAt: Date;
+  readAt?: Date;
+  caregiver?: Caregiver;
+}
+
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: JsonValue }
+  | JsonValue[];
+
 // ============================================================================
 // Query Options
 // ============================================================================
 
-export interface FindOptions<TModel = any> {
+export interface FindOptions<TModel = Record<string, unknown>> {
   where?: Partial<TModel> | Record<string, unknown>;
   include?: Record<string, boolean>;
   select?:
@@ -152,10 +187,10 @@ export interface FindOptions<TModel = any> {
 }
 
 export interface CreateOptions {
-  data: Record<string, any>;
+  data: Record<string, JsonValue>;
 }
 
 export interface UpdateOptions {
-  where: Record<string, any>;
-  data: Record<string, any>;
+  where: Record<string, JsonValue>;
+  data: Record<string, JsonValue>;
 }

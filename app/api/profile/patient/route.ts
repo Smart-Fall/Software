@@ -48,7 +48,7 @@ export async function PATCH(request: Request) {
     }
 
     // Update patient
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (medicalConditions !== undefined) {
       updateData.medicalConditions = medicalConditions.trim();
     }

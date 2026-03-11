@@ -27,10 +27,13 @@ export const getById = query({
 export const getByUserId = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const patient = await ctx.db
       .query('patients')
       .withIndex('by_user_id', (q) => q.eq('userId', args.userId))
       .unique();
+    if (!patient) return null;
+    const user = await ctx.db.get(args.userId);
+    return { ...patient, user };
   },
 });
 

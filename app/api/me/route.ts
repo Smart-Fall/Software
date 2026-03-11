@@ -17,6 +17,16 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    if (!user.isActive) {
+      return NextResponse.json(
+        {
+          error:
+            "Your account has been deactivated. Please contact an administrator.",
+        },
+        { status: 403 },
+      );
+    }
+
     return NextResponse.json({
       id: user.id,
       email: user.email,
@@ -24,7 +34,10 @@ export async function GET() {
       firstName: user.firstName,
       lastName: user.lastName,
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 500 },
+    );
   }
 }

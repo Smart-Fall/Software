@@ -6,6 +6,17 @@ import { ICaregiverPatientRepository } from '../base';
 import { CaregiverPatient } from '../../types';
 import { getConvexClient } from './client';
 import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+
+type ConvexCaregiverPatient = {
+  _id: Id<'caregiverPatients'>;
+  caregiverId: Id<'caregivers'>;
+  patientId: Id<'patients'>;
+  assignedDate: number | string | Date;
+  isActive: boolean;
+  caregiver?: CaregiverPatient['caregiver'];
+  patient?: CaregiverPatient['patient'];
+};
 
 export class ConvexCaregiverPatientRepository implements ICaregiverPatientRepository {
   private client = getConvexClient();
@@ -17,16 +28,18 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
   }): Promise<CaregiverPatient> {
     try {
       const assignmentId = await this.client.mutation(api.caregiverPatients.create, {
-        caregiverId: data.caregiverId as any,
-        patientId: data.patientId as any,
+        caregiverId: data.caregiverId as Id<'caregivers'>,
+        patientId: data.patientId as Id<'patients'>,
         isActive: data.isActive,
       });
 
       const assignment = await this.client.query(api.caregiverPatients.getByCaregiverId, {
-        caregiverId: data.caregiverId as any,
+        caregiverId: data.caregiverId as Id<'caregivers'>,
       });
 
-      const found = assignment.find((a: any) => a._id === assignmentId);
+      const found = (assignment as unknown as ConvexCaregiverPatient[]).find(
+        (a) => a._id === assignmentId,
+      );
       if (!found) throw new Error('Failed to create assignment');
       return this.mapToCaregiverPatient(found);
     } catch (error) {
@@ -38,9 +51,11 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
   async findByCaregiverId(caregiverId: string): Promise<CaregiverPatient[]> {
     try {
       const assignments = await this.client.query(api.caregiverPatients.getByCaregiverId, {
-        caregiverId: caregiverId as any,
+        caregiverId: caregiverId as Id<'caregivers'>,
       });
-      return assignments.map((a: any) => this.mapToCaregiverPatient(a));
+      return (assignments as unknown as ConvexCaregiverPatient[]).map((a) =>
+        this.mapToCaregiverPatient(a),
+      );
     } catch (error) {
       console.error('Error finding assignments by caregiver id:', error);
       return [];
@@ -50,9 +65,11 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
   async findByPatientId(patientId: string): Promise<CaregiverPatient[]> {
     try {
       const assignments = await this.client.query(api.caregiverPatients.getByPatientId, {
-        patientId: patientId as any,
+        patientId: patientId as Id<'patients'>,
       });
-      return assignments.map((a: any) => this.mapToCaregiverPatient(a));
+      return (assignments as unknown as ConvexCaregiverPatient[]).map((a) =>
+        this.mapToCaregiverPatient(a),
+      );
     } catch (error) {
       console.error('Error finding assignments by patient id:', error);
       return [];
@@ -62,9 +79,12 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
   async findByIds(caregiverId: string, patientId: string): Promise<CaregiverPatient | null> {
     try {
       const assignments = await this.client.query(api.caregiverPatients.getByCaregiverId, {
-        caregiverId: caregiverId as any,
+        caregiverId: caregiverId as Id<'caregivers'>,
       });
-      const found = assignments.find((a: any) => a.patientId === patientId);
+      const patientIdValue = patientId as Id<'patients'>;
+      const found = (assignments as unknown as ConvexCaregiverPatient[]).find(
+        (a) => a.patientId === patientIdValue,
+      );
       return found ? this.mapToCaregiverPatient(found) : null;
     } catch (error) {
       console.error('Error finding assignment by ids:', error);
@@ -82,7 +102,7 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
       if (!assignment) throw new Error('Assignment not found');
 
       await this.client.mutation(api.caregiverPatients.update, {
-        id: assignment.id as any,
+        id: assignment.id as Id<'caregiverPatients'>,
         isActive: data.isActive,
       });
 
@@ -101,14 +121,14 @@ export class ConvexCaregiverPatientRepository implements ICaregiverPatientReposi
       if (!assignment) throw new Error('Assignment not found');
 
       await this.client.mutation(api.caregiverPatients.delete_, {
-        id: assignment.id as any,
+        id: assignment.id as Id<'caregiverPatients'>,
       });
     } catch (error) {
       console.error('Error deleting assignment:', error);
     }
   }
 
-  private mapToCaregiverPatient(assignment: any): CaregiverPatient {
+  private mapToCaregiverPatient(assignment: ConvexCaregiverPatient): CaregiverPatient {
     return {
       id: assignment._id,
       caregiverId: assignment.caregiverId,

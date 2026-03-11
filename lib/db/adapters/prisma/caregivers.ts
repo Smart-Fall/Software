@@ -2,9 +2,14 @@
  * Prisma Caregiver Repository Implementation
  */
 
-import { ICaregiverRepository } from '../base';
-import { Caregiver } from '../../types';
-import prisma from '@/lib/prisma';
+import { ICaregiverRepository } from "../base";
+import { Caregiver, FindOptions, User } from "../../types";
+import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+
+type PrismaCaregiverWithUser = Prisma.CaregiverGetPayload<{
+  include: { user: true };
+}>;
 
 export class PrismaCaregiverRepository implements ICaregiverRepository {
   async findById(id: string): Promise<Caregiver | null> {
@@ -54,15 +59,30 @@ export class PrismaCaregiverRepository implements ICaregiverRepository {
     return this.mapToCaregiver(caregiver);
   }
 
-  private mapToCaregiver(caregiver: any): Caregiver {
+  async findMany(options?: FindOptions<Caregiver>): Promise<Caregiver[]> {
+    const caregivers = await prisma.caregiver.findMany({
+      where: options?.where,
+      include: { user: true },
+      skip: options?.skip,
+      take: options?.take,
+      orderBy: options?.orderBy as Prisma.CaregiverOrderByWithRelationInput | undefined,
+    });
+    return caregivers.map((c) => this.mapToCaregiver(c));
+  }
+
+  async count(): Promise<number> {
+    return await prisma.caregiver.count();
+  }
+
+  private mapToCaregiver(caregiver: PrismaCaregiverWithUser): Caregiver {
     return {
       id: caregiver.id,
       userId: caregiver.userId,
-      facilityName: caregiver.facilityName,
-      specialization: caregiver.specialization,
-      yearsOfExperience: caregiver.yearsOfExperience,
+      facilityName: caregiver.facilityName ?? undefined,
+      specialization: caregiver.specialization ?? undefined,
+      yearsOfExperience: caregiver.yearsOfExperience ?? undefined,
       createdAt: caregiver.createdAt,
-      user: caregiver.user,
+      user: caregiver.user as unknown as User,
     };
   }
 }

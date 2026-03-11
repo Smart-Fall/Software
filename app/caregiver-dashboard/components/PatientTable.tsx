@@ -29,7 +29,7 @@ import {
 import { RiskScoreBadge } from '@/components/dashboard/RiskScoreBadge';
 import { EmptyState } from '@/components/dashboard/EmptyState';
 import { calculateAge, getRiskLevel } from '@/lib/dashboard-utils';
-import { Users, MoreVertical } from 'lucide-react';
+import { Users, MoreVertical, MessageSquare } from 'lucide-react';
 
 interface Patient {
   id?: number;
@@ -52,12 +52,14 @@ interface PatientTableProps {
   patients: Patient[];
   searchQuery: string;
   onViewDetails?: (patient: Patient) => void;
+  onSendMessage?: (patient: Patient) => void;
 }
 
 export const PatientTable: React.FC<PatientTableProps> = ({
   patients,
   searchQuery,
-  onViewDetails
+  onViewDetails,
+  onSendMessage,
 }) => {
   const [riskFilter, setRiskFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'risk' | 'age'>('name');
@@ -123,7 +125,10 @@ export const PatientTable: React.FC<PatientTableProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
-          <Select value={riskFilter} onValueChange={(val: any) => setRiskFilter(val)}>
+          <Select
+            value={riskFilter}
+            onValueChange={(val: 'all' | 'low' | 'medium' | 'high') => setRiskFilter(val)}
+          >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Filter by risk" />
             </SelectTrigger>
@@ -135,7 +140,10 @@ export const PatientTable: React.FC<PatientTableProps> = ({
             </SelectContent>
           </Select>
 
-          <Select value={sortBy} onValueChange={(val: any) => setSortBy(val)}>
+          <Select
+            value={sortBy}
+            onValueChange={(val: 'name' | 'risk' | 'age') => setSortBy(val)}
+          >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
@@ -186,6 +194,10 @@ export const PatientTable: React.FC<PatientTableProps> = ({
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => onViewDetails?.(patient)}>
                             View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onSendMessage?.(patient)}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Send Message
                           </DropdownMenuItem>
                           <DropdownMenuItem disabled>
                             View History

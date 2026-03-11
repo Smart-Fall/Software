@@ -6,11 +6,12 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:push": "prisma db push",
+    "seed:admin": "npx tsx scripts/seed-admin.ts",
     "tsc": "npx tsc"
   },
   "keywords": [
@@ -65,6 +66,8 @@
     "autoprefixer": "^10.4.22",
     "baseline-browser-mapping": "^2.9.15",
     "daisyui": "^5.5.5",
+    "eslint": "^9.39.3",
+    "eslint-config-next": "^16.1.6",
     "postcss": "^8.5.6",
     "prisma": "^6.19.2",
     "tailwindcss": "^3.4.0",

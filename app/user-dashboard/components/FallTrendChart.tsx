@@ -6,7 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { formatFallTrendData } from '@/lib/dashboard-utils';
 
 interface FallTrendChartProps {
-  falls: any[];
+  falls: Array<{
+    fallDatetime?: string | Date;
+    fall_datetime?: string | Date;
+  }>;
 }
 
 export const FallTrendChart: React.FC<FallTrendChartProps> = ({ falls }) => {

@@ -5,8 +5,6 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
-    console.log("[API] Received fall alert:", data);
-
     if (!data.device_id) {
       return NextResponse.json(
         { error: "device_id is required" },
@@ -34,23 +32,21 @@ export async function POST(request: Request) {
       });
     }
 
-    // Map confidence level
-    const confidenceLevelMap: { [key: number]: string } = {
-      0: "NO_FALL",
-      1: "SUSPICIOUS",
-      2: "POTENTIAL",
-      3: "CONFIRMED",
-      4: "HIGH",
-    };
-
+    // Hardware sends confidence_level as a string (e.g. "HIGH", "CONFIRMED")
+    const VALID_CONFIDENCE_LEVELS = new Set([
+      "NO_FALL", "SUSPICIOUS", "POTENTIAL", "HIGH", "CONFIRMED",
+    ]);
     const confidenceLevel =
-      confidenceLevelMap[data.confidence_level] || "UNKNOWN";
+      typeof data.confidence_level === "string" &&
+      VALID_CONFIDENCE_LEVELS.has(data.confidence_level)
+        ? data.confidence_level
+        : "UNKNOWN";
 
     // Create fall record
     const fall = await dbService.falls.create({
       patientId: device.patientId || undefined,
       deviceId: device.id,
-      fallDatetime: new Date(data.timestamp || Date.now()),
+      fallDatetime: new Date(),
       confidenceScore: data.confidence_score || null,
       confidenceLevel: confidenceLevel,
       sosTriggered: data.sos_triggered || false,
@@ -65,7 +61,7 @@ export async function POST(request: Request) {
     if (data.sensor_data) {
       await dbService.sensorData.create({
         deviceId: device.id,
-        timestamp: new Date(data.timestamp || Date.now()),
+        timestamp: new Date(),
         accelX: data.sensor_data.accel_x || 0,
         accelY: data.sensor_data.accel_y || 0,
         accelZ: data.sensor_data.accel_z || 0,

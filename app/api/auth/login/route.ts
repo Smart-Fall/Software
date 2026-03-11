@@ -26,6 +26,17 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if user account is deactivated
+    if (!user.isActive) {
+      return NextResponse.json(
+        {
+          error:
+            "Your account has been deactivated. Please contact an administrator.",
+        },
+        { status: 403 },
+      );
+    }
+
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
@@ -40,9 +51,8 @@ export async function POST(request: Request) {
     await createSession(user.id, user.accountType);
 
     // Don't send password back to client
-    const { passwordHash: _, ...userWithoutPassword } = user;
-
-    console.log('Login response:', userWithoutPassword);
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = user;
+    void _passwordHash;
 
     return NextResponse.json(
       {

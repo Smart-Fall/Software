@@ -73,7 +73,7 @@ export async function PATCH(request: Request) {
     }
 
     // Update caregiver
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (facilityName !== undefined) {
       updateData.facilityName = facilityName.trim();
     }

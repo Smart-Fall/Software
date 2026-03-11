@@ -3,8 +3,13 @@
  */
 
 import { IHealthLogRepository } from '../base';
-import { HealthLog } from '../../types';
+import { FindOptions, HealthLog, Patient } from '../../types';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+
+type PrismaHealthLogWithPatient = Prisma.HealthLogGetPayload<{
+  include: { patient: true };
+}>;
 
 export class PrismaHealthLogRepository implements IHealthLogRepository {
   async create(data: {
@@ -31,9 +36,12 @@ export class PrismaHealthLogRepository implements IHealthLogRepository {
     return healthLog ? this.mapToHealthLog(healthLog) : null;
   }
 
-  async findByPatientId(patientId: string, options?: any): Promise<HealthLog[]> {
+  async findByPatientId(
+    patientId: string,
+    options?: FindOptions<HealthLog>,
+  ): Promise<HealthLog[]> {
     const healthLogs = await prisma.healthLog.findMany({
-      where: { patientId, ...options?.where },
+      where: { patientId, ...(options?.where as Prisma.HealthLogWhereInput | undefined) },
       include: { patient: true },
       orderBy: { recordedAt: 'desc' },
       skip: options?.skip,
@@ -76,13 +84,13 @@ export class PrismaHealthLogRepository implements IHealthLogRepository {
     return this.mapToHealthLog(healthLog);
   }
 
-  private mapToHealthLog(data: any): HealthLog {
+  private mapToHealthLog(data: PrismaHealthLogWithPatient): HealthLog {
     return {
       id: data.id,
       patientId: data.patientId,
       healthScore: data.healthScore,
       recordedAt: data.recordedAt,
-      patient: data.patient,
+      patient: data.patient as unknown as Patient | undefined,
     };
   }
 }

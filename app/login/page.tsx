@@ -49,6 +49,8 @@ export default function LoginPage() {
         // Navigate to dashboard
         if (data.user.accountType === "caregiver") {
           router.push("/caregiver-dashboard");
+        } else if (data.user.accountType === "admin") {
+          router.push("/admin");
         } else if (
           data.user.accountType === "user" ||
           data.user.accountType === "patient"
@@ -144,7 +146,7 @@ export default function LoginPage() {
 
             <div className="mt-4 text-center text-sm">
               <span className="text-muted-foreground">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
               </span>
               <Button
                 variant="link"
