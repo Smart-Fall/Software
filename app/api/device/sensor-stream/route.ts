@@ -48,14 +48,11 @@ export async function POST(request: Request) {
       });
     }
 
-    // Update device battery level if provided
-    if (data.battery_level !== undefined) {
-      console.log(`[API] Updating device ${device.id} battery to ${data.battery_level}%`);
-      await dbService.devices.update(device.id, {
-        batteryLevel: data.battery_level,
-        lastSeen: new Date(),
-      });
-    }
+    // Always update lastSeen; also update battery if provided
+    await dbService.devices.update(device.id, {
+      lastSeen: new Date(),
+      ...(data.battery_level !== undefined && { batteryLevel: data.battery_level }),
+    });
 
     // Store device status if provided
     if (
