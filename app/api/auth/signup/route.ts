@@ -120,9 +120,9 @@ export async function POST(request: Request) {
         medicalConditions,
       });
 
-      // Normalize MAC to device ID format matching firmware: SF-AABBCCDDEEFF
-      const normalizedMac = deviceMacAddress.replace(/:/g, '').toUpperCase();
-      const deviceId = `SF-${normalizedMac}`;
+      // Normalize MAC to device ID format matching firmware: AA:BB:CC:DD:EE:FF
+      const rawMac = deviceMacAddress.replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+      const deviceId = rawMac.match(/.{2}/g)!.join(':');
 
       // Create device with normalized device ID
       await dbService.devices.create({
