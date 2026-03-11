@@ -4,9 +4,10 @@ import { getSession } from "@/lib/auth";
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -18,12 +19,12 @@ export async function GET(
       return NextResponse.json({ error: "Caregiver not found" }, { status: 404 });
     }
 
-    const access = await dbService.caregiverPatients.findByIds(caregiver.id, params.id);
+    const access = await dbService.caregiverPatients.findByIds(caregiver.id, id);
     if (!access || !access.isActive) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const falls = await dbService.falls.findByPatientId(params.id);
+    const falls = await dbService.falls.findByPatientId(id);
 
     const alerts = falls.map((fall) => ({
       id: fall.id,
