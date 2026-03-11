@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,6 +50,7 @@ interface SensorData {
   gyroY: number;
   gyroZ: number;
   pressure?: number;
+  fsr?: number;
 }
 
 interface ChartDataPoint {
@@ -72,68 +73,60 @@ export default function DevicesPage() {
   const [activeTab, setActiveTab] = useState('accelerometer');
 
   const API_BASE_URL = '/api';
+  const isFirstLoad = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
+  const fetchData = useCallback(async () => {
+    if (isFirstLoad.current) setIsLoading(true);
+    setError(null);
 
-      try {
-        console.log('[DevicesPage] Fetching device and sensor data from API...');
-        // Fetch device and sensor data
-        const sensorRes = await fetch(
-          `${API_BASE_URL}/patient/device/sensor-data`,
-          {
-            credentials: 'include',
-          }
-        );
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
-        console.log('[DevicesPage] Sensor API response status:', sensorRes.status);
-
-        if (!sensorRes.ok) {
-          if (sensorRes.status === 401) {
-            console.log('[DevicesPage] Unauthorized - redirecting to login');
-            router.push('/login');
-            return;
-          }
-          throw new Error(`Failed to fetch sensor data: ${sensorRes.status}`);
+    try {
+      const sensorRes = await fetch(
+        `${API_BASE_URL}/patient/device/sensor-data`,
+        {
+          credentials: 'include',
+          signal: controller.signal,
         }
+      );
 
-        const sensorDataResponse = await sensorRes.json();
-        console.log('[DevicesPage] Sensor data response:', {
-          device: sensorDataResponse.device ? {
-            id: sensorDataResponse.device.id,
-            deviceId: sensorDataResponse.device.deviceId,
-            batteryLevel: sensorDataResponse.device.batteryLevel,
-            lastSeen: sensorDataResponse.device.lastSeen,
-          } : null,
-          sensorDataCount: (sensorDataResponse.sensorData || []).length,
-        });
-
-        setDevice(sensorDataResponse.device);
-        setSensorData(sensorDataResponse.sensorData || []);
-
-        if (!sensorDataResponse.device) {
-          console.warn('[DevicesPage] No device returned from API');
+      if (!sensorRes.ok) {
+        if (sensorRes.status === 401) {
+          router.push('/login');
+          return;
         }
+        throw new Error(`Failed to fetch sensor data: ${sensorRes.status}`);
+      }
 
-        if (!sensorDataResponse.sensorData || sensorDataResponse.sensorData.length === 0) {
-          console.warn('[DevicesPage] No sensor data returned from API');
-        } else {
-          console.log('[DevicesPage] First sensor reading:', sensorDataResponse.sensorData[0]);
-        }
-      } catch (err) {
-        console.error('[DevicesPage] Error fetching device data:', err);
+      const sensorDataResponse = await sensorRes.json();
+      setDevice(sensorDataResponse.device);
+      setSensorData(sensorDataResponse.sensorData || []);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      if (isFirstLoad.current) {
         const message = err instanceof Error ? err.message : 'Failed to load device data';
         setError(message);
         toast.error(message);
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    fetchData();
+    } finally {
+      if (isFirstLoad.current) {
+        setIsLoading(false);
+        isFirstLoad.current = false;
+      }
+    }
   }, [router]);
+
+  useEffect(() => {
+    fetchData();
+    const intervalId = setInterval(fetchData, 1000);
+    return () => {
+      clearInterval(intervalId);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
+  }, [fetchData]);
 
   const online = device && isDeviceOnline(device.lastSeen as string);
   const batteryColor = device?.batteryLevel
@@ -454,6 +447,19 @@ export default function DevicesPage() {
                         {latestSensor.pressure.toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground">hPa</p>
+                    </div>
+                  )}
+
+                  {/* FSR */}
+                  {latestSensor.fsr !== undefined && (
+                    <div className="p-3 bg-red-50 rounded-lg">
+                      <p className="text-xs text-muted-foreground font-semibold uppercase">
+                        FSR
+                      </p>
+                      <p className="text-lg font-bold text-red-600">
+                        {latestSensor.fsr.toFixed(0)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">0-1023</p>
                     </div>
                   )}
                 </div>

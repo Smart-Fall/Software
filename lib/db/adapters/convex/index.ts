@@ -14,6 +14,8 @@ import { IDeviceRepository } from '../base';
 import { ISensorDataRepository } from '../base';
 import { IDeviceStatusRepository } from '../base';
 import { IHealthLogRepository } from '../base';
+import { IMessageRepository } from '../base';
+import { IDeviceLogRepository } from '../base';
 
 import { ConvexUserRepository } from './users';
 import { ConvexSessionRepository } from './sessions';
@@ -25,6 +27,8 @@ import { ConvexDeviceRepository } from './devices';
 import { ConvexSensorDataRepository } from './sensorData';
 import { ConvexDeviceStatusRepository } from './deviceStatus';
 import { ConvexHealthLogRepository } from './healthLogs';
+import { ConvexMessageRepository } from './messages';
+import { ConvexDeviceLogRepository } from './deviceLogs';
 
 /**
  * Convex adapter implementation
@@ -41,6 +45,8 @@ export class ConvexAdapter implements IDatabaseAdapter {
   sensorData: ISensorDataRepository;
   deviceStatus: IDeviceStatusRepository;
   healthLogs: IHealthLogRepository;
+  messages: IMessageRepository;
+  deviceLogs: IDeviceLogRepository;
 
   constructor() {
     this.users = new ConvexUserRepository();
@@ -53,5 +59,7 @@ export class ConvexAdapter implements IDatabaseAdapter {
     this.sensorData = new ConvexSensorDataRepository();
     this.deviceStatus = new ConvexDeviceStatusRepository();
     this.healthLogs = new ConvexHealthLogRepository();
+    this.messages = new ConvexMessageRepository();
+    this.deviceLogs = new ConvexDeviceLogRepository();
   }
 }

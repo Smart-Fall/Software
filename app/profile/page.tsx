@@ -41,6 +41,9 @@ interface Profile {
 
 type AccountType = 'patient' | 'caregiver';
 
+type PatientProfile = Profile & { patient: NonNullable<Profile['patient']> };
+type CaregiverProfile = Profile & { caregiver: NonNullable<Profile['caregiver']> };
+
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -305,7 +308,7 @@ export default function ProfilePage() {
         {accountType === 'patient' && editedProfile.patient ? (
           <>
             <PatientProfileForm
-              profile={editedProfile as any}
+              profile={editedProfile as PatientProfile}
               isEditing={isEditing}
               onChange={handleFieldChange}
               errors={errors}
@@ -316,13 +319,19 @@ export default function ProfilePage() {
               <DeviceProfileCard patientId={editedProfile.patient.id} />
             </div>
           </>
-        ) : (
+        ) : accountType === 'caregiver' && editedProfile.caregiver ? (
           <CaregiverProfileForm
-            profile={editedProfile as any}
+            profile={editedProfile as CaregiverProfile}
             isEditing={isEditing}
             onChange={handleFieldChange}
             errors={errors}
           />
+        ) : (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-amber-800">
+              Caregiver profile data is missing. Please contact support.
+            </p>
+          </div>
         )}
 
         {/* Cancel Confirmation Dialog */}

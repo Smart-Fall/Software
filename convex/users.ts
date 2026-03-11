@@ -2,8 +2,8 @@
  * Convex User Queries and Mutations
  */
 
-import { query, mutation } from './_generated/server';
-import { v } from 'convex/values';
+import { query, mutation } from "./_generated/server";
+import { v } from "convex/values";
 
 // ============================================================================
 // Queries
@@ -13,14 +13,14 @@ export const getByEmail = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query('users')
-      .withIndex('by_email', (q) => q.eq('email', args.email))
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
       .unique();
   },
 });
 
 export const getById = query({
-  args: { id: v.id('users') },
+  args: { id: v.id("users") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
   },
@@ -30,8 +30,8 @@ export const getByExternalId = query({
   args: { externalId: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query('users')
-      .withIndex('by_external_id', (q) => q.eq('externalId', args.externalId))
+      .query("users")
+      .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId))
       .unique();
   },
 });
@@ -45,8 +45,16 @@ export const list = query({
     const skip = args.skip ?? 0;
     const take = args.take ?? 20;
 
-    const users = await ctx.db.query('users').collect();
+    const users = await ctx.db.query("users").collect();
     return users.slice(skip, skip + take);
+  },
+});
+
+export const count = query({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    return users.length;
   },
 });
 
@@ -58,7 +66,11 @@ export const create = mutation({
   args: {
     email: v.string(),
     passwordHash: v.string(),
-    accountType: v.union(v.literal('user'), v.literal('caregiver')),
+    accountType: v.union(
+      v.literal("user"),
+      v.literal("caregiver"),
+      v.literal("admin"),
+    ),
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
     dob: v.optional(v.number()),
@@ -66,15 +78,15 @@ export const create = mutation({
   handler: async (ctx, args) => {
     // Check if user already exists
     const existing = await ctx.db
-      .query('users')
-      .withIndex('by_email', (q) => q.eq('email', args.email))
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
       .unique();
 
     if (existing) {
       throw new Error(`User with email ${args.email} already exists`);
     }
 
-    return await ctx.db.insert('users', {
+    return await ctx.db.insert("users", {
       externalId: crypto.randomUUID(),
       email: args.email,
       passwordHash: args.passwordHash,
@@ -90,17 +102,25 @@ export const create = mutation({
 
 export const update = mutation({
   args: {
-    id: v.id('users'),
+    id: v.id("users"),
     email: v.optional(v.string()),
     passwordHash: v.optional(v.string()),
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
     dob: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
+    accountType: v.optional(v.union(v.literal("user"), v.literal("caregiver"), v.literal("admin"))),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
     await ctx.db.patch(id, updates);
     return await ctx.db.get(id);
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("users") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
   },
 });

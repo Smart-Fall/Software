@@ -2,20 +2,33 @@
  * Convex Caregiver Repository Implementation
  */
 
-import { ICaregiverRepository } from '../base';
-import { Caregiver } from '../../types';
-import { getConvexClient } from './client';
-import { api } from '@/convex/_generated/api';
+import { ICaregiverRepository } from "../base";
+import { Caregiver, FindOptions } from "../../types";
+import { getConvexClient } from "./client";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+
+type ConvexCaregiver = {
+  _id: Id<"caregivers">;
+  userId: string;
+  facilityName?: string;
+  specialization?: string;
+  yearsOfExperience?: number;
+  createdAt: number | string | Date;
+  user?: Caregiver["user"];
+};
 
 export class ConvexCaregiverRepository implements ICaregiverRepository {
   private client = getConvexClient();
 
   async findById(id: string): Promise<Caregiver | null> {
     try {
-      const caregiver = await this.client.query(api.caregivers.getById, { id: id as any });
-      return caregiver ? this.mapToCaregiver(caregiver) : null;
+      const caregiver = await this.client.query(api.caregivers.getById, {
+        id: id as Id<"caregivers">,
+      });
+      return caregiver ? this.mapToCaregiver(caregiver as unknown as ConvexCaregiver) : null;
     } catch (error) {
-      console.error('Error finding caregiver by id:', error);
+      console.error("Error finding caregiver by id:", error);
       return null;
     }
   }
@@ -23,11 +36,11 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
   async findByUserId(userId: string): Promise<Caregiver | null> {
     try {
       const caregiver = await this.client.query(api.caregivers.getByUserId, {
-        userId: userId as any,
+        userId: userId as unknown as Id<'users'>,
       });
-      return caregiver ? this.mapToCaregiver(caregiver) : null;
+      return caregiver ? this.mapToCaregiver(caregiver as unknown as ConvexCaregiver) : null;
     } catch (error) {
-      console.error('Error finding caregiver by user id:', error);
+      console.error("Error finding caregiver by user id:", error);
       return null;
     }
   }
@@ -40,19 +53,19 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
   }): Promise<Caregiver> {
     try {
       const caregiverId = await this.client.mutation(api.caregivers.create, {
-        userId: data.userId as any,
+        userId: data.userId as unknown as Id<'users'>,
         facilityName: data.facilityName,
         specialization: data.specialization,
         yearsOfExperience: data.yearsOfExperience,
       });
 
       const caregiver = await this.client.query(api.caregivers.getById, {
-        id: caregiverId as any,
+        id: caregiverId as Id<"caregivers">,
       });
-      if (!caregiver) throw new Error('Failed to create caregiver');
-      return this.mapToCaregiver(caregiver);
+      if (!caregiver) throw new Error("Failed to create caregiver");
+      return this.mapToCaregiver(caregiver as unknown as ConvexCaregiver);
     } catch (error) {
-      console.error('Error creating caregiver:', error);
+      console.error("Error creating caregiver:", error);
       throw error;
     }
   }
@@ -60,22 +73,51 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
   async update(id: string, data: Partial<Caregiver>): Promise<Caregiver> {
     try {
       await this.client.mutation(api.caregivers.update, {
-        id: id as any,
+        id: id as Id<"caregivers">,
         facilityName: data.facilityName,
         specialization: data.specialization,
         yearsOfExperience: data.yearsOfExperience,
       });
 
-      const caregiver = await this.client.query(api.caregivers.getById, { id: id as any });
-      if (!caregiver) throw new Error('Caregiver not found after update');
-      return this.mapToCaregiver(caregiver);
+      const caregiver = await this.client.query(api.caregivers.getById, {
+        id: id as Id<"caregivers">,
+      });
+      if (!caregiver) throw new Error("Caregiver not found after update");
+      return this.mapToCaregiver(caregiver as unknown as ConvexCaregiver);
     } catch (error) {
-      console.error('Error updating caregiver:', error);
+      console.error("Error updating caregiver:", error);
       throw error;
     }
   }
 
-  private mapToCaregiver(caregiver: any): Caregiver {
+  async findMany(options?: FindOptions<Caregiver>): Promise<Caregiver[]> {
+    try {
+      const skip = options?.skip ?? 0;
+      const take = options?.take ?? 20;
+
+      const caregivers = await this.client.query(api.caregivers.list, {
+        skip,
+        take,
+      });
+      return (caregivers as unknown as ConvexCaregiver[]).map((c) =>
+        this.mapToCaregiver(c),
+      );
+    } catch (error) {
+      console.error("Error listing caregivers:", error);
+      return [];
+    }
+  }
+
+  async count(): Promise<number> {
+    try {
+      return await this.client.query(api.caregivers.count, {});
+    } catch (error) {
+      console.error("Error counting caregivers:", error);
+      return 0;
+    }
+  }
+
+  private mapToCaregiver(caregiver: ConvexCaregiver): Caregiver {
     return {
       id: caregiver._id,
       userId: caregiver.userId,

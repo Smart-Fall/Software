@@ -2,9 +2,14 @@
  * Prisma Device Repository Implementation
  */
 
-import { IDeviceRepository } from '../base';
-import { Device } from '../../types';
-import prisma from '@/lib/prisma';
+import { IDeviceRepository } from "../base";
+import { Device, FindOptions, Patient } from "../../types";
+import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+
+type PrismaDeviceWithPatient = Prisma.DeviceGetPayload<{
+  include: { patient: true };
+}>;
 
 export class PrismaDeviceRepository implements IDeviceRepository {
   async findById(id: string): Promise<Device | null> {
@@ -31,13 +36,13 @@ export class PrismaDeviceRepository implements IDeviceRepository {
     return devices.map((d) => this.mapToDevice(d));
   }
 
-  async findMany(options?: any): Promise<Device[]> {
+  async findMany(options?: FindOptions<Device>): Promise<Device[]> {
     const devices = await prisma.device.findMany({
-      where: options?.where,
+      where: options?.where as Prisma.DeviceWhereInput | undefined,
       include: { patient: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy,
+      orderBy: options?.orderBy as Prisma.DeviceOrderByWithRelationInput | undefined,
     });
     return devices.map((d) => this.mapToDevice(d));
   }
@@ -81,7 +86,10 @@ export class PrismaDeviceRepository implements IDeviceRepository {
     return this.mapToDevice(device);
   }
 
-  async updateByDeviceId(deviceId: string, data: Partial<Device>): Promise<Device> {
+  async updateByDeviceId(
+    deviceId: string,
+    data: Partial<Device>,
+  ): Promise<Device> {
     const device = await prisma.device.update({
       where: { deviceId },
       data: {
@@ -97,18 +105,22 @@ export class PrismaDeviceRepository implements IDeviceRepository {
     return this.mapToDevice(device);
   }
 
-  private mapToDevice(device: any): Device {
+  async count(): Promise<number> {
+    return await prisma.device.count();
+  }
+
+  private mapToDevice(device: PrismaDeviceWithPatient): Device {
     return {
       id: device.id,
       deviceId: device.deviceId,
-      patientId: device.patientId,
-      deviceName: device.deviceName,
+      patientId: device.patientId ?? undefined,
+      deviceName: device.deviceName ?? undefined,
       isActive: device.isActive,
-      lastSeen: device.lastSeen,
-      batteryLevel: device.batteryLevel,
-      firmwareVersion: device.firmwareVersion,
+      lastSeen: device.lastSeen ?? undefined,
+      batteryLevel: device.batteryLevel ?? undefined,
+      firmwareVersion: device.firmwareVersion ?? undefined,
       createdAt: device.createdAt,
-      patient: device.patient,
+      patient: (device.patient ?? undefined) as unknown as Patient | undefined,
     };
   }
 }

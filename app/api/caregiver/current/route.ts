@@ -27,8 +27,11 @@ export async function GET() {
       specialization: caregiver.specialization,
       yearsOfExperience: caregiver.yearsOfExperience,
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 

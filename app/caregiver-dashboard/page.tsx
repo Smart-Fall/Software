@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, MessageSquare } from 'lucide-react';
 import { CaregiverHeader } from './components/CaregiverHeader';
 import { PatientTable } from './components/PatientTable';
 import { DeviceTable } from './components/DeviceTable';
@@ -14,15 +14,19 @@ import { MetricCard } from '@/components/dashboard/MetricCard';
 import { LoadingSpinner } from '@/components/dashboard/LoadingSpinner';
 import { EmptyState } from '@/components/dashboard/EmptyState';
 import { Users, Heart, TrendingUp } from 'lucide-react';
+import PatientDetailsDialog from '@/app/PatientDetailsDialog';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
-import { RiskScoreBadge } from '@/components/dashboard/RiskScoreBadge';
-import { calculateAge } from '@/lib/dashboard-utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 
 interface Patient {
   id?: number;
@@ -91,6 +95,10 @@ export default function CaregiverDashboard() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [detailsOpen, setDetailsOpen] = useState<boolean>(false);
+  const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false);
+  const [messageTarget, setMessageTarget] = useState<Patient | null>(null);
+  const [messageForm, setMessageForm] = useState({ subject: '', message: '', isUrgent: false });
+  const [sendingMessage, setSendingMessage] = useState<boolean>(false);
 
   const API_BASE_URL = '/api';
 
@@ -274,6 +282,51 @@ export default function CaregiverDashboard() {
     }
   };
 
+  const handleOpenMessageDialog = (patient: Patient) => {
+    setMessageTarget(patient);
+    setMessageForm({ subject: '', message: '', isUrgent: false });
+    setMessageDialogOpen(true);
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageTarget || !messageForm.message.trim()) return;
+
+    const patientId = messageTarget.id ?? messageTarget.patient_id ?? messageTarget.patientId;
+    if (patientId == null) {
+      toast.error('Cannot send message: missing patient id');
+      return;
+    }
+
+    setSendingMessage(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          patientId: String(patientId),
+          subject: messageForm.subject,
+          messageText: messageForm.message,
+          isUrgent: messageForm.isUrgent,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(err.error || `Failed to send message (HTTP ${response.status})`);
+      }
+
+      toast.success('Message sent successfully');
+      setMessageDialogOpen(false);
+      setMessageForm({ subject: '', message: '', isUrgent: false });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to send message');
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#f8f9fa]">
@@ -382,6 +435,7 @@ export default function CaregiverDashboard() {
               patients={myPatients}
               searchQuery={searchQuery}
               onViewDetails={handleViewDetails}
+              onSendMessage={handleOpenMessageDialog}
             />
           </TabsContent>
 
@@ -409,73 +463,74 @@ export default function CaregiverDashboard() {
         </Tabs>
       </main>
 
-      {/* Patient Details Dialog */}
-      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-2xl">
+      {/* Patient Details Dialog with Notifications and Messaging */}
+      <PatientDetailsDialog
+        patient={selectedPatient}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+      />
+
+      {/* Send Message Dialog */}
+      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Patient Details</DialogTitle>
-            <DialogDescription>
-              Detailed information for {selectedPatient?.firstName} {selectedPatient?.lastName}
-            </DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Send Message to{' '}
+              {messageTarget
+                ? `${messageTarget.firstName || messageTarget.first_name || ''} ${messageTarget.lastName || messageTarget.last_name || ''}`.trim()
+                : 'Patient'}
+            </DialogTitle>
           </DialogHeader>
-          {selectedPatient && (
-            <div className="grid gap-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">First Name</label>
-                  <p className="text-lg font-semibold">
-                    {selectedPatient.firstName || selectedPatient.first_name || 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Last Name</label>
-                  <p className="text-lg font-semibold">
-                    {selectedPatient.lastName || selectedPatient.last_name || 'N/A'}
-                  </p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
-                  <p className="text-lg font-semibold">
-                    {new Date(selectedPatient.dob).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Age</label>
-                  <p className="text-lg font-semibold">{calculateAge(selectedPatient.dob)} years</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Risk Score</label>
-                  <div className="mt-2">
-                    <RiskScoreBadge
-                      score={selectedPatient.riskScore || selectedPatient.risk_score || 0}
-                      showLabel
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">High Risk Status</label>
-                  <p className="text-lg font-semibold">
-                    {selectedPatient.isHighRisk || selectedPatient.is_high_risk ? 'Yes' : 'No'}
-                  </p>
-                </div>
-              </div>
-
-              {(selectedPatient.medicalConditions || selectedPatient.medical_conditions) && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Medical Conditions</label>
-                  <p className="text-sm text-foreground mt-2">
-                    {selectedPatient.medicalConditions || selectedPatient.medical_conditions}
-                  </p>
-                </div>
-              )}
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Input
+                id="subject"
+                placeholder="Optional subject"
+                value={messageForm.subject}
+                onChange={(e) => setMessageForm((prev) => ({ ...prev, subject: e.target.value }))}
+              />
             </div>
-          )}
+
+            <div className="space-y-2">
+              <Label htmlFor="message">Message *</Label>
+              <Textarea
+                id="message"
+                placeholder="Write your message here..."
+                rows={5}
+                value={messageForm.message}
+                onChange={(e) => setMessageForm((prev) => ({ ...prev, message: e.target.value }))}
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Switch
+                id="urgent"
+                checked={messageForm.isUrgent}
+                onCheckedChange={(checked) =>
+                  setMessageForm((prev) => ({ ...prev, isUrgent: checked }))
+                }
+              />
+              <Label htmlFor="urgent" className="cursor-pointer">
+                Mark as urgent
+              </Label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMessageDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendMessage}
+              disabled={sendingMessage || !messageForm.message.trim()}
+              className="bg-[#1a1a96] hover:bg-[#15157a]"
+            >
+              {sendingMessage ? 'Sending...' : 'Send Message'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

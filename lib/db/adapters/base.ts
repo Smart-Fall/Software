@@ -14,8 +14,10 @@ import {
   Device,
   SensorData,
   DeviceStatus,
+  DeviceLog,
+  Message,
   FindOptions,
-} from '../types';
+} from "../types";
 
 // ============================================================================
 // User Repository
@@ -27,13 +29,15 @@ export interface IUserRepository {
   create(data: {
     email: string;
     passwordHash: string;
-    accountType: 'user' | 'caregiver';
+    accountType: "user" | "caregiver" | "admin";
     firstName?: string;
     lastName?: string;
     dob?: Date;
   }): Promise<User>;
   update(id: string, data: Partial<User>): Promise<User>;
   findAll(options?: FindOptions<User>): Promise<User[]>;
+  count(): Promise<number>;
+  delete(id: string): Promise<void>;
 }
 
 // ============================================================================
@@ -86,6 +90,8 @@ export interface ICaregiverRepository {
     yearsOfExperience?: number;
   }): Promise<Caregiver>;
   update(id: string, data: Partial<Caregiver>): Promise<Caregiver>;
+  findMany(options?: FindOptions<Caregiver>): Promise<Caregiver[]>;
+  count(): Promise<number>;
 }
 
 // ============================================================================
@@ -100,11 +106,14 @@ export interface ICaregiverPatientRepository {
   }): Promise<CaregiverPatient>;
   findByCaregiverId(caregiverId: string): Promise<CaregiverPatient[]>;
   findByPatientId(patientId: string): Promise<CaregiverPatient[]>;
-  findByIds(caregiverId: string, patientId: string): Promise<CaregiverPatient | null>;
+  findByIds(
+    caregiverId: string,
+    patientId: string,
+  ): Promise<CaregiverPatient | null>;
   update(
     caregiverId: string,
     patientId: string,
-    data: Partial<CaregiverPatient>
+    data: Partial<CaregiverPatient>,
   ): Promise<CaregiverPatient>;
   delete(caregiverId: string, patientId: string): Promise<void>;
 }
@@ -156,6 +165,7 @@ export interface IDeviceRepository {
   }): Promise<Device>;
   update(id: string, data: Partial<Device>): Promise<Device>;
   updateByDeviceId(deviceId: string, data: Partial<Device>): Promise<Device>;
+  count(): Promise<number>;
 }
 
 // ============================================================================
@@ -164,7 +174,10 @@ export interface IDeviceRepository {
 
 export interface ISensorDataRepository {
   findById(id: string): Promise<SensorData | null>;
-  findByDeviceId(deviceId: string, options?: FindOptions<SensorData>): Promise<SensorData[]>;
+  findByDeviceId(
+    deviceId: string,
+    options?: FindOptions<SensorData>,
+  ): Promise<SensorData[]>;
   findRecent(deviceId: string, limit: number): Promise<SensorData[]>;
   create(data: {
     deviceId: string;
@@ -176,8 +189,15 @@ export interface ISensorDataRepository {
     gyroY: number;
     gyroZ: number;
     pressure?: number;
+    fsr?: number;
+    heartRate?: number;
+    spo2?: number;
   }): Promise<SensorData>;
-  findBetween(deviceId: string, startTime: Date, endTime: Date): Promise<SensorData[]>;
+  findBetween(
+    deviceId: string,
+    startTime: Date,
+    endTime: Date,
+  ): Promise<SensorData[]>;
 }
 
 // ============================================================================
@@ -186,7 +206,10 @@ export interface ISensorDataRepository {
 
 export interface IDeviceStatusRepository {
   findById(id: string): Promise<DeviceStatus | null>;
-  findByDeviceId(deviceId: string, options?: FindOptions<DeviceStatus>): Promise<DeviceStatus[]>;
+  findByDeviceId(
+    deviceId: string,
+    options?: FindOptions<DeviceStatus>,
+  ): Promise<DeviceStatus[]>;
   findRecent(deviceId: string, limit: number): Promise<DeviceStatus[]>;
   findLatest(deviceId: string): Promise<DeviceStatus | null>;
   create(data: {
@@ -212,10 +235,64 @@ export interface IHealthLogRepository {
     recordedAt?: Date;
   }): Promise<HealthLog>;
   findById(id: string): Promise<HealthLog | null>;
-  findByPatientId(patientId: string, options?: FindOptions<HealthLog>): Promise<HealthLog[]>;
+  findByPatientId(
+    patientId: string,
+    options?: FindOptions<HealthLog>,
+  ): Promise<HealthLog[]>;
   findRecent(patientId: string, limit: number): Promise<HealthLog[]>;
-  findBetween(patientId: string, startDate: Date, endDate: Date): Promise<HealthLog[]>;
+  findBetween(
+    patientId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<HealthLog[]>;
   update(id: string, data: Partial<HealthLog>): Promise<HealthLog>;
+}
+
+// ============================================================================
+// DeviceLog Repository
+// ============================================================================
+
+export interface IDeviceLogRepository {
+  create(data: {
+    deviceId: string;
+    level: string;
+    category: string;
+    message: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<DeviceLog>;
+  findByDeviceId(
+    deviceId: string,
+    options?: { take?: number; skip?: number },
+  ): Promise<DeviceLog[]>;
+  findAll(options?: {
+    take?: number;
+    skip?: number;
+    deviceId?: string;
+    level?: string;
+    category?: string;
+  }): Promise<{ logs: DeviceLog[]; total: number }>;
+  countByDeviceId(deviceId: string): Promise<number>;
+}
+
+// ============================================================================
+// Message Repository
+// ============================================================================
+
+export interface IMessageRepository {
+  create(data: {
+    caregiverId: string;
+    patientId: string;
+    subject?: string;
+    messageText: string;
+    isUrgent?: boolean;
+  }): Promise<Message>;
+  findByPatientId(patientId: string): Promise<Message[]>;
+  findByCaregiverAndPatient(
+    caregiverId: string,
+    patientId: string,
+  ): Promise<Message[]>;
+  getUnreadCount(patientId: string): Promise<number>;
+  markAsRead(messageId: string, patientId: string): Promise<Message>;
 }
 
 // ============================================================================
@@ -233,4 +310,6 @@ export interface IDatabaseAdapter {
   sensorData: ISensorDataRepository;
   deviceStatus: IDeviceStatusRepository;
   healthLogs: IHealthLogRepository;
+  messages: IMessageRepository;
+  deviceLogs: IDeviceLogRepository;
 }

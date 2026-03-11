@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       wifiConnected: data.wifi_connected ?? true,
       bluetoothConnected: data.bluetooth_connected ?? false,
       sensorsInitialized: data.sensors_initialized ?? true,
-      uptimeMs: BigInt(data.uptime || 0),
+      uptimeMs: BigInt(Math.floor(Number.isFinite(Number(data.uptime)) ? Number(data.uptime) : 0)),
       currentStatus: data.current_status || "active",
     });
 

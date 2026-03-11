@@ -44,6 +44,30 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate account-type specific required fields BEFORE any DB writes
+    if (accountType === "caregiver") {
+      if (!specialization) {
+        return NextResponse.json(
+          { error: "Specialization is required for caregivers" },
+          { status: 400 },
+        );
+      }
+    } else if (accountType === "user") {
+      if (!deviceMacAddress) {
+        return NextResponse.json(
+          { error: "Device MAC address is required for patient accounts" },
+          { status: 400 },
+        );
+      }
+      const macRegex = /^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})|([0-9A-Fa-f]{12})$/;
+      if (!macRegex.test(deviceMacAddress)) {
+        return NextResponse.json(
+          { error: "Invalid MAC address format" },
+          { status: 400 },
+        );
+      }
+    }
+
     // Check if user already exists
     const dbService = await getDbServiceAsync();
     const existingUser = await dbService.users.findByEmail(email);
@@ -70,13 +94,6 @@ export async function POST(request: Request) {
 
     // Create account-specific data
     if (accountType === "caregiver") {
-      if (!specialization) {
-        return NextResponse.json(
-          { error: "Specialization is required for caregivers" },
-          { status: 400 },
-        );
-      }
-
       await dbService.caregivers.create({
         userId: newUser.id,
         facilityName,
@@ -84,23 +101,6 @@ export async function POST(request: Request) {
         yearsOfExperience,
       });
     } else if (accountType === "user") {
-      // Validate device MAC address
-      if (!deviceMacAddress) {
-        return NextResponse.json(
-          { error: "Device MAC address is required for patient accounts" },
-          { status: 400 },
-        );
-      }
-
-      // Validate MAC address format (XX:XX:XX:XX:XX:XX or XXXXXXXXXXXX)
-      const macRegex = /^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})|([0-9A-Fa-f]{12})$/;
-      if (!macRegex.test(deviceMacAddress)) {
-        return NextResponse.json(
-          { error: "Invalid MAC address format" },
-          { status: 400 },
-        );
-      }
-
       // Determine initial health score
       let initialScore = 75; // Default to 75 if not provided
       if (initialHealthScore) {
@@ -120,9 +120,13 @@ export async function POST(request: Request) {
         medicalConditions,
       });
 
-      // Create device with MAC address
+      // Normalize MAC to device ID format matching firmware: SF-AABBCCDDEEFF
+      const normalizedMac = deviceMacAddress.replace(/:/g, '').toUpperCase();
+      const deviceId = `SF-${normalizedMac}`;
+
+      // Create device with normalized device ID
       await dbService.devices.create({
-        deviceId: deviceMacAddress,
+        deviceId,
         patientId: patient.id,
         isActive: true,
       });

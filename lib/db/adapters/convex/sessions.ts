@@ -6,6 +6,15 @@ import { ISessionRepository } from '../base';
 import { Session } from '../../types';
 import { getConvexClient } from './client';
 import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+
+type ConvexSession = {
+  _id: Id<'sessions'>;
+  userId?: string;
+  sessionToken: string;
+  createdAt: number | string | Date;
+  expiresAt?: number | string | Date;
+};
 
 export class ConvexSessionRepository implements ISessionRepository {
   private client = getConvexClient();
@@ -17,14 +26,16 @@ export class ConvexSessionRepository implements ISessionRepository {
   }): Promise<Session> {
     try {
       const sessionId = await this.client.mutation(api.sessions.create, {
-        userId: data.userId as any,
+        userId: data.userId as unknown as Id<'users'>,
         sessionToken: data.sessionToken,
         expiresAt: data.expiresAt ? data.expiresAt.getTime() : undefined,
       });
 
-      const session = await this.client.query(api.sessions.getById, { id: sessionId as any });
+      const session = await this.client.query(api.sessions.getById, {
+        id: sessionId as Id<'sessions'>,
+      });
       if (!session) throw new Error('Failed to create session');
-      return this.mapToSession(session);
+      return this.mapToSession(session as ConvexSession);
     } catch (error) {
       console.error('Error creating session:', error);
       throw error;
@@ -34,7 +45,7 @@ export class ConvexSessionRepository implements ISessionRepository {
   async findByToken(sessionToken: string): Promise<Session | null> {
     try {
       const session = await this.client.query(api.sessions.getByToken, { sessionToken });
-      return session ? this.mapToSession(session) : null;
+      return session ? this.mapToSession(session as ConvexSession) : null;
     } catch (error) {
       console.error('Error finding session by token:', error);
       return null;
@@ -44,9 +55,9 @@ export class ConvexSessionRepository implements ISessionRepository {
   async findByUserId(userId: string): Promise<Session[]> {
     try {
       const sessions = await this.client.query(api.sessions.getByUserId, {
-        userId: userId as any,
+        userId: userId as unknown as Id<'users'>,
       });
-      return sessions.map((s: any) => this.mapToSession(s));
+      return (sessions as ConvexSession[]).map((s) => this.mapToSession(s));
     } catch (error) {
       console.error('Error finding sessions by user id:', error);
       return [];
@@ -64,7 +75,7 @@ export class ConvexSessionRepository implements ISessionRepository {
   async deleteByUserId(userId: string): Promise<void> {
     try {
       await this.client.mutation(api.sessions.deleteByUserId, {
-        userId: userId as any,
+        userId: userId as unknown as Id<'users'>,
       });
     } catch (error) {
       console.error('Error deleting sessions by user id:', error);
@@ -81,7 +92,7 @@ export class ConvexSessionRepository implements ISessionRepository {
     }
   }
 
-  private mapToSession(session: any): Session {
+  private mapToSession(session: ConvexSession): Session {
     return {
       id: session._id,
       userId: session.userId,

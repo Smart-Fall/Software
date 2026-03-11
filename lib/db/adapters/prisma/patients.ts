@@ -3,8 +3,13 @@
  */
 
 import { IPatientRepository } from '../base';
-import { Patient } from '../../types';
+import { FindOptions, Patient, User } from '../../types';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+
+type PrismaPatientWithUser = Prisma.PatientGetPayload<{
+  include: { user: true };
+}>;
 
 export class PrismaPatientRepository implements IPatientRepository {
   async findById(id: string): Promise<Patient | null> {
@@ -23,12 +28,12 @@ export class PrismaPatientRepository implements IPatientRepository {
     return patient ? this.mapToPatient(patient) : null;
   }
 
-  async findMany(options?: any): Promise<Patient[]> {
+  async findMany(options?: FindOptions<Patient>): Promise<Patient[]> {
     const patients = await prisma.patient.findMany({
       include: { user: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy,
+      orderBy: options?.orderBy as Prisma.PatientOrderByWithRelationInput | undefined,
     });
     return patients.map((p) => this.mapToPatient(p));
   }
@@ -78,15 +83,15 @@ export class PrismaPatientRepository implements IPatientRepository {
     return await prisma.patient.count();
   }
 
-  private mapToPatient(patient: any): Patient {
+  private mapToPatient(patient: PrismaPatientWithUser): Patient {
     return {
       id: patient.id,
       userId: patient.userId,
       riskScore: patient.riskScore,
       isHighRisk: patient.isHighRisk,
-      medicalConditions: patient.medicalConditions,
+      medicalConditions: patient.medicalConditions ?? undefined,
       createdAt: patient.createdAt,
-      user: patient.user,
+      user: patient.user as unknown as User | undefined,
     };
   }
 }
