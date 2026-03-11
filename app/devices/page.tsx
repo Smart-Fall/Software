@@ -62,6 +62,7 @@ interface ChartDataPoint {
   gyroY: number;
   gyroZ: number;
   pressure?: number;
+  fsr?: number;
 }
 
 export default function DevicesPage() {
@@ -143,6 +144,7 @@ export default function DevicesPage() {
     gyroY: parseFloat(data.gyroY.toFixed(2)),
     gyroZ: parseFloat(data.gyroZ.toFixed(2)),
     pressure: data.pressure ? parseFloat(data.pressure.toFixed(2)) : undefined,
+    fsr: data.fsr != null ? data.fsr : undefined,
   }));
 
   // Get latest sensor reading
@@ -459,7 +461,7 @@ export default function DevicesPage() {
                       <p className="text-lg font-bold text-red-600">
                         {latestSensor.fsr.toFixed(0)}
                       </p>
-                      <p className="text-xs text-muted-foreground">0-1023</p>
+                      <p className="text-xs text-muted-foreground">0-4095</p>
                     </div>
                   )}
                 </div>
@@ -481,11 +483,14 @@ export default function DevicesPage() {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsList className="grid w-full grid-cols-4 mb-6">
                   <TabsTrigger value="accelerometer">Accelerometer</TabsTrigger>
                   <TabsTrigger value="gyroscope">Gyroscope</TabsTrigger>
                   {chartData[0]?.pressure !== undefined && (
                     <TabsTrigger value="pressure">Pressure</TabsTrigger>
+                  )}
+                  {chartData.some((d) => d.fsr != null) && (
+                    <TabsTrigger value="fsr">FSR</TabsTrigger>
                   )}
                 </TabsList>
 
@@ -573,6 +578,29 @@ export default function DevicesPage() {
                           stroke="#ef4444"
                           strokeWidth={2}
                           name="Pressure (hPa)"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </TabsContent>
+                )}
+
+                {/* FSR Chart */}
+                {chartData.some((d) => d.fsr != null) && (
+                  <TabsContent value="fsr" className="space-y-4">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="timestamp" />
+                        <YAxis domain={[0, 4095]} />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="fsr"
+                          stroke="#f97316"
+                          strokeWidth={2}
+                          name="FSR (0-4095)"
+                          connectNulls={false}
                         />
                       </LineChart>
                     </ResponsiveContainer>
