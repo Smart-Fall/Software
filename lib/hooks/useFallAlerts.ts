@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface Fall {
   id: string;
@@ -21,34 +21,42 @@ interface Fall {
 export function useFallAlerts(caregiverId?: string, pollingInterval: number = 5000) {
   const [falls, setFalls] = useState<Fall[]>([]);
   const [loading, setLoading] = useState(true);
-  const [lastCheck, setLastCheck] = useState<string>(new Date().toISOString());
+  const [newFallCount, setNewFallCount] = useState(0);
+  const lastCheckRef = useRef<string>(new Date().toISOString());
 
   useEffect(() => {
     const fetchFalls = async () => {
       try {
         const params = new URLSearchParams({
-          since: lastCheck,
+          since: lastCheckRef.current,
           ...(caregiverId && { caregiver_id: caregiverId })
         });
 
         const response = await fetch(`/api/falls/recent?${params}`);
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
         const data = await response.json();
 
         if (data.falls && data.falls.length > 0) {
           setFalls(prev => [...data.falls, ...prev].slice(0, 20));
+          setNewFallCount(prev => prev + data.falls.length);
 
-          // Browser notifications
+          // Browser notifications (if permitted)
           data.falls.forEach((fall: Fall) => {
+            const patientName = `${fall.patient?.user.firstName || 'Unknown'} ${fall.patient?.user.lastName || ''}`.trim();
             if (Notification.permission === 'granted') {
               new Notification('Fall Detected!', {
-                body: `${fall.patient?.user.firstName || 'Unknown Patient'} - ${fall.confidenceLevel}`,
+                body: `${patientName} - ${fall.confidenceLevel}`,
                 icon: '/favicon.ico'
               });
             }
           });
         }
 
-        setLastCheck(data.timestamp);
+        lastCheckRef.current = data.timestamp ?? new Date().toISOString();
         setLoading(false);
       } catch (error) {
         console.error('Error fetching falls:', error);
@@ -64,7 +72,7 @@ export function useFallAlerts(caregiverId?: string, pollingInterval: number = 50
     }
 
     return () => clearInterval(intervalId);
-  }, [caregiverId, pollingInterval, lastCheck]);
+  }, [caregiverId, pollingInterval]);
 
-  return { falls, loading };
+  return { falls, loading, newFallCount, clearNewFallCount: () => setNewFallCount(0) };
 }

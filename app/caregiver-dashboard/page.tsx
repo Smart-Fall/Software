@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, MessageSquare } from 'lucide-react';
+import { useFallAlerts } from '@/lib/hooks/useFallAlerts';
+import { FallAlertToast } from '@/lib/components/FallAlertToast';
 import { CaregiverHeader } from './components/CaregiverHeader';
 import { PatientTable } from './components/PatientTable';
 import { DeviceTable } from './components/DeviceTable';
@@ -99,6 +101,42 @@ export default function CaregiverDashboard() {
   const [messageTarget, setMessageTarget] = useState<Patient | null>(null);
   const [messageForm, setMessageForm] = useState({ subject: '', message: '', isUrgent: false });
   const [sendingMessage, setSendingMessage] = useState<boolean>(false);
+
+  // Use fall alerts hook (starts polling after caregiver loads)
+  const { falls: liveFalls, newFallCount, clearNewFallCount } = useFallAlerts(
+    caregiver?.caregiver_id || caregiver?.id ? String(caregiver.caregiver_id || caregiver.id) : undefined
+  );
+
+  // Track previous falls to detect new ones for toast display
+  const previousFallIdsRef = useRef<Set<string>>(new Set());
+
+  // Show toast for new falls
+  useEffect(() => {
+    liveFalls.forEach((fall) => {
+      if (!previousFallIdsRef.current.has(fall.id)) {
+        const patientName = `${fall.patient?.user.firstName || 'Unknown'} ${fall.patient?.user.lastName || ''}`.trim();
+
+        toast.custom(
+          (t) => (
+            <FallAlertToast
+              patientName={patientName}
+              confidenceLevel={fall.confidenceLevel}
+              confidenceScore={fall.confidenceScore}
+              onDismiss={() => toast.dismiss(t)}
+              onViewDetails={() => toast.dismiss(t)}
+            />
+          ),
+          {
+            duration: 8000,
+            position: 'top-right',
+          }
+        );
+      }
+    });
+
+    // Update tracked fall IDs
+    previousFallIdsRef.current = new Set(liveFalls.map(f => f.id));
+  }, [liveFalls]);
 
   const API_BASE_URL = '/api';
 
@@ -413,12 +451,19 @@ export default function CaregiverDashboard() {
         </div>
 
         {/* Main Tabs */}
-        <Tabs defaultValue="patients" className="w-full">
+        <Tabs defaultValue="patients" className="w-full" onValueChange={(v) => { if (v === 'alerts') clearNewFallCount(); }}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="patients">Patients</TabsTrigger>
             <TabsTrigger value="devices">Devices</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="alerts">Alerts</TabsTrigger>
+            <TabsTrigger value="alerts" className="relative">
+              Alerts
+              {newFallCount > 0 && (
+                <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full animate-pulse">
+                  {newFallCount}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           {/* Patients Tab */}
@@ -455,6 +500,7 @@ export default function CaregiverDashboard() {
           {/* Alerts Tab */}
           <TabsContent value="alerts">
             <AlertsTab
+              recentFalls={liveFalls}
               unresolvedFalls={stats.recentFalls}
               highRiskPatients={stats.highRiskPatients}
               offlineDevices={Math.max(0, devices.length - Math.floor(devices.length * 0.8))}
