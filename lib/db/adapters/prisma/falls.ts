@@ -94,7 +94,15 @@ export class PrismaFallRepository implements IFallRepository {
     const falls = await prisma.fall.findMany({
       where: { resolved: false },
       orderBy: { fallDatetime: 'desc' },
-      include: { patient: true, device: true },
+      include: {
+        patient: {
+          include: {
+            user: true,
+            caregiverPatients: { where: { isActive: true } },
+          },
+        },
+        device: true,
+      },
     });
     return falls.map((f) => this.mapToFall(f));
   }
