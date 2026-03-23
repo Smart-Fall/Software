@@ -1,0 +1,201 @@
+---
+title: Environment Variables
+description: Configure SmartFall with environment variables
+---
+
+# Environment Variables
+
+SmartFall uses environment variables for configuration. Create a `.env.local` file in the project root.
+
+## Required Variables
+
+### Database Configuration
+
+Choose **one** database provider:
+
+#### PostgreSQL (Prisma)
+```bash
+DATABASE_PROVIDER=prisma
+DATABASE_URL=postgresql://user:password@localhost:5432/smartfall
+```
+
+#### Convex (Serverless)
+```bash
+DATABASE_PROVIDER=convex
+CONVEX_DEPLOYMENT=prod:your-deployment-id
+```
+
+### Authentication
+
+```bash
+# JWT secret for session tokens (generate a random 32+ character string)
+JWT_SECRET=your_random_secret_key_here_min_32_chars
+
+# Session duration in hours
+SESSION_DURATION=24
+
+# Password hash algorithm (bcrypt rounds, typically 10-12)
+BCRYPT_ROUNDS=10
+```
+
+## Application Configuration
+
+```bash
+# Next.js environment
+NODE_ENV=development
+
+# Application URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# IoT Device API Base URL (for device documentation)
+NEXT_PUBLIC_IOT_API_URL=http://localhost:3000/api
+```
+
+## Security Configuration
+
+```bash
+# CORS: Comma-separated allowed origins
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+
+# Enable/disable debug logging
+DEBUG=false
+
+# Rate limiting: requests per minute per IP
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX_REQUESTS=100
+```
+
+## IoT Device Configuration
+
+```bash
+# Maximum allowed devices per user
+MAX_DEVICES_PER_USER=10
+
+# Sensor data retention (in days)
+SENSOR_DATA_RETENTION_DAYS=90
+
+# Fall detection confidence threshold (0-1)
+FALL_CONFIDENCE_THRESHOLD=0.7
+
+# Device heartbeat timeout (in seconds)
+DEVICE_HEARTBEAT_TIMEOUT_SECONDS=300
+```
+
+## Email Configuration (Optional)
+
+For sending fall alerts and notifications:
+
+```bash
+# Email service provider
+EMAIL_PROVIDER=smtp  # or 'sendgrid', 'mailgun'
+
+# SMTP Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM=noreply@smartfall.com
+
+# Or SendGrid
+SENDGRID_API_KEY=your-sendgrid-api-key
+```
+
+## Monitoring & Logging
+
+```bash
+# Logging level
+LOG_LEVEL=info  # 'debug', 'info', 'warn', 'error'
+
+# Enable request logging
+REQUEST_LOGGING=false
+
+# Application performance monitoring (optional)
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+```
+
+## Development Variables
+
+Only needed for local development:
+
+```bash
+# Enable mock data generation
+SEED_DATABASE=false
+
+# Enable verbose error messages
+VERBOSE_ERRORS=true
+
+# Use mock email (logs instead of sending)
+MOCK_EMAIL=true
+```
+
+## Production Variables
+
+For production deployments:
+
+```bash
+NODE_ENV=production
+DEBUG=false
+ALLOWED_ORIGINS=https://smartfall.example.com,https://api.smartfall.example.com
+SESSION_DURATION=48
+RATE_LIMIT_MAX_REQUESTS=1000
+```
+
+## Environment File Example
+
+Complete `.env.local` example:
+
+```bash
+# Database
+DATABASE_PROVIDER=prisma
+DATABASE_URL=postgresql://postgres:password@localhost:5432/smartfall
+
+# Auth
+JWT_SECRET=your_random_secret_key_here_min_32_chars_long
+SESSION_DURATION=24
+BCRYPT_ROUNDS=10
+
+# App
+NODE_ENV=development
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_IOT_API_URL=http://localhost:3000/api
+
+# Security
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+DEBUG=false
+
+# IoT
+MAX_DEVICES_PER_USER=10
+SENSOR_DATA_RETENTION_DAYS=90
+FALL_CONFIDENCE_THRESHOLD=0.7
+
+# Logging
+LOG_LEVEL=info
+REQUEST_LOGGING=false
+
+# Development
+SEED_DATABASE=false
+VERBOSE_ERRORS=true
+MOCK_EMAIL=true
+```
+
+## Environment Validation
+
+SmartFall validates required environment variables on startup. If a required variable is missing, the application will exit with an error message indicating which variables need to be set.
+
+## Updating Environment Variables
+
+After changing `.env.local`:
+
+1. Stop the development server (`Ctrl+C`)
+2. Update `.env.local`
+3. Restart the development server (`npm run dev`)
+
+## Security Notes
+
+- **Never commit `.env.local`** to version control
+- **Use strong, random values** for `JWT_SECRET`
+- **Rotate secrets regularly** in production
+- **Use different values** for each environment (dev, staging, production)
+- **Keep sensitive data secure** - don't share or log secrets
+
+Next: [Running Locally](/docs/getting-started/running-locally)

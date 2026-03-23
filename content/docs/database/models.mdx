@@ -1,0 +1,287 @@
+---
+title: Database Models
+description: SmartFall database models with field definitions
+---
+
+# Database Models
+
+Detailed model definitions for all 12 database entities.
+
+## User Model
+
+Represents user accounts with authentication and role information.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `email` | String | Unique email address |
+| `passwordHash` | String | bcrypt hashed password |
+| `firstName` | String | User's first name |
+| `lastName` | String | User's last name |
+| `role` | Enum | PATIENT, CAREGIVER, or ADMIN |
+| `createdAt` | DateTime | Account creation time |
+| `updatedAt` | DateTime | Last modification time |
+
+### Prisma Schema
+
+```prisma
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          Role     @default(PATIENT)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions      Session[]
+  patient       Patient?
+  caregiver     Caregiver?
+}
+
+enum Role {
+  PATIENT
+  CAREGIVER
+  ADMIN
+}
+```
+
+---
+
+## Session Model
+
+Stores user authentication sessions.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `userId` | UUID | Reference to User |
+| `token` | String | JWT token |
+| `expiresAt` | DateTime | Session expiration |
+| `ipAddress` | String | Client IP |
+| `userAgent` | String | Browser/device info |
+| `createdAt` | DateTime | Session start |
+
+---
+
+## Patient Model
+
+Patient profile for fall detection system users.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `userId` | UUID | Reference to User |
+| `dateOfBirth` | DateTime | Date of birth |
+| `emergencyContact` | String | Phone number |
+| `healthScore` | Int | Current health score (0-100) |
+| `riskScore` | Int | Current risk score (100 - healthScore) |
+| `isHighRisk` | Boolean | Risk score >= 75 |
+| `createdAt` | DateTime | Profile creation |
+| `updatedAt` | DateTime | Last update |
+
+---
+
+## Caregiver Model
+
+Caregiver profile for monitoring users.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `userId` | UUID | Reference to User |
+| `phone` | String | Contact phone |
+| `specialization` | String | Care specialty |
+| `organization` | String | Employer/org |
+| `createdAt` | DateTime | Profile creation |
+| `updatedAt` | DateTime | Last update |
+
+---
+
+## CaregiverPatient Model
+
+Junction table for caregiver-patient relationships.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `caregiverId` | UUID | Caregiver reference |
+| `patientId` | UUID | Patient reference |
+| `relationship` | String | Son, Daughter, Nurse, etc. |
+| `assignedAt` | DateTime | Assignment date |
+
+---
+
+## Fall Model
+
+Records fall events detected by the system.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `userId` | UUID | Patient reference |
+| `deviceId` | UUID | Device that detected fall |
+| `confidence` | Float | Confidence level (0-1) |
+| `status` | Enum | NO_FALL, SUSPICIOUS, POTENTIAL, HIGH, CONFIRMED |
+| `location` | String | Where fall occurred |
+| `witnessed` | Boolean | Was it witnessed |
+| `injuries` | String | Injury description |
+| `createdAt` | DateTime | Event time |
+
+### Status Values
+
+| Status | Confidence | Action |
+|--------|------------|--------|
+| NO_FALL | 0.00-0.30 | None |
+| SUSPICIOUS | 0.31-0.50 | Log event |
+| POTENTIAL | 0.51-0.70 | Alert caregiver |
+| HIGH | 0.71-0.89 | Notify + alert |
+| CONFIRMED | 0.90-1.00 | Emergency protocol |
+
+---
+
+## Device Model
+
+IoT wearable device information.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `userId` | UUID | Device owner |
+| `macAddress` | String | Unique MAC address |
+| `name` | String | Device name |
+| `status` | Enum | ACTIVE, INACTIVE, OFFLINE, DISABLED |
+| `batteryLevel` | Float | Battery percentage (0-100) |
+| `firmwareVersion` | String | Firmware version |
+| `lastSeen` | DateTime | Last data received |
+| `createdAt` | DateTime | Device registered |
+| `updatedAt` | DateTime | Last updated |
+
+---
+
+## SensorData Model
+
+Time-series sensor readings from devices.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `deviceId` | UUID | Source device |
+| `userId` | UUID | Device owner |
+| `accelX, Y, Z` | Float | Acceleration (m/s²) |
+| `gyroX, Y, Z` | Float | Gyroscope (°/s) |
+| `pressure` | Float | Atmospheric (hPa) |
+| `fsr` | Float | Foot pressure (0-1) |
+| `heartRate` | Int | Heart rate (bpm) |
+| `spo2` | Int | Oxygen level (%) |
+| `battery` | Float | Battery level (%) |
+| `timestamp` | DateTime | Reading time |
+| `createdAt` | DateTime | Record time |
+
+---
+
+## DeviceStatus Model
+
+Current status snapshot of devices.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `deviceId` | UUID | Device reference |
+| `status` | String | ACTIVE, INACTIVE, OFFLINE, DISABLED |
+| `batteryLevel` | Float | Current battery (%) |
+| `signalStrength` | Int | WiFi/BLE signal (-120 to 0 dBm) |
+| `lastDataPoint` | DateTime | Last reading timestamp |
+| `sensorsInitialized` | Boolean | All sensors ready |
+| `wifiConnected` | Boolean | WiFi connection status |
+| `bluetoothConnected` | Boolean | BLE connection status |
+| `uptime` | Int | Milliseconds online |
+| `updatedAt` | DateTime | Last status update |
+
+---
+
+## DeviceLog Model
+
+Device activity and error logs.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `deviceId` | UUID | Device reference |
+| `type` | Enum | INFO, WARNING, ERROR |
+| `message` | String | Log message |
+| `timestamp` | DateTime | Event time |
+| `createdAt` | DateTime | Record time |
+
+---
+
+## HealthLog Model
+
+Patient vital monitoring records.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `userId` | UUID | Patient reference |
+| `heartRate` | Int | Heart rate (bpm) |
+| `bloodPressure` | String | Format: "SYS/DIA" |
+| `oxygenSaturation` | Int | SpO2 (%) |
+| `healthScore` | Int | Calculated score (0-100) |
+| `riskScore` | Int | 100 - healthScore |
+| `timestamp` | DateTime | Reading time |
+| `createdAt` | DateTime | Record time |
+
+---
+
+## Message Model
+
+User-to-user messaging.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `senderId` | UUID | Sender user |
+| `recipientId` | UUID | Recipient user |
+| `content` | String | Message text |
+| `type` | Enum | TEXT, ALERT, NOTIFICATION |
+| `read` | Boolean | Read status |
+| `createdAt` | DateTime | Send time |
+| `readAt` | DateTime | When read |
+
+---
+
+## Field Validation Rules
+
+### User
+- Email: Valid format, unique
+- Password Hash: Min 60 characters (bcrypt)
+- Names: Non-empty strings
+
+### Patient
+- Health Score: 0-100 integer
+- Risk Score: Calculated (100 - healthScore)
+- High Risk: Automatic (riskScore >= 75)
+
+### Fall
+- Confidence: 0.0 to 1.0 float
+- Status: Auto-determined from confidence
+
+### Device
+- MAC Address: Format AA:BB:CC:DD:EE:FF
+- Battery Level: 0.0 to 100.0
+- Status: One of defined enum values
+
+### SensorData
+- Acceleration: Typical -50 to +50 m/s²
+- Gyroscope: Typical -1000 to +1000 °/s
+- Heart Rate: 40-200 bpm
+- SpO2: 70-100%
+
+---
+
+## Related Documentation
+
+- [Schema Overview](/docs/database/schema-overview)
+- [Prisma vs Convex](/docs/database/prisma-vs-convex)
+- [Architecture - Database Adapter](/docs/architecture/database-adapter-pattern)

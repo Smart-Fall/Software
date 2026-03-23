@@ -11,9 +11,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Heart, AlertTriangle, MessageSquare, TrendingDown, Calendar, CheckCircle2, XCircle, MapPin } from 'lucide-react';
 
 interface Patient {
-  id?: string | number;
-  patient_id?: string | number;
-  patientId?: string | number;
+  id?: number;
+  patient_id?: number;
   firstName?: string;
   first_name?: string;
   lastName?: string;
@@ -83,7 +82,8 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const API_BASE_URL = '/api';
+  // FIX: Change this from '/api' to '/api/auth'
+  const API_BASE_URL = '/api/auth';
 
   const fetchPatientDetails = useCallback(async () => {
     if (!patient) return;
@@ -92,7 +92,7 @@ const PatientDetailsDialog: React.FC<PatientDetailsDialogProps> = ({ patient, op
 
     setIsLoading(true);
     try {
-      const patientId = patient.id || patient.patient_id || patient.patientId;
+      const patientId = patient.id || patient.patient_id;
 
       // Fetch daily scores (last 7 days)
       const scoresRes = await fetch(

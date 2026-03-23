@@ -1,0 +1,138 @@
+---
+title: Installation
+description: Detailed installation guide for SmartFall
+---
+
+# Installation
+
+## System Requirements
+
+- **Node.js**: 18.0.0 or higher
+- **npm**: 8.0.0 or higher (or yarn 1.22.0+)
+- **Git**: Latest stable version
+- **Database**: PostgreSQL 12+ or Convex account
+- **Memory**: Minimum 2GB RAM
+- **Disk Space**: At least 500MB for dependencies
+
+## Clone the Repository
+
+```bash
+git clone https://github.com/your-org/smartfall.git
+cd smartfall
+```
+
+## Install Dependencies
+
+Using npm:
+
+```bash
+npm install
+```
+
+Using yarn:
+
+```bash
+yarn install
+```
+
+## Verify Installation
+
+Check that all dependencies are installed correctly:
+
+```bash
+npm list
+```
+
+You should see a tree of all installed packages without errors.
+
+## Generate Prisma Client
+
+If using Prisma as the database adapter:
+
+```bash
+npm run prisma:generate
+```
+
+## Create Environment File
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` with your configuration values.
+
+## Database Setup
+
+### For PostgreSQL
+
+1. Create a new PostgreSQL database:
+
+```sql
+CREATE DATABASE smartfall;
+```
+
+2. Set your database connection string in `.env.local`:
+
+```
+DATABASE_URL="postgresql://user:password@localhost:5432/smartfall"
+```
+
+3. Run migrations:
+
+```bash
+npm run prisma:migrate
+```
+
+### For Convex
+
+1. Create a Convex account at https://convex.dev
+2. Set your Convex deployment URL in `.env.local`:
+
+```
+CONVEX_DEPLOYMENT="prod:your-deployment-id"
+```
+
+## Verify Setup
+
+Run the development server to verify everything is working:
+
+```bash
+npm run dev
+```
+
+Visit `http://localhost:3000` in your browser. You should see the SmartFall login page.
+
+## Troubleshooting
+
+### npm ERR! code ERESOLVE
+
+If you encounter peer dependency issues:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+### Prisma Client generation failed
+
+Clear Prisma cache and regenerate:
+
+```bash
+rm -rf node_modules/.prisma
+npm run prisma:generate
+```
+
+### Port 3000 already in use
+
+Use a different port:
+
+```bash
+npm run dev -- -p 3001
+```
+
+## Next Steps
+
+- Configure [Environment Variables](/docs/getting-started/environment-variables)
+- Start [Running Locally](/docs/getting-started/running-locally)
+- Review the [Architecture](/docs/architecture)

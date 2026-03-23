@@ -1,0 +1,112 @@
+---
+title: Profile API
+description: User profile and settings endpoints
+---
+
+# Profile API
+
+Endpoints for managing user profiles and account settings.
+
+## GET /profile/me
+
+Get current user profile.
+
+**Method:** `GET`
+**Auth Required:** Yes
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "user-uuid",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "PATIENT",
+    "dateOfBirth": "1950-01-15",
+    "phone": "+1-555-0123",
+    "avatar": "https://...",
+    "createdAt": "2026-01-01T00:00:00Z",
+    "lastLogin": "2026-03-18T10:30:00Z"
+  }
+}
+```
+
+---
+
+## PUT /profile/me
+
+Update user profile.
+
+**Method:** `PUT`
+**Auth Required:** Yes
+
+### Request Body
+
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "phone": "+1-555-0123",
+  "dateOfBirth": "1950-01-15"
+}
+```
+
+---
+
+## POST /profile/password
+
+Change password.
+
+**Method:** `POST`
+**Auth Required:** Yes
+
+### Request Body
+
+```json
+{
+  "currentPassword": "OldPass123!",
+  "newPassword": "NewPass456!",
+  "confirmPassword": "NewPass456!"
+}
+```
+
+### Error Response
+
+```json
+{
+  "success": false,
+  "error": "Current password is incorrect"
+}
+```
+
+---
+
+## DELETE /profile/me
+
+Delete account.
+
+**Method:** `DELETE`
+**Auth Required:** Yes
+
+### Request Body
+
+```json
+{
+  "confirmation": true,
+  "reason": "Moving to new system"
+}
+```
+
+### Note
+
+Account deletion is permanent and cannot be undone.
+
+---
+
+## Related Documentation
+
+- [API Reference](/docs/api-reference)
+- [Getting Started](/docs/getting-started)

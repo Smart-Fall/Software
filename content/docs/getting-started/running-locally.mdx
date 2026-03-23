@@ -1,0 +1,234 @@
+---
+title: Running Locally
+description: Run SmartFall development server locally
+---
+
+# Running Locally
+
+## Start the Development Server
+
+After installing dependencies and configuring environment variables, start the dev server:
+
+```bash
+npm run dev
+```
+
+The server will start on `http://localhost:3000` by default.
+
+## Custom Port
+
+To run on a different port:
+
+```bash
+npm run dev -- -p 3001
+```
+
+## Development Server Features
+
+The Next.js development server includes:
+
+- **Hot Module Replacement (HMR)**: Code changes appear instantly
+- **Fast Refresh**: React component updates without losing state
+- **Error Overlay**: Detailed error messages in the browser
+- **TypeScript Checking**: Real-time type checking (if enabled)
+
+## Access the Application
+
+Open your browser and navigate to the appropriate URL:
+
+- **Main App**: `http://localhost:3000`
+- **Documentation**: `http://localhost:3000/docs`
+- **API Health Check**: `http://localhost:3000/api/health`
+
+## Database Connection
+
+Verify your database is running and accessible:
+
+### For PostgreSQL
+
+```bash
+psql postgresql://user:password@localhost:5432/smartfall
+```
+
+If the connection fails, check:
+1. PostgreSQL service is running
+2. Database name matches `DATABASE_URL`
+3. Username and password are correct
+4. Network connection is available
+
+### For Convex
+
+Check your Convex deployment status at `https://dashboard.convex.dev`
+
+## API Testing
+
+### Using curl
+
+Test the health endpoint:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+### Using Postman
+
+1. Import the SmartFall API collection
+2. Set `{{base_url}}` to `http://localhost:3000`
+3. Run requests
+
+## Viewing Logs
+
+Check the console output for:
+
+- Server startup messages
+- Request logs (if enabled)
+- Database connection status
+- Build errors
+
+Example output:
+
+```
+▲ Next.js 16.0.0
+- Local:        http://localhost:3000
+- Environments: .env.local
+
+✓ Ready in 2.5s
+```
+
+## Debugging
+
+### Enable Verbose Logging
+
+Set in `.env.local`:
+
+```bash
+DEBUG=true
+REQUEST_LOGGING=true
+LOG_LEVEL=debug
+```
+
+### VS Code Debugger
+
+Add to `.vscode/launch.json`:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Next.js",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/node_modules/.bin/next",
+      "args": ["dev"],
+      "console": "integratedTerminal"
+    }
+  ]
+}
+```
+
+### Browser DevTools
+
+Press `F12` in your browser to open developer tools:
+
+- **Network**: Monitor API calls
+- **Console**: View JavaScript errors
+- **Application**: Inspect cookies and storage
+- **Performance**: Profile application performance
+
+## Seeding Development Data
+
+Populate the database with sample data:
+
+```bash
+npm run seed:admin
+```
+
+This creates:
+- Default admin account
+- Sample patients and caregivers
+- Test devices with sensor data
+
+## Common Issues
+
+### Port Already in Use
+
+Kill the process using port 3000:
+
+```bash
+# On Mac/Linux
+lsof -ti:3000 | xargs kill -9
+
+# On Windows
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
+```
+
+### Database Connection Timeout
+
+Check if PostgreSQL is running:
+
+```bash
+# Mac (via Homebrew)
+brew services start postgresql
+
+# Linux
+sudo systemctl start postgresql
+
+# Windows
+pg_ctl -D "C:\Program Files\PostgreSQL\data" start
+```
+
+### Module Not Found
+
+Clear Next.js cache:
+
+```bash
+rm -rf .next
+npm run dev
+```
+
+### Infinite Redirect Loop
+
+Check session configuration in `.env.local`:
+
+```bash
+SESSION_DURATION=24
+JWT_SECRET=<valid_secret>
+```
+
+## Hot Reload
+
+Files that trigger hot reload:
+
+- `.tsx` and `.ts` files (React components, API routes)
+- `.css` and `.scss` files (stylesheets)
+
+Files that require full restart:
+
+- `.env.local` (environment variables)
+- `next.config.js` (Next.js configuration)
+- Database schema changes
+
+Restart the server after changing these files:
+
+```bash
+# 1. Stop: Ctrl+C
+# 2. Start: npm run dev
+```
+
+## Next Steps
+
+- Create a test user account
+- Add a test device for IoT integration
+- Explore the [API Reference](/docs/api-reference)
+- Review the [Architecture](/docs/architecture)
+
+## Support
+
+If you encounter issues:
+1. Check the [Installation](/docs/getting-started/installation) guide
+2. Verify [Environment Variables](/docs/getting-started/environment-variables)
+3. Review application logs for error messages
+4. Check the project's GitHub issues page

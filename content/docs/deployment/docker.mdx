@@ -1,0 +1,271 @@
+---
+title: Docker Deployment
+description: Deploy SmartFall using Docker containers
+---
+
+# Docker Deployment
+
+Self-hosted Docker deployment for SmartFall.
+
+## Dockerfile
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY . .
+
+# Build Next.js app
+RUN npm run build
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+```
+
+## Docker Compose
+
+Full stack with database:
+
+```yaml
+version: '3.8'
+
+services:
+  smartfall:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_PROVIDER=prisma
+      - DATABASE_URL=postgresql://smartfall:password@postgres:5432/smartfall
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - postgres
+    networks:
+      - smartfall-network
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=smartfall
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=smartfall
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - smartfall-network
+
+volumes:
+  postgres_data:
+
+networks:
+  smartfall-network:
+```
+
+## Build and Run
+
+### Build Image
+
+```bash
+docker build -t smartfall:latest .
+```
+
+### Run Container
+
+```bash
+docker run -d \
+  -p 3000:3000 \
+  -e DATABASE_URL="postgresql://..." \
+  -e JWT_SECRET="..." \
+  --name smartfall \
+  smartfall:latest
+```
+
+### Using Docker Compose
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f smartfall
+
+# Stop services
+docker-compose down
+```
+
+## Production Setup
+
+### Nginx Reverse Proxy
+
+```nginx
+upstream smartfall {
+  server smartfall:3000;
+}
+
+server {
+  listen 80;
+  server_name smartfall.example.com;
+
+  # Redirect to HTTPS
+  return 301 https://$server_name$request_uri;
+}
+
+server {
+  listen 443 ssl http2;
+  server_name smartfall.example.com;
+
+  ssl_certificate /etc/ssl/certs/cert.pem;
+  ssl_certificate_key /etc/ssl/private/key.pem;
+
+  location / {
+    proxy_pass http://smartfall;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+```
+
+### Environment File
+
+Create `.env.production`:
+
+```bash
+NODE_ENV=production
+DATABASE_PROVIDER=prisma
+DATABASE_URL=postgresql://user:pass@postgres:5432/smartfall
+JWT_SECRET=<strong_random_secret>
+SESSION_DURATION=24
+ALLOWED_ORIGINS=https://smartfall.example.com
+RATE_LIMIT_MAX_REQUESTS=1000
+LOG_LEVEL=info
+```
+
+## Kubernetes Deployment
+
+For Kubernetes clusters:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartfall
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: smartfall
+  template:
+    metadata:
+      labels:
+        app: smartfall
+    spec:
+      containers:
+      - name: smartfall
+        image: smartfall:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: smartfall-secrets
+              key: database-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: smartfall-secrets
+              key: jwt-secret
+```
+
+## Persistent Storage
+
+Data persistence with volumes:
+
+```yaml
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=2G
+```
+
+## Backup Strategy
+
+### Automated Database Backups
+
+```bash
+#!/bin/bash
+# backup.sh
+docker exec smartfall-postgres pg_dump -U smartfall smartfall > backup-$(date +%Y%m%d).sql
+gzip backup-$(date +%Y%m%d).sql
+aws s3 cp backup-$(date +%Y%m%d).sql.gz s3://smartfall-backups/
+```
+
+Schedule with cron:
+
+```bash
+0 2 * * * /path/to/backup.sh
+```
+
+## Monitoring
+
+### Health Check
+
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+```
+
+### Logging
+
+Capture logs:
+
+```bash
+docker logs -f smartfall
+```
+
+## Troubleshooting
+
+### Port Already in Use
+
+```bash
+docker ps
+docker kill <container_id>
+```
+
+### Database Connection Failed
+
+Verify:
+- Database is running
+- Connection string is correct
+- Firewall allows connection
+
+### Out of Memory
+
+Increase container memory:
+
+```bash
+docker run -m 2g smartfall:latest
+```
+
+## Related Documentation
+
+- [Deployment Overview](/docs/deployment)
+- [Vercel Deployment](/docs/deployment/vercel)

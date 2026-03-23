@@ -1,0 +1,247 @@
+---
+title: Authentication API
+description: User authentication endpoints - signup, login, logout
+---
+
+# Authentication API
+
+User authentication endpoints for registration, login, and logout.
+
+## POST /auth/signup
+
+Register a new user account.
+
+**Method:** `POST`
+**Auth Required:** No
+**Rate Limit:** 5 requests per 15 minutes
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | Email address (must be valid) |
+| `password` | string | Yes | Password (min 8 chars, 1 uppercase, 1 digit, 1 special char) |
+| `firstName` | string | Yes | User's first name |
+| `lastName` | string | Yes | User's last name |
+| `role` | string | No | `PATIENT` (default) or `CAREGIVER` |
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "SecurePass123!",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "PATIENT"
+  }'
+```
+
+### Success Response
+
+```json
+HTTP/1.1 201 Created
+{
+  "success": true,
+  "data": {
+    "id": "user_uuid",
+    "email": "john@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "PATIENT",
+    "createdAt": "2026-03-18T10:30:00Z"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Error Responses
+
+**400 Bad Request** - Validation failed:
+```json
+{
+  "success": false,
+  "error": "Validation failed",
+  "details": {
+    "email": "Invalid email format",
+    "password": "Password must contain special character"
+  }
+}
+```
+
+**409 Conflict** - Email already registered:
+```json
+{
+  "success": false,
+  "error": "Email already in use"
+}
+```
+
+---
+
+## POST /auth/login
+
+Authenticate user and receive JWT token.
+
+**Method:** `POST`
+**Auth Required:** No
+**Rate Limit:** 10 requests per 5 minutes
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | Registered email address |
+| `password` | string | Yes | User password |
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "SecurePass123!"
+  }'
+```
+
+### Success Response
+
+```json
+HTTP/1.1 200 OK
+{
+  "success": true,
+  "data": {
+    "id": "user_uuid",
+    "email": "john@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "PATIENT"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Error Responses
+
+**401 Unauthorized** - Invalid credentials:
+```json
+{
+  "success": false,
+  "error": "Invalid email or password"
+}
+```
+
+**429 Too Many Requests** - Too many failed attempts:
+```json
+{
+  "success": false,
+  "error": "Too many login attempts. Try again in 15 minutes."
+}
+```
+
+---
+
+## POST /auth/logout
+
+Invalidate current session and logout user.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Rate Limit:** Unlimited
+
+### Request Headers
+
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:3000/api/auth/logout \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Success Response
+
+```json
+HTTP/1.1 200 OK
+{
+  "success": true,
+  "data": {
+    "message": "Logged out successfully"
+  }
+}
+```
+
+### Error Response
+
+**401 Unauthorized** - Invalid token:
+```json
+{
+  "success": false,
+  "error": "Invalid or expired token"
+}
+```
+
+---
+
+## Password Requirements
+
+Passwords must meet these requirements:
+
+- **Minimum length:** 8 characters
+- **Uppercase:** At least one (A-Z)
+- **Lowercase:** At least one (a-z)
+- **Digit:** At least one (0-9)
+- **Special character:** At least one (!@#$%^&*)
+
+### Valid Example
+```
+SecurePass123!
+MyPassword@2024
+Admin#Password1
+```
+
+### Invalid Examples
+```
+password       # No uppercase, no digit, no special char
+Pass1!         # Only 6 characters
+PASSWORD123!   # No lowercase
+Secure123      # No special character
+```
+
+## Using the Token
+
+Include the JWT token in the `Authorization` header for authenticated requests:
+
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:3000/api/patients
+```
+
+The token is valid for the duration specified in `SESSION_DURATION` environment variable (default: 24 hours).
+
+## Token Expiration
+
+When a token expires:
+- API returns `401 Unauthorized`
+- Client must login again to get a new token
+
+## Security Notes
+
+- **Never share tokens** with others
+- **Keep tokens confidential** - treat like passwords
+- **Logout when done** to invalidate the session
+- **Use HTTPS only** in production (not HTTP)
+- **HTTP-only cookies** store tokens securely
+- **CORS enabled** for authorized origins only
+
+## Related Documentation
+
+- [Authentication Flow](/docs/architecture/auth-flow)
+- [Getting Started](/docs/getting-started)
+- [API Reference](/docs/api-reference)

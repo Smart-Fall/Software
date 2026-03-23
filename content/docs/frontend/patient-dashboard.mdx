@@ -1,0 +1,111 @@
+---
+title: Patient Dashboard
+description: Personal health monitoring interface for patients
+---
+
+# Patient Dashboard
+
+Personal health and fall monitoring dashboard for patients.
+
+## Overview
+
+The patient dashboard provides:
+
+- **Health Score Display**: Real-time health metric (0-100)
+- **Fall History**: Timeline of recent fall events
+- **Device Management**: Registered device status
+- **Vital Monitoring**: Heart rate, oxygen levels
+- **Activity Alerts**: Recent system notifications
+
+## Key Sections
+
+### Health Score Card
+
+Displays current health status:
+
+```
+Health Score: 85/100
+Risk Level: Low (✓)
+Status: Healthy
+
+Factors:
+- Heart rate: Normal (72 bpm)
+- Oxygen: Excellent (98%)
+- Recent falls: 0 (last 7 days)
+- Device battery: 85%
+```
+
+### Fall Event Timeline
+
+Chronological list of fall events:
+
+```
+Today, 2:30 PM - High confidence fall (0.88)
+Status: Investigated by caregiver
+Location: Living room
+No injuries reported
+
+Yesterday, 10:15 AM - Suspicious event (0.45)
+Status: Auto-dismissed
+No follow-up needed
+```
+
+### Device Status
+
+Connected device information:
+
+```
+SmartFall Watch
+Status: ACTIVE
+Battery: 85%
+Last contact: 5 minutes ago
+Firmware: 1.2.3
+```
+
+### Quick Actions
+
+- View all fall events
+- Device settings
+- Emergency contacts
+- Activity logs
+
+## Features
+
+### Real-time Updates
+
+Health metrics update automatically:
+
+```javascript
+// Auto-refresh every 30 seconds
+useEffect(() => {
+  const interval = setInterval(() => {
+    refreshHealthData();
+  }, 30000);
+
+  return () => clearInterval(interval);
+}, []);
+```
+
+### Fall Notifications
+
+Toast alerts for fall events:
+
+```
+🚨 High Confidence Fall Detected!
+Confidence: 0.88 (HIGH)
+[View Details] [Dismiss]
+```
+
+### Charts & Analytics
+
+Visual health data:
+
+- Health score trend (7-day chart)
+- Activity levels
+- Sleep patterns
+- Vital sign trends
+
+## Related Documentation
+
+- [Frontend Overview](/docs/frontend)
+- [API Reference - Patients](/docs/api-reference/patients)

@@ -2,10 +2,10 @@
  * Prisma SensorData Repository Implementation
  */
 
-import { ISensorDataRepository } from '../base';
-import { Device, FindOptions, SensorData } from '../../types';
-import prisma from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import { ISensorDataRepository } from "../base";
+import { FindOptions, SensorData } from "../../types";
+import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 type PrismaSensorDataWithDevice = Prisma.SensorDataGetPayload<{
   include: { device: true };
@@ -29,7 +29,10 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
       include: { device: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: (options?.orderBy || { timestamp: 'desc' }) as Prisma.SensorDataOrderByWithRelationInput,
+      orderBy: (options?.orderBy as
+        | Prisma.SensorDataOrderByWithRelationInput
+        | Prisma.SensorDataOrderByWithRelationInput[]
+        | undefined) || { timestamp: "desc" },
     });
     return data.map((d) => this.mapToSensorData(d));
   }
@@ -37,7 +40,7 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
   async findRecent(deviceId: string, limit: number): Promise<SensorData[]> {
     const data = await prisma.sensorData.findMany({
       where: { deviceId },
-      orderBy: { timestamp: 'desc' },
+      orderBy: { timestamp: "desc" },
       take: limit,
       include: { device: true },
     });
@@ -55,11 +58,9 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
     gyroZ: number;
     pressure?: number;
     fsr?: number;
-    heartRate?: number;
-    spo2?: number;
   }): Promise<SensorData> {
-    const createData: Prisma.SensorDataCreateInput = {
-      device: { connect: { id: data.deviceId } },
+    const createData: Prisma.SensorDataUncheckedCreateInput = {
+      deviceId: data.deviceId,
       timestamp: data.timestamp,
       accelX: data.accelX,
       accelY: data.accelY,
@@ -68,10 +69,12 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
       gyroY: data.gyroY,
       gyroZ: data.gyroZ,
       pressure: data.pressure,
-      fsr: data.fsr,
-      heartRate: data.heartRate,
-      spo2: data.spo2,
     };
+
+    // Note: FSR support requires Prisma schema migration
+    if (data.fsr !== undefined) {
+      createData.fsr = data.fsr;
+    }
 
     const sensorData = await prisma.sensorData.create({
       data: createData,
@@ -80,7 +83,11 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
     return this.mapToSensorData(sensorData);
   }
 
-  async findBetween(deviceId: string, startTime: Date, endTime: Date): Promise<SensorData[]> {
+  async findBetween(
+    deviceId: string,
+    startTime: Date,
+    endTime: Date,
+  ): Promise<SensorData[]> {
     const data = await prisma.sensorData.findMany({
       where: {
         deviceId,
@@ -90,14 +97,12 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
         },
       },
       include: { device: true },
-      orderBy: { timestamp: 'asc' },
+      orderBy: { timestamp: "asc" },
     });
     return data.map((d) => this.mapToSensorData(d));
   }
 
   private mapToSensorData(data: PrismaSensorDataWithDevice): SensorData {
-    // Cast to access heartRate/spo2 which are in the schema but require `prisma generate` to appear in the generated types
-    const d = data as typeof data & { heartRate?: number | null; spo2?: number | null };
     return {
       id: data.id,
       deviceId: data.deviceId,
@@ -110,9 +115,19 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
       gyroZ: data.gyroZ,
       pressure: data.pressure ?? undefined,
       fsr: data.fsr ?? undefined,
-      heartRate: d.heartRate ?? undefined,
-      spo2: d.spo2 ?? undefined,
-      device: data.device as unknown as Device | undefined,
+      device: data.device
+        ? {
+            id: data.device.id,
+            deviceId: data.device.deviceId,
+            patientId: data.device.patientId ?? undefined,
+            deviceName: data.device.deviceName ?? undefined,
+            isActive: data.device.isActive,
+            lastSeen: data.device.lastSeen ?? undefined,
+            batteryLevel: data.device.batteryLevel ?? undefined,
+            firmwareVersion: data.device.firmwareVersion ?? undefined,
+            createdAt: data.device.createdAt,
+          }
+        : undefined,
     };
   }
 }

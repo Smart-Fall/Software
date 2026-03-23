@@ -2,10 +2,10 @@
  * Prisma HealthLog Repository Implementation
  */
 
-import { IHealthLogRepository } from '../base';
-import { FindOptions, HealthLog, Patient } from '../../types';
-import prisma from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import { IHealthLogRepository } from "../base";
+import { FindOptions, HealthLog } from "../../types";
+import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 type PrismaHealthLogWithPatient = Prisma.HealthLogGetPayload<{
   include: { patient: true };
@@ -40,10 +40,15 @@ export class PrismaHealthLogRepository implements IHealthLogRepository {
     patientId: string,
     options?: FindOptions<HealthLog>,
   ): Promise<HealthLog[]> {
+    const where: Prisma.HealthLogWhereInput = {
+      patientId,
+      ...(options?.where as Prisma.HealthLogWhereInput | undefined),
+    };
+
     const healthLogs = await prisma.healthLog.findMany({
-      where: { patientId, ...(options?.where as Prisma.HealthLogWhereInput | undefined) },
+      where,
       include: { patient: true },
-      orderBy: { recordedAt: 'desc' },
+      orderBy: { recordedAt: "desc" },
       skip: options?.skip,
       take: options?.take,
     });
@@ -54,20 +59,24 @@ export class PrismaHealthLogRepository implements IHealthLogRepository {
     const healthLogs = await prisma.healthLog.findMany({
       where: { patientId },
       include: { patient: true },
-      orderBy: { recordedAt: 'desc' },
+      orderBy: { recordedAt: "desc" },
       take: limit,
     });
     return healthLogs.map((h) => this.mapToHealthLog(h));
   }
 
-  async findBetween(patientId: string, startDate: Date, endDate: Date): Promise<HealthLog[]> {
+  async findBetween(
+    patientId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<HealthLog[]> {
     const healthLogs = await prisma.healthLog.findMany({
       where: {
         patientId,
         recordedAt: { gte: startDate, lte: endDate },
       },
       include: { patient: true },
-      orderBy: { recordedAt: 'asc' },
+      orderBy: { recordedAt: "asc" },
     });
     return healthLogs.map((h) => this.mapToHealthLog(h));
   }
@@ -90,7 +99,16 @@ export class PrismaHealthLogRepository implements IHealthLogRepository {
       patientId: data.patientId,
       healthScore: data.healthScore,
       recordedAt: data.recordedAt,
-      patient: data.patient as unknown as Patient | undefined,
+      patient: data.patient
+        ? {
+            id: data.patient.id,
+            userId: data.patient.userId,
+            riskScore: data.patient.riskScore,
+            isHighRisk: data.patient.isHighRisk,
+            medicalConditions: data.patient.medicalConditions ?? undefined,
+            createdAt: data.patient.createdAt,
+          }
+        : undefined,
     };
   }
 }

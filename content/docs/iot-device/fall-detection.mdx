@@ -1,0 +1,254 @@
+---
+title: Fall Detection
+description: SmartFall fall detection algorithm and confidence levels
+---
+
+# Fall Detection
+
+Detailed explanation of the SmartFall fall detection algorithm.
+
+## Algorithm Overview
+
+Fall detection uses accelerometer and gyroscope data to identify sudden motion patterns characteristic of falls.
+
+## Confidence Calculation
+
+```
+confidence = freefall_score + tumbling_score + vertical_score
+confidence = min(confidence, 1.0)
+```
+
+### Component Scores
+
+#### Free Fall Detection (0.0-0.3)
+Sudden drop in acceleration indicating loss of support:
+
+```
+totalAccel = sqrt(accel_x² + accel_y² + accel_z²)
+accelChange = totalAccel - previousAvgAccel
+
+if accelChange < -5.0 m/s²:
+  freefall_score = 0.3
+else:
+  freefall_score = 0.0
+```
+
+#### Tumbling Detection (0.0-0.3)
+High angular velocity indicating rotation:
+
+```
+rotationRate = sqrt(gyro_x² + gyro_y² + gyro_z²)
+
+if rotationRate > 500 °/s:
+  tumbling_score = 0.3
+else:
+  tumbling_score = 0.0
+```
+
+#### Vertical Component (0.0-0.2)
+Significant vertical motion:
+
+```
+verticalVelocity = accel_z - 9.8
+
+if abs(verticalVelocity) > 3.0:
+  vertical_score = 0.2
+else:
+  vertical_score = 0.0
+```
+
+## Confidence Levels
+
+| Level | Range | Status | Action | Color |
+|-------|-------|--------|--------|-------|
+| NO_FALL | 0.00-0.30 | No detection | None | Green |
+| SUSPICIOUS | 0.31-0.50 | Possible | Log event | Yellow |
+| POTENTIAL | 0.51-0.70 | Likely | Alert caregiver | Orange |
+| HIGH | 0.71-0.89 | Strong | Notify + alert | Red |
+| CONFIRMED | 0.90-1.00 | Definite | Emergency | Dark Red |
+
+## Example Scenarios
+
+### Normal Movement (Confidence: 0.15)
+
+```
+accel: [0.5, 0.3, 9.8]  (normal)
+gyro: [0.1, 0.2, -0.05] (slow rotation)
+result: NO_FALL
+```
+
+### Tripping (Confidence: 0.45)
+
+```
+accel: [-2.5, -3.0, 8.0]  (acceleration drop)
+gyro: [100, 80, 50]        (moderate rotation)
+result: SUSPICIOUS
+```
+
+### Severe Fall (Confidence: 0.88)
+
+```
+accel: [-15.0, -12.0, -5.0]  (major acceleration drop)
+gyro: [500, 450, -300]        (high rotation)
+result: HIGH
+```
+
+## Time Windows
+
+### Detection Windows
+
+- **Immediate**: 0.5 seconds (500ms)
+- **Confirmation**: 2 seconds (2000ms)
+- **Recovery**: 5 seconds (5000ms)
+
+Algorithm must detect fall pattern within 500ms to trigger immediate alert.
+
+## Environmental Factors
+
+Factors that can affect detection:
+
+| Factor | Impact | Mitigation |
+|--------|--------|-----------|
+| User height | Different gravity profile | Calibration per user |
+| Age/mobility | Slower fall patterns | Adjustable thresholds |
+| Fall type | Forward vs. sideways | Multi-axis detection |
+| Device position | Wrist vs. chest | Device position awareness |
+| Surface type | Carpet vs. tile | Impact detection |
+
+## Post-Fall Analysis
+
+After detecting a fall:
+
+```
+1. Check for recovery motion
+   - Standing up within 2 minutes?
+   - Normal acceleration patterns?
+
+2. Assess fall severity
+   - Peak acceleration values
+   - Duration of abnormal patterns
+   - Device orientation changes
+
+3. Request user confirmation
+   - Toast notification on device
+   - "Did you fall?" prompt
+   - Timeout: 30 seconds
+
+4. Escalate if needed
+   - No response → notify caregivers
+   - User confirms → immediate alert
+   - User dismisses → log event
+```
+
+## Machine Learning Enhancement
+
+Optional ML-based refinement:
+
+```typescript
+// Classify fall with ML model
+const mlScore = await fallDetectionModel.predict({
+  accelData: last500ms,
+  gyroData: last500ms,
+  previousState: deviceHistory
+});
+
+// Combine with rule-based score
+confidence = 0.6 * ruleBasedScore + 0.4 * mlScore;
+```
+
+## Tuning Parameters
+
+### Sensitivity Levels
+
+```bash
+# Conservative (fewer false positives)
+FALL_ACCEL_THRESHOLD=-3.0
+FALL_GYRO_THRESHOLD=300
+
+# Balanced (default)
+FALL_ACCEL_THRESHOLD=-5.0
+FALL_GYRO_THRESHOLD=500
+
+# Sensitive (more detections)
+FALL_ACCEL_THRESHOLD=-7.0
+FALL_GYRO_THRESHOLD=700
+```
+
+### User Calibration
+
+Calibrate per user:
+
+```bash
+# Submit baseline motion data
+POST /api/device/calibrate
+{
+  "type": "sitting",
+  "samples": [/* 100 readings */]
+}
+```
+
+## Testing Fall Detection
+
+### Simulated Fall Data
+
+```json
+{
+  "device_id": "AA:BB:CC:DD:EE:FF",
+  "accel_x": -15.0,
+  "accel_y": -12.0,
+  "accel_z": -5.0,
+  "gyro_x": 500,
+  "gyro_y": 450,
+  "gyro_z": -300,
+  "uptime_ms": 3600000
+}
+```
+
+### Expected Response
+
+```json
+{
+  "fallDetected": true,
+  "fallConfidence": 0.88,
+  "status": "HIGH"
+}
+```
+
+## Common Issues
+
+### False Positives
+
+Reducing false positives:
+
+```
+Cause: Jumping, running, vigorous exercise
+Solution: Check for sustained normal patterns after spike
+          Require 1+ second of normal accel before clearing
+```
+
+### Missed Falls
+
+Improving sensitivity:
+
+```
+Cause: Slow falls, falling on low surfaces
+Solution: Increase detection window
+          Lower acceleration thresholds
+          Add impact detection
+```
+
+### Calibration Drift
+
+Managing sensor drift:
+
+```
+Solution: Recalibrate quarterly
+          Track baseline changes
+          Adaptive thresholds per user
+```
+
+## Related Documentation
+
+- [IoT Device Integration](/docs/iot-device)
+- [Sensor Stream Format](/docs/iot-device/sensor-stream-format)
+- [Architecture - IoT Pipeline](/docs/architecture/iot-pipeline)

@@ -2,14 +2,14 @@
  * Convex SensorData Repository Implementation
  */
 
-import { ISensorDataRepository } from '../base';
-import { FindOptions, SensorData } from '../../types';
-import { getConvexClient } from './client';
-import { api } from '@/convex/_generated/api';
-import type { Id } from '@/convex/_generated/dataModel';
+import { ISensorDataRepository } from "../base";
+import { FindOptions, SensorData } from "../../types";
+import { getConvexClient } from "./client";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 
 type ConvexSensorData = {
-  _id: Id<'sensorData'>;
+  _id: Id<"sensorData">;
   deviceId: string;
   timestamp: number | string | Date;
   accelX: number;
@@ -20,9 +20,7 @@ type ConvexSensorData = {
   gyroZ: number;
   pressure?: number;
   fsr?: number;
-  heartRate?: number;
-  spo2?: number;
-  device?: SensorData['device'];
+  device?: SensorData["device"];
 };
 
 export class ConvexSensorDataRepository implements ISensorDataRepository {
@@ -31,11 +29,11 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
   async findById(id: string): Promise<SensorData | null> {
     try {
       const data = await this.client.query(api.sensorData.getById, {
-        id: id as Id<'sensorData'>,
+        id: id as Id<"sensorData">,
       });
       return data ? this.mapToSensorData(data as ConvexSensorData) : null;
     } catch (error) {
-      console.error('Error finding sensor data by id:', error);
+      console.error("Error finding sensor data by id:", error);
       return null;
     }
   }
@@ -49,13 +47,13 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
       const take = options?.take ?? 20;
 
       const data = await this.client.query(api.sensorData.getByDeviceId, {
-        deviceId: deviceId as unknown as Id<'devices'>,
+        deviceId: deviceId as Id<"devices">,
         skip,
         take,
       });
       return (data as ConvexSensorData[]).map((d) => this.mapToSensorData(d));
     } catch (error) {
-      console.error('Error finding sensor data by device id:', error);
+      console.error("Error finding sensor data by device id:", error);
       return [];
     }
   }
@@ -63,12 +61,12 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
   async findRecent(deviceId: string, limit: number): Promise<SensorData[]> {
     try {
       const data = await this.client.query(api.sensorData.getRecent, {
-        deviceId: deviceId as unknown as Id<'devices'>,
+        deviceId: deviceId as Id<"devices">,
         limit,
       });
       return (data as ConvexSensorData[]).map((d) => this.mapToSensorData(d));
     } catch (error) {
-      console.error('Error finding recent sensor data:', error);
+      console.error("Error finding recent sensor data:", error);
       return [];
     }
   }
@@ -84,12 +82,10 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
     gyroZ: number;
     pressure?: number;
     fsr?: number;
-    heartRate?: number;
-    spo2?: number;
   }): Promise<SensorData> {
     try {
-      const sensorDataId = await this.client.mutation(api.sensorData.create, {
-        deviceId: data.deviceId as Id<'devices'>,
+      const mutationData = {
+        deviceId: data.deviceId as Id<"devices">,
         timestamp: data.timestamp.getTime(),
         accelX: data.accelX,
         accelY: data.accelY,
@@ -99,31 +95,38 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
         gyroZ: data.gyroZ,
         pressure: data.pressure,
         fsr: data.fsr,
-        heartRate: data.heartRate,
-        spo2: data.spo2,
-      });
+      };
+
+      const sensorDataId = await this.client.mutation(
+        api.sensorData.create,
+        mutationData,
+      );
 
       const sensorData = await this.client.query(api.sensorData.getById, {
-        id: sensorDataId as Id<'sensorData'>,
+        id: sensorDataId as Id<"sensorData">,
       });
-      if (!sensorData) throw new Error('Failed to create sensor data');
+      if (!sensorData) throw new Error("Failed to create sensor data");
       return this.mapToSensorData(sensorData as ConvexSensorData);
     } catch (error) {
-      console.error('Error creating sensor data:', error);
+      console.error("Error creating sensor data:", error);
       throw error;
     }
   }
 
-  async findBetween(deviceId: string, startTime: Date, endTime: Date): Promise<SensorData[]> {
+  async findBetween(
+    deviceId: string,
+    startTime: Date,
+    endTime: Date,
+  ): Promise<SensorData[]> {
     try {
       const data = await this.client.query(api.sensorData.getBetween, {
-        deviceId: deviceId as unknown as Id<'devices'>,
+        deviceId: deviceId as Id<"devices">,
         startTime: startTime.getTime(),
         endTime: endTime.getTime(),
       });
       return (data as ConvexSensorData[]).map((d) => this.mapToSensorData(d));
     } catch (error) {
-      console.error('Error finding sensor data between times:', error);
+      console.error("Error finding sensor data between times:", error);
       return [];
     }
   }
@@ -141,8 +144,6 @@ export class ConvexSensorDataRepository implements ISensorDataRepository {
       gyroZ: data.gyroZ,
       pressure: data.pressure,
       fsr: data.fsr,
-      heartRate: data.heartRate,
-      spo2: data.spo2,
       device: data.device,
     };
   }

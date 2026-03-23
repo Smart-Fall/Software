@@ -2,10 +2,10 @@
  * Prisma Fall Repository Implementation
  */
 
-import { IFallRepository } from '../base';
-import { Device, FindOptions, Fall, Patient } from '../../types';
-import prisma from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import { IFallRepository } from "../base";
+import { FindOptions, Fall } from "../../types";
+import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 type PrismaFallWithRelations = Prisma.FallGetPayload<{
   include: { patient: true; device: true };
@@ -58,7 +58,10 @@ export class PrismaFallRepository implements IFallRepository {
       include: { patient: true, device: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy as Prisma.FallOrderByWithRelationInput | undefined,
+      orderBy: options?.orderBy as
+        | Prisma.FallOrderByWithRelationInput
+        | Prisma.FallOrderByWithRelationInput[]
+        | undefined,
     });
     return falls.map((f) => this.mapToFall(f));
   }
@@ -67,7 +70,7 @@ export class PrismaFallRepository implements IFallRepository {
     const falls = await prisma.fall.findMany({
       where: { patientId },
       include: { patient: true, device: true },
-      orderBy: { fallDatetime: 'desc' },
+      orderBy: { fallDatetime: "desc" },
     });
     return falls.map((f) => this.mapToFall(f));
   }
@@ -76,14 +79,14 @@ export class PrismaFallRepository implements IFallRepository {
     const falls = await prisma.fall.findMany({
       where: { deviceId },
       include: { patient: true, device: true },
-      orderBy: { fallDatetime: 'desc' },
+      orderBy: { fallDatetime: "desc" },
     });
     return falls.map((f) => this.mapToFall(f));
   }
 
   async findRecent(limit: number): Promise<Fall[]> {
     const falls = await prisma.fall.findMany({
-      orderBy: { fallDatetime: 'desc' },
+      orderBy: { fallDatetime: "desc" },
       take: limit,
       include: { patient: true, device: true },
     });
@@ -93,16 +96,8 @@ export class PrismaFallRepository implements IFallRepository {
   async findUnresolved(): Promise<Fall[]> {
     const falls = await prisma.fall.findMany({
       where: { resolved: false },
-      orderBy: { fallDatetime: 'desc' },
-      include: {
-        patient: {
-          include: {
-            user: true,
-            caregiverPatients: { where: { isActive: true } },
-          },
-        },
-        device: true,
-      },
+      orderBy: { fallDatetime: "desc" },
+      include: { patient: true, device: true },
     });
     return falls.map((f) => this.mapToFall(f));
   }
@@ -144,8 +139,29 @@ export class PrismaFallRepository implements IFallRepository {
       resolved: fall.resolved,
       resolvedAt: fall.resolvedAt ?? undefined,
       createdAt: fall.createdAt,
-      patient: (fall.patient ?? undefined) as unknown as Patient | undefined,
-      device: (fall.device ?? undefined) as unknown as Device | undefined,
+      patient: fall.patient
+        ? {
+            id: fall.patient.id,
+            userId: fall.patient.userId,
+            riskScore: fall.patient.riskScore,
+            isHighRisk: fall.patient.isHighRisk,
+            medicalConditions: fall.patient.medicalConditions ?? undefined,
+            createdAt: fall.patient.createdAt,
+          }
+        : undefined,
+      device: fall.device
+        ? {
+            id: fall.device.id,
+            deviceId: fall.device.deviceId,
+            patientId: fall.device.patientId ?? undefined,
+            deviceName: fall.device.deviceName ?? undefined,
+            isActive: fall.device.isActive,
+            lastSeen: fall.device.lastSeen ?? undefined,
+            batteryLevel: fall.device.batteryLevel ?? undefined,
+            firmwareVersion: fall.device.firmwareVersion ?? undefined,
+            createdAt: fall.device.createdAt,
+          }
+        : undefined,
     };
   }
 }

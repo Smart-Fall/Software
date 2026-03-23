@@ -1,0 +1,377 @@
+---
+title: API Reference
+description: Complete SmartFall REST API documentation with 48+ endpoints
+---
+
+# API Reference
+
+SmartFall provides a comprehensive REST API with 48+ endpoints for managing users, devices, fall events, and patient monitoring.
+
+## Base URL
+
+```
+https://smartfall.example.com/api
+```
+
+For local development:
+
+```
+http://localhost:3000/api
+```
+
+## Authentication
+
+All endpoints require JWT bearer token authentication (except signup and login):
+
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://smartfall.example.com/api/patients
+```
+
+See [Authentication](/docs/api-reference/auth) for details.
+
+## Response Format
+
+All responses use JSON with consistent formatting:
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "data": { /* response data */ }
+}
+```
+
+### Error Response
+
+```json
+{
+  "success": false,
+  "error": "Error message",
+  "details": { /* optional error details */ }
+}
+```
+
+## HTTP Status Codes
+
+| Code | Meaning | Use Case |
+|------|---------|----------|
+| 200 | OK | Successful request |
+| 201 | Created | Resource created |
+| 204 | No Content | Successful deletion |
+| 400 | Bad Request | Invalid input data |
+| 401 | Unauthorized | Missing/invalid token |
+| 403 | Forbidden | Insufficient permissions |
+| 404 | Not Found | Resource not found |
+| 409 | Conflict | Duplicate resource |
+| 429 | Too Many Requests | Rate limit exceeded |
+| 500 | Server Error | Internal server error |
+
+## API Endpoints Overview
+
+### Authentication (3 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/signup` | User registration |
+| POST | `/auth/login` | User login |
+| POST | `/auth/logout` | User logout |
+
+→ [Authentication Endpoints](/docs/api-reference/auth)
+
+### Device Management (5 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/device/sensor-stream` | Stream sensor data |
+| GET | `/device/:id` | Get device details |
+| GET | `/device/:id/status` | Get device status |
+| GET | `/device/:id/logs` | Get device logs |
+| DELETE | `/device/:id` | Remove device |
+
+→ [Device Endpoints](/docs/api-reference/devices)
+
+### Fall Events (4 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/falls` | Report fall event |
+| GET | `/falls` | List falls (user's own) |
+| GET | `/falls/recent` | Get recent falls |
+| GET | `/falls/:id` | Get fall details |
+
+→ [Fall Endpoints](/docs/api-reference/falls)
+
+### Patient Management (9 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/patients` | List patients (caregiver) |
+| POST | `/patients` | Create patient (caregiver) |
+| GET | `/patients/:id` | Get patient details |
+| PUT | `/patients/:id` | Update patient |
+| DELETE | `/patients/:id` | Delete patient |
+| GET | `/patients/:id/falls` | Get patient falls |
+| GET | `/patients/:id/health` | Get patient health data |
+| GET | `/patients/:id/devices` | Get patient devices |
+| GET | `/patients/me` | Get current patient profile |
+
+→ [Patient Endpoints](/docs/api-reference/patients)
+
+### Caregiver Management (11 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/caregivers` | List all caregivers (admin) |
+| POST | `/caregivers` | Create caregiver (admin) |
+| GET | `/caregivers/:id` | Get caregiver details |
+| PUT | `/caregivers/:id` | Update caregiver |
+| DELETE | `/caregivers/:id` | Delete caregiver |
+| GET | `/caregivers/:id/patients` | Get assigned patients |
+| POST | `/caregivers/:id/patients` | Assign patient |
+| DELETE | `/caregivers/:id/patients/:patientId` | Unassign patient |
+| GET | `/caregivers/alerts` | Get active alerts |
+| POST | `/caregivers/alerts/:id/acknowledge` | Acknowledge alert |
+| GET | `/caregivers/me` | Get current caregiver profile |
+
+→ [Caregiver Endpoints](/docs/api-reference/caregivers)
+
+### Admin Management (12 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/admin/users` | List all users |
+| GET | `/admin/users/:id` | Get user details |
+| PUT | `/admin/users/:id` | Update user |
+| DELETE | `/admin/users/:id` | Delete user |
+| POST | `/admin/users/:id/role` | Change user role |
+| GET | `/admin/stats` | Get system statistics |
+| GET | `/admin/logs` | Get system logs |
+| POST | `/admin/devices/:id/disable` | Disable device |
+| POST | `/admin/devices/:id/enable` | Enable device |
+| GET | `/admin/falls` | Get all falls |
+| POST | `/admin/falls/:id/investigate` | Flag fall for investigation |
+| POST | `/admin/maintenance` | Trigger maintenance tasks |
+
+→ [Admin Endpoints](/docs/api-reference/admin)
+
+### User Profile (4 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/profile/me` | Get current user |
+| PUT | `/profile/me` | Update profile |
+| POST | `/profile/password` | Change password |
+| DELETE | `/profile/me` | Delete account |
+
+→ [Profile Endpoints](/docs/api-reference/profile)
+
+### Messaging (4 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/messages` | List messages |
+| POST | `/messages` | Send message |
+| GET | `/messages/:id` | Get message details |
+| POST | `/messages/:id/read` | Mark as read |
+
+→ [Message Endpoints](/docs/api-reference/messages)
+
+### Health & Status (2 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Server health check |
+| GET | `/me` | Current user info |
+
+→ [Health Endpoints](/docs/api-reference/health)
+
+## Pagination
+
+Endpoints returning lists support pagination:
+
+```bash
+GET /api/patients?page=1&limit=10
+```
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number (1-indexed) |
+| `limit` | integer | 10 | Results per page (max 100) |
+| `sort` | string | `created_at` | Field to sort by |
+| `order` | string | `desc` | `asc` or `desc` |
+
+### Response Format
+
+```json
+{
+  "success": true,
+  "data": [/* items */],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 42,
+    "totalPages": 5
+  }
+}
+```
+
+## Filtering
+
+Many endpoints support filtering:
+
+```bash
+GET /api/falls?status=HIGH&severity=2026-03-18
+```
+
+See individual endpoint documentation for available filters.
+
+## Rate Limiting
+
+API enforces rate limits per IP address:
+
+```
+Rate Limit: 100 requests per minute
+```
+
+When rate limited, the API returns:
+
+```
+HTTP/1.1 429 Too Many Requests
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1711003860
+```
+
+## Error Handling
+
+### Validation Error
+
+```json
+HTTP/1.1 400 Bad Request
+{
+  "success": false,
+  "error": "Validation failed",
+  "details": {
+    "email": "Invalid email format",
+    "password": "Minimum 8 characters required"
+  }
+}
+```
+
+### Authentication Error
+
+```json
+HTTP/1.1 401 Unauthorized
+{
+  "success": false,
+  "error": "Invalid token"
+}
+```
+
+### Permission Error
+
+```json
+HTTP/1.1 403 Forbidden
+{
+  "success": false,
+  "error": "Insufficient permissions"
+}
+```
+
+## API Sections
+
+### Authentication
+Signup, login, and logout endpoints
+
+### Devices
+Device management and sensor stream
+
+### Falls
+Fall event reporting and retrieval
+
+### Patients
+Patient management for caregivers
+
+### Caregivers
+Caregiver management and assignments
+
+### Admin
+System administration endpoints
+
+### Profile
+User profile and settings
+
+### Messages
+Messaging between users
+
+### Health
+Server health and status endpoints
+
+## Testing API
+
+### Using curl
+
+```bash
+# Get current user
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://smartfall.example.com/api/me
+
+# Create a fall event
+curl -X POST \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"confidence": 0.85, "location": "bedroom"}' \
+  https://smartfall.example.com/api/falls
+```
+
+### Using Postman
+
+1. Create new collection
+2. Set authorization type to "Bearer Token"
+3. Set token variable
+4. Import requests from documentation
+
+### Using JavaScript/Fetch
+
+```javascript
+const response = await fetch(
+  'https://smartfall.example.com/api/patients',
+  {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  }
+);
+
+const data = await response.json();
+```
+
+## SDK Support
+
+Official SDKs available for:
+
+- **JavaScript/TypeScript**: `npm install smartfall-sdk`
+- **Python**: `pip install smartfall-sdk`
+- **Go**: `go get github.com/smartfall/sdk-go`
+
+## API Versioning
+
+Current API version: **v1**
+
+Future versions will be available at `/api/v2`, etc.
+
+## Changelog
+
+Latest changes to the API are documented in the main project repository.
+
+---
+
+Need help? See the full endpoint documentation:
+- [Authentication](/docs/api-reference/auth)
+- [Devices](/docs/api-reference/devices)
+- [Falls](/docs/api-reference/falls)

@@ -29,7 +29,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
       const device = await this.client.query(api.devices.getById, {
         id: id as Id<"devices">,
       });
-      return device ? this.mapToDevice(device as ConvexDevice) : null;
+      return device ? this.mapToDevice(device as unknown as ConvexDevice) : null;
     } catch (error) {
       console.error("Error finding device by id:", error);
       return null;
@@ -41,7 +41,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
       const device = await this.client.query(api.devices.getByDeviceId, {
         deviceId,
       });
-      return device ? this.mapToDevice(device as ConvexDevice) : null;
+      return device ? this.mapToDevice(device as unknown as ConvexDevice) : null;
     } catch (error) {
       console.error("Error finding device by device id:", error);
       return null;
@@ -51,9 +51,9 @@ export class ConvexDeviceRepository implements IDeviceRepository {
   async findByPatientId(patientId: string): Promise<Device[]> {
     try {
       const devices = await this.client.query(api.devices.getByPatientId, {
-        patientId: patientId as unknown as Id<'patients'>,
+        patientId: patientId as Id<"patients">,
       });
-      return (devices as ConvexDevice[]).map((d) => this.mapToDevice(d));
+      return (devices as unknown as ConvexDevice[]).map((d) => this.mapToDevice(d));
     } catch (error) {
       console.error("Error finding devices by patient id:", error);
       return [];
@@ -66,7 +66,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
       const take = options?.take ?? 20;
 
       const devices = await this.client.query(api.devices.list, { skip, take });
-      return (devices as ConvexDevice[]).map((d) => this.mapToDevice(d));
+      return (devices as unknown as ConvexDevice[]).map((d) => this.mapToDevice(d));
     } catch (error) {
       console.error("Error listing devices:", error);
       return [];
@@ -84,7 +84,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
     try {
       const newDeviceId = await this.client.mutation(api.devices.create, {
         deviceId: data.deviceId,
-        patientId: data.patientId as unknown as Id<'patients'> | undefined,
+        patientId: data.patientId ? (data.patientId as Id<"patients">) : undefined,
         deviceName: data.deviceName,
         isActive: data.isActive,
         batteryLevel: data.batteryLevel,
@@ -95,7 +95,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
         id: newDeviceId as Id<"devices">,
       });
       if (!device) throw new Error("Failed to create device");
-      return this.mapToDevice(device as ConvexDevice);
+      return this.mapToDevice(device as unknown as ConvexDevice);
     } catch (error) {
       console.error("Error creating device:", error);
       throw error;
@@ -104,22 +104,23 @@ export class ConvexDeviceRepository implements IDeviceRepository {
 
   async update(id: string, data: Partial<Device>): Promise<Device> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (this.client.mutation as any)(api.devices.update, {
-        id: id,
+      const mutationData: Record<string, unknown> = {
+        id: id as Id<"devices">,
         patientId: data.patientId,
         deviceName: data.deviceName,
         isActive: data.isActive,
         batteryLevel: data.batteryLevel,
         firmwareVersion: data.firmwareVersion,
         lastSeen: data.lastSeen ? data.lastSeen.getTime() : undefined,
-      });
+      };
+
+      await this.client.mutation(api.devices.update, mutationData as unknown as any);
 
       const device = await this.client.query(api.devices.getById, {
         id: id as Id<"devices">,
       });
       if (!device) throw new Error("Device not found after update");
-      return this.mapToDevice(device as ConvexDevice);
+      return this.mapToDevice(device as unknown as ConvexDevice);
     } catch (error) {
       console.error("Error updating device:", error);
       throw error;
@@ -133,7 +134,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
     try {
       await this.client.mutation(api.devices.updateByDeviceId, {
         deviceId,
-        patientId: data.patientId as unknown as Id<'patients'> | undefined,
+        patientId: data.patientId ? (data.patientId as Id<"patients">) : undefined,
         deviceName: data.deviceName,
         isActive: data.isActive,
         batteryLevel: data.batteryLevel,
@@ -145,7 +146,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
         deviceId,
       });
       if (!device) throw new Error("Device not found after update");
-      return this.mapToDevice(device as ConvexDevice);
+      return this.mapToDevice(device as unknown as ConvexDevice);
     } catch (error) {
       console.error("Error updating device by device id:", error);
       throw error;

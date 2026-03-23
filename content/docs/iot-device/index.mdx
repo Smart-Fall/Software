@@ -1,0 +1,298 @@
+---
+title: IoT Device Integration
+description: SmartFall wearable device integration and sensor specifications
+---
+
+# IoT Device Integration
+
+Complete guide for integrating IoT wearable devices with SmartFall.
+
+## Device Overview
+
+SmartFall supports wearable devices with the following sensors:
+
+- **Accelerometer**: Detect movement and falls
+- **Gyroscope**: Track rotation and orientation
+- **Heart Rate Monitor**: Monitor cardiac activity
+- **Pulse Oximetry**: Measure blood oxygen levels
+- **Pressure Sensor**: Environmental/foot pressure
+- **Battery Monitor**: Device power status
+
+## Key Specifications
+
+| Specification | Value |
+|---------------|-------|
+| **Communication** | HTTP/HTTPS, WiFi/BLE |
+| **Data Format** | JSON over HTTP POST |
+| **Auth** | JWT Bearer Token |
+| **Endpoint** | `POST /api/device/sensor-stream` |
+| **Rate Limit** | 1 record/second per device |
+| **Payload Size** | &lt;1KB per reading |
+
+## Quick Start
+
+1. **Register Device**: Submit first sensor data with MAC address
+2. **Authenticate**: Include JWT token in Authorization header
+3. **Stream Data**: Send sensor readings to `/api/device/sensor-stream`
+4. **Process Events**: Handle fall notifications from server
+
+### Example Device Code (Arduino/ESP32)
+
+```cpp
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+// WiFi credentials
+const char* ssid = "YOUR_SSID";
+const char* password = "YOUR_PASSWORD";
+const char* serverUrl = "http://smartfall.example.com/api/device/sensor-stream";
+const char* jwtToken = "YOUR_JWT_TOKEN";
+
+// Device MAC address
+String deviceId = "AA:BB:CC:DD:EE:FF";
+
+void sendSensorData() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.addHeader("Authorization", String("Bearer ") + jwtToken);
+    http.addHeader("Content-Type", "application/json");
+
+    // Create JSON payload
+    StaticJsonDocument<512> doc;
+    doc["device_id"] = deviceId;
+    doc["accel_x"] = 0.5;
+    doc["accel_y"] = 0.3;
+    doc["accel_z"] = 9.8;
+    doc["gyro_x"] = 0.1;
+    doc["gyro_y"] = 0.2;
+    doc["gyro_z"] = -0.05;
+    doc["heart_rate"] = 72;
+    doc["spo2"] = 98;
+    doc["battery_level"] = 85.0;
+    doc["uptime_ms"] = millis();
+
+    String payload;
+    serializeJson(doc, payload);
+
+    int httpResponseCode = http.POST(payload);
+    http.end();
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting to WiFi...");
+  }
+
+  Serial.println("Connected to WiFi");
+}
+
+void loop() {
+  sendSensorData();
+  delay(1000);  // Send once per second
+}
+```
+
+## Sensor Sections
+
+### Sensor Stream Format
+Complete JSON payload specification and field documentation
+
+### Fall Detection
+Fall detection algorithms and confidence levels
+
+### Device Status
+Device health monitoring and status tracking
+
+### Firmware Guide
+Firmware development and integration guide
+
+## Device Registration
+
+First sensor data automatically registers the device:
+
+```bash
+curl -X POST http://localhost:3000/api/device/sensor-stream \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "AA:BB:CC:DD:EE:FF",
+    "accel_x": 0.5,
+    "accel_y": 0.3,
+    "accel_z": 9.8,
+    "gyro_x": 0.1,
+    "gyro_y": 0.2,
+    "gyro_z": -0.05,
+    "uptime_ms": 3600000
+  }'
+```
+
+The device is automatically:
+- Registered in the system
+- Associated with your user account
+- Set to "ACTIVE" status
+
+## Authentication Flow
+
+1. **Device User Logs In**: Get JWT token from `/api/auth/login`
+2. **Store Token**: Save token securely on device
+3. **Include in Requests**: Add `Authorization: Bearer TOKEN` header
+4. **Handle Expiration**: Re-authenticate when token expires (24 hours default)
+
+```javascript
+// Example JavaScript/Node.js
+const token = await loginUser(email, password);
+
+setInterval(async () => {
+  const response = await fetch('https://smartfall.example.com/api/device/sensor-stream', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(sensorData)
+  });
+
+  if (response.status === 401) {
+    // Token expired - re-authenticate
+    token = await loginUser(email, password);
+  }
+}, 1000);
+```
+
+## Sampling Rates
+
+### Recommended Frequencies
+
+| Sensor | Frequency | Notes |
+|--------|-----------|-------|
+| Accelerometer | 100 Hz | High-frequency fall detection |
+| Gyroscope | 100 Hz | Synchronized with accel |
+| Heart Rate | 1 Hz | Every second |
+| Blood Oxygen | 1 Hz | Every second |
+| Pressure | 10 Hz | Environmental data |
+
+### Data Reduction
+
+For limited bandwidth, aggregate before sending:
+
+```javascript
+// Example: Send every 10 readings (10 Hz → 1 Hz)
+let buffer = [];
+let count = 0;
+
+function addReading(accel, gyro) {
+  buffer.push({ accel, gyro });
+  count++;
+
+  if (count === 10) {
+    // Average the readings
+    const avg = {
+      accelX: buffer.reduce((s, r) => s + r.accel.x, 0) / 10,
+      accelY: buffer.reduce((s, r) => s + r.accel.y, 0) / 10,
+      accelZ: buffer.reduce((s, r) => s + r.accel.z, 0) / 10,
+      // ... etc
+    };
+
+    sendToServer(avg);
+    buffer = [];
+    count = 0;
+  }
+}
+```
+
+## Error Handling
+
+Handle common errors gracefully:
+
+```javascript
+async function sendSensorData(data) {
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { /* ... */ },
+      body: JSON.stringify(data)
+    });
+
+    if (response.status === 400) {
+      // Validation error - fix data format
+      console.error('Invalid data format');
+    } else if (response.status === 401) {
+      // Token expired - re-authenticate
+      await refreshToken();
+    } else if (response.status === 429) {
+      // Rate limited - wait before retry
+      const retryAfter = response.headers.get('Retry-After') || 1000;
+      setTimeout(() => sendSensorData(data), retryAfter);
+    } else if (response.ok) {
+      // Success
+      const result = await response.json();
+      console.log('Fall detected:', result.fallDetected);
+    }
+  } catch (error) {
+    console.error('Network error:', error);
+    // Implement offline queue if needed
+  }
+}
+```
+
+## Power Management
+
+### Battery Optimization
+
+- **WiFi**: Turn off when not needed
+- **Sensors**: Use low-power modes when idle
+- **Sampling**: Reduce frequency during night hours
+- **Storage**: Buffer readings during offline periods
+
+### Estimated Battery Life
+
+| Configuration | Battery Life |
+|---------------|--------------|
+| Continuous 100 Hz | 8-12 hours |
+| 10 Hz aggregated | 24-36 hours |
+| Smart sampling | 48+ hours |
+
+## Testing Devices
+
+### Simulator Mode
+
+For development/testing without physical hardware:
+
+```bash
+# Run device simulator
+curl -X POST http://localhost:3000/api/device/sensor-stream \
+  -H "Authorization: Bearer TEST_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @test-sensor-data.json
+```
+
+### Test Data Files
+
+Generate test data for different scenarios:
+
+```json
+// test-fall.json - Simulate a fall
+{
+  "device_id": "AA:BB:CC:DD:EE:FF",
+  "accel_x": 15.0,
+  "accel_y": 12.0,
+  "accel_z": -5.0,
+  "gyro_x": 500,
+  "gyro_y": 450,
+  "gyro_z": -300,
+  "uptime_ms": 3600000
+}
+```
+
+## Related Documentation
+
+- [IoT Pipeline](/docs/architecture/iot-pipeline)
+- [API Reference - Devices](/docs/api-reference/devices)
+- [Firmware Guide](/docs/iot-device/firmware-guide)

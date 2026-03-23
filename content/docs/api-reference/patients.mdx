@@ -1,0 +1,200 @@
+---
+title: Patient API
+description: Patient management endpoints for caregivers
+---
+
+# Patient API
+
+Endpoints for managing patient profiles and data.
+
+## GET /patients
+
+List patients (caregiver view).
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Caregiver, Admin
+**Pagination:** Yes
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `page` | integer | Page number |
+| `limit` | integer | Results per page |
+| `status` | string | Filter by status (active, inactive) |
+
+### Example Request
+
+```bash
+curl http://localhost:3000/api/patients \
+  -H "Authorization: Bearer CAREGIVER_TOKEN"
+```
+
+---
+
+## POST /patients
+
+Create new patient profile.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Caregiver
+
+### Request Body
+
+```json
+{
+  "email": "patient@example.com",
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "dateOfBirth": "1950-01-15",
+  "emergencyContact": "+1-555-0123"
+}
+```
+
+---
+
+## GET /patients/:id
+
+Get patient details.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Assigned caregiver, self, admin
+
+---
+
+## PUT /patients/:id
+
+Update patient profile.
+
+**Method:** `PUT`
+**Auth Required:** Yes
+**Permissions:** Assigned caregiver, admin
+
+---
+
+## DELETE /patients/:id
+
+Delete patient.
+
+**Method:** `DELETE`
+**Auth Required:** Yes
+**Permissions:** Admin only
+
+---
+
+## GET /patients/:id/falls
+
+Get patient's falls.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Assigned caregiver, admin
+**Pagination:** Yes
+
+---
+
+## GET /patients/:id/health
+
+Get patient health data.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Assigned caregiver, admin
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "patientId": "patient-uuid",
+    "healthScore": 85,
+    "riskScore": 15,
+    "isHighRisk": false,
+    "vitals": {
+      "heartRate": 72,
+      "bloodPressure": "120/80",
+      "oxygenSaturation": 98
+    },
+    "lastUpdate": "2026-03-18T10:30:00Z"
+  }
+}
+```
+
+---
+
+## GET /patients/:id/devices
+
+Get patient's devices.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Assigned caregiver, admin
+
+---
+
+## GET /patients/me
+
+Get current patient profile.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Patient role
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "user-uuid",
+    "email": "patient@example.com",
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "role": "PATIENT",
+    "dateOfBirth": "1950-01-15",
+    "caregivers": [
+      {
+        "id": "caregiver-uuid",
+        "name": "John Doe",
+        "relationship": "Son",
+        "phone": "+1-555-9876"
+      }
+    ],
+    "devices": [
+      {
+        "id": "device-uuid",
+        "name": "SmartFall Watch",
+        "status": "ACTIVE"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## Risk Score Calculation
+
+```
+riskScore = 100 - initialHealthScore
+isHighRisk = riskScore >= 75
+```
+
+### Health Score Factors
+
+- Heart rate stability
+- Oxygen saturation levels
+- Recent fall frequency
+- Device battery status
+- Sensor reliability
+
+---
+
+## Related Documentation
+
+- [API Reference](/docs/api-reference)
+- [Patient Dashboard](/docs/frontend/patient-dashboard)

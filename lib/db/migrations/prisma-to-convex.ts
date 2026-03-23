@@ -260,6 +260,7 @@ async function migrateSensorData(): Promise<void> {
           gyroY: record.gyroY,
           gyroZ: record.gyroZ,
           pressure: record.pressure || undefined,
+          fsr: record.fsr ?? undefined,
         });
       }
 

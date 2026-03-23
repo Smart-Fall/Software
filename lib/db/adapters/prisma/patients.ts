@@ -2,10 +2,10 @@
  * Prisma Patient Repository Implementation
  */
 
-import { IPatientRepository } from '../base';
-import { FindOptions, Patient, User } from '../../types';
-import prisma from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import { IPatientRepository } from "../base";
+import { FindOptions, Patient } from "../../types";
+import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 type PrismaPatientWithUser = Prisma.PatientGetPayload<{
   include: { user: true };
@@ -33,7 +33,10 @@ export class PrismaPatientRepository implements IPatientRepository {
       include: { user: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy as Prisma.PatientOrderByWithRelationInput | undefined,
+      orderBy: options?.orderBy as
+        | Prisma.PatientOrderByWithRelationInput
+        | Prisma.PatientOrderByWithRelationInput[]
+        | undefined,
     });
     return patients.map((p) => this.mapToPatient(p));
   }
@@ -91,7 +94,17 @@ export class PrismaPatientRepository implements IPatientRepository {
       isHighRisk: patient.isHighRisk,
       medicalConditions: patient.medicalConditions ?? undefined,
       createdAt: patient.createdAt,
-      user: patient.user as unknown as User | undefined,
+      user: {
+        id: patient.user.id,
+        email: patient.user.email,
+        passwordHash: patient.user.passwordHash,
+        accountType: patient.user.accountType as "user" | "caregiver" | "admin",
+        firstName: patient.user.firstName ?? undefined,
+        lastName: patient.user.lastName ?? undefined,
+        dob: patient.user.dob ?? undefined,
+        isActive: patient.user.isActive,
+        createdAt: patient.user.createdAt,
+      },
     };
   }
 }

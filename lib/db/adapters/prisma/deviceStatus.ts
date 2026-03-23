@@ -2,10 +2,10 @@
  * Prisma DeviceStatus Repository Implementation
  */
 
-import { IDeviceStatusRepository } from '../base';
-import { Device, DeviceStatus, FindOptions } from '../../types';
-import prisma from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import { IDeviceStatusRepository } from "../base";
+import { DeviceStatus, FindOptions } from "../../types";
+import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 type PrismaDeviceStatusWithDevice = Prisma.DeviceStatusGetPayload<{
   include: { device: true };
@@ -29,7 +29,10 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
       include: { device: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: (options?.orderBy || { timestamp: 'desc' }) as Prisma.DeviceStatusOrderByWithRelationInput,
+      orderBy: (options?.orderBy as
+        | Prisma.DeviceStatusOrderByWithRelationInput
+        | Prisma.DeviceStatusOrderByWithRelationInput[]
+        | undefined) || { timestamp: "desc" },
     });
     return statuses.map((s) => this.mapToDeviceStatus(s));
   }
@@ -37,7 +40,7 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
   async findRecent(deviceId: string, limit: number): Promise<DeviceStatus[]> {
     const statuses = await prisma.deviceStatus.findMany({
       where: { deviceId },
-      orderBy: { timestamp: 'desc' },
+      orderBy: { timestamp: "desc" },
       take: limit,
       include: { device: true },
     });
@@ -47,7 +50,7 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
   async findLatest(deviceId: string): Promise<DeviceStatus | null> {
     const status = await prisma.deviceStatus.findFirst({
       where: { deviceId },
-      orderBy: { timestamp: 'desc' },
+      orderBy: { timestamp: "desc" },
       include: { device: true },
     });
     return status ? this.mapToDeviceStatus(status) : null;
@@ -79,7 +82,9 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
     return this.mapToDeviceStatus(status);
   }
 
-  private mapToDeviceStatus(status: PrismaDeviceStatusWithDevice): DeviceStatus {
+  private mapToDeviceStatus(
+    status: PrismaDeviceStatusWithDevice,
+  ): DeviceStatus {
     return {
       id: status.id,
       deviceId: status.deviceId,
@@ -90,7 +95,19 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
       sensorsInitialized: status.sensorsInitialized,
       uptimeMs: status.uptimeMs,
       currentStatus: status.currentStatus ?? undefined,
-      device: status.device as unknown as Device,
+      device: status.device
+        ? {
+            id: status.device.id,
+            deviceId: status.device.deviceId,
+            patientId: status.device.patientId ?? undefined,
+            deviceName: status.device.deviceName ?? undefined,
+            isActive: status.device.isActive,
+            lastSeen: status.device.lastSeen ?? undefined,
+            batteryLevel: status.device.batteryLevel ?? undefined,
+            firmwareVersion: status.device.firmwareVersion ?? undefined,
+            createdAt: status.device.createdAt,
+          }
+        : undefined,
     };
   }
 }

@@ -119,8 +119,6 @@ export interface SensorData {
   gyroZ: number;
   pressure?: number;
   fsr?: number;
-  heartRate?: number;
-  spo2?: number;
   device?: Device;
 }
 

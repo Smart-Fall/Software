@@ -2,14 +2,14 @@
  * Convex Session Repository Implementation
  */
 
-import { ISessionRepository } from '../base';
-import { Session } from '../../types';
-import { getConvexClient } from './client';
-import { api } from '@/convex/_generated/api';
-import type { Id } from '@/convex/_generated/dataModel';
+import { ISessionRepository } from "../base";
+import { Session } from "../../types";
+import { getConvexClient } from "./client";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 
 type ConvexSession = {
-  _id: Id<'sessions'>;
+  _id: Id<"sessions">;
   userId?: string;
   sessionToken: string;
   createdAt: number | string | Date;
@@ -26,28 +26,30 @@ export class ConvexSessionRepository implements ISessionRepository {
   }): Promise<Session> {
     try {
       const sessionId = await this.client.mutation(api.sessions.create, {
-        userId: data.userId as unknown as Id<'users'>,
+        userId: data.userId as Id<"users">,
         sessionToken: data.sessionToken,
         expiresAt: data.expiresAt ? data.expiresAt.getTime() : undefined,
       });
 
       const session = await this.client.query(api.sessions.getById, {
-        id: sessionId as Id<'sessions'>,
+        id: sessionId as Id<"sessions">,
       });
-      if (!session) throw new Error('Failed to create session');
+      if (!session) throw new Error("Failed to create session");
       return this.mapToSession(session as ConvexSession);
     } catch (error) {
-      console.error('Error creating session:', error);
+      console.error("Error creating session:", error);
       throw error;
     }
   }
 
   async findByToken(sessionToken: string): Promise<Session | null> {
     try {
-      const session = await this.client.query(api.sessions.getByToken, { sessionToken });
+      const session = await this.client.query(api.sessions.getByToken, {
+        sessionToken,
+      });
       return session ? this.mapToSession(session as ConvexSession) : null;
     } catch (error) {
-      console.error('Error finding session by token:', error);
+      console.error("Error finding session by token:", error);
       return null;
     }
   }
@@ -55,11 +57,11 @@ export class ConvexSessionRepository implements ISessionRepository {
   async findByUserId(userId: string): Promise<Session[]> {
     try {
       const sessions = await this.client.query(api.sessions.getByUserId, {
-        userId: userId as unknown as Id<'users'>,
+        userId: userId as Id<"users">,
       });
       return (sessions as ConvexSession[]).map((s) => this.mapToSession(s));
     } catch (error) {
-      console.error('Error finding sessions by user id:', error);
+      console.error("Error finding sessions by user id:", error);
       return [];
     }
   }
@@ -68,17 +70,17 @@ export class ConvexSessionRepository implements ISessionRepository {
     try {
       await this.client.mutation(api.sessions.deleteByToken, { sessionToken });
     } catch (error) {
-      console.error('Error deleting session by token:', error);
+      console.error("Error deleting session by token:", error);
     }
   }
 
   async deleteByUserId(userId: string): Promise<void> {
     try {
       await this.client.mutation(api.sessions.deleteByUserId, {
-        userId: userId as unknown as Id<'users'>,
+        userId: userId as Id<"users">,
       });
     } catch (error) {
-      console.error('Error deleting sessions by user id:', error);
+      console.error("Error deleting sessions by user id:", error);
     }
   }
 
@@ -87,7 +89,7 @@ export class ConvexSessionRepository implements ISessionRepository {
       const count = await this.client.mutation(api.sessions.deleteExpired, {});
       return count;
     } catch (error) {
-      console.error('Error deleting expired sessions:', error);
+      console.error("Error deleting expired sessions:", error);
       return 0;
     }
   }

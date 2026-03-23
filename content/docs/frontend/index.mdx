@@ -1,0 +1,156 @@
+---
+title: Frontend Architecture
+description: SmartFall user interface and dashboard documentation
+---
+
+# Frontend Architecture
+
+SmartFall provides three role-based dashboards built with React and Next.js.
+
+## Tech Stack
+
+- **Framework**: Next.js 16 with App Router
+- **UI Components**: React 19 + Radix UI
+- **Styling**: Tailwind CSS
+- **State Management**: React Hooks
+- **Charts**: Recharts for data visualization
+- **Notifications**: Sonner for toast alerts
+
+## Dashboard Roles
+
+### Patient Dashboard
+Personal health monitoring and fall alerts
+
+### Caregiver Dashboard
+Monitor assigned patients and manage care
+
+### Admin Dashboard
+System management and user administration
+
+### Authentication Pages
+Login, signup, and password reset flows
+
+## Responsive Design
+
+Mobile-first approach:
+
+- **Mobile**: < 640px
+- **Tablet**: 640px - 1024px
+- **Desktop**: > 1024px
+
+## Dark Mode
+
+Automatic dark mode support via `next-themes`:
+
+```typescript
+import { useTheme } from 'next-themes';
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+      Toggle Theme
+    </button>
+  );
+}
+```
+
+## Component Library
+
+Reusable UI components in `/components/ui/`:
+
+- Buttons
+- Cards
+- Forms
+- Tables
+- Modals
+- Dropdowns
+- Alerts
+- Badges
+- Progress indicators
+
+## State Management
+
+Use React Context + Hooks:
+
+```typescript
+// User context
+import { useUser } from '@/hooks/useUser';
+
+const MyComponent = () => {
+  const { user, loading } = useUser();
+
+  if (loading) return <div>Loading...</div>;
+
+  return <div>Welcome, {user.firstName}!</div>;
+};
+```
+
+## API Integration
+
+Type-safe API calls:
+
+```typescript
+import { useAsyncAction } from '@/hooks/useAsyncAction';
+
+const MyComponent = () => {
+  const { execute, loading, error } = useAsyncAction(
+    async () => {
+      const response = await fetch('/api/patients');
+      return response.json();
+    }
+  );
+
+  return (
+    <>
+      {error && <p>Error: {error}</p>}
+      <button onClick={execute} disabled={loading}>
+        Load Patients
+      </button>
+    </>
+  );
+};
+```
+
+## Pages Structure
+
+```
+app/
+  (auth)/
+    login/page.tsx
+    signup/page.tsx
+    reset-password/page.tsx
+  (dashboard)/
+    patient/page.tsx
+    caregiver/page.tsx
+    admin/page.tsx
+  page.tsx  (home/redirect)
+```
+
+## Responsive Components
+
+### Patient Dashboard
+- Health score chart
+- Recent falls list
+- Device status
+- Vital monitoring
+
+### Caregiver Dashboard
+- Patient list
+- Active alerts
+- Fall events timeline
+- Patient assignments
+
+### Admin Dashboard
+- System statistics
+- User management
+- Device management
+- Audit logs
+
+## Related Documentation
+
+- [Patient Dashboard](/docs/frontend/patient-dashboard)
+- [Caregiver Dashboard](/docs/frontend/caregiver-dashboard)
+- [Admin Dashboard](/docs/frontend/admin-dashboard)
+- [Architecture Overview](/docs/architecture)

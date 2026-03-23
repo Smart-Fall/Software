@@ -1,0 +1,206 @@
+---
+title: Device Management
+description: IoT device administration and monitoring
+---
+
+# Device Management
+
+Manage and monitor IoT wearable devices.
+
+## Device List
+
+View all registered devices:
+
+`Admin → Device Management → List Devices`
+
+### Device Information
+
+- MAC address
+- Owner (user)
+- Device name
+- Current status
+- Battery level
+- Last seen
+- Firmware version
+
+### Filters
+
+Filter by:
+
+- Status (active, inactive, offline, disabled)
+- Owner
+- Battery level
+- Last seen date
+
+## Device Details
+
+View device information:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Device Management]
+	B --> C[Select Device]
+	C --> D[Details]
+```
+
+Shows:
+
+- MAC address
+- Owner information
+- Registration date
+- Last data timestamp
+- Firmware version
+- Sensor readings
+
+## Device Status Management
+
+### View Status
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Device Management]
+	B --> C[Select Device]
+	C --> D[Status]
+```
+
+- Current status
+- Battery level
+- Signal strength
+- Last data point
+- Sensor status
+
+### Disable Device
+
+Disable device access:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Device Management]
+	B --> C[Select Device]
+	C --> D[Disable]
+```
+
+Effects:
+
+- Cannot send data
+- Owner notified
+- Previous data retained
+- Can be re-enabled
+
+### Enable Device
+
+Re-enable disabled device:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Device Management]
+	B --> C[Select Device]
+	C --> D[Enable]
+```
+
+Effects:
+
+- Can resume sending data
+- Owner notified
+
+## Device Logs
+
+View device activity:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Device Management]
+	B --> C[Select Device]
+	C --> D[Logs]
+```
+
+Shows:
+
+- Connections
+- Data submissions
+- Errors
+- Status changes
+- Firmware updates
+
+## Firmware Management
+
+### Update Firmware
+
+Deploy firmware updates:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Device Management]
+	B --> C[Firmware]
+	C --> D[Upload]
+```
+
+- Select firmware file
+- Version number
+- Release notes
+- Target devices (all or selected)
+
+### Update History
+
+View all firmware updates:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Device Management]
+	B --> C[Firmware]
+	C --> D[History]
+```
+
+Shows:
+
+- Version
+- Release date
+- Devices updated
+- Status
+
+## Device Troubleshooting
+
+### Offline Devices
+
+If device offline > 24 hours:
+
+1. Check device logs
+2. Verify network connectivity
+3. Check battery level
+4. Review recent errors
+5. Notify owner if needed
+
+### Connection Issues
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Device Management]
+	B --> C[Select Device]
+	C --> D[Troubleshoot]
+```
+
+- Check signal strength
+- Review error logs
+- Suggest actions to user
+- Force resync if needed
+
+### Battery Issues
+
+Monitor battery levels:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Device Management]
+	B --> C[Alerts]
+	C --> D[Low Battery]
+```
+
+- Auto-notify users < 20%
+- Suggest charging
+- Track battery health
+
+## Related Documentation
+
+- [Admin Guide](/docs/admin-guide)
+- [IoT Device Integration](/docs/iot-device)
+- [API Reference - Admin](/docs/api-reference/admin)

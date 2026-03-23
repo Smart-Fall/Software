@@ -29,7 +29,7 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
       const status = await this.client.query(api.deviceStatus.getById, {
         id: id as Id<'deviceStatus'>,
       });
-      return status ? this.mapToDeviceStatus(status as ConvexDeviceStatus) : null;
+      return status ? this.mapToDeviceStatus(status as unknown as ConvexDeviceStatus) : null;
     } catch (error) {
       console.error('Error finding device status by id:', error);
       return null;
@@ -45,11 +45,11 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
       const take = options?.take ?? 20;
 
       const statuses = await this.client.query(api.deviceStatus.getByDeviceId, {
-        deviceId: deviceId as unknown as Id<'devices'>,
+        deviceId: deviceId as Id<'devices'>,
         skip,
         take,
       });
-      return (statuses as ConvexDeviceStatus[]).map((s) =>
+      return (statuses as unknown as ConvexDeviceStatus[]).map((s) =>
         this.mapToDeviceStatus(s),
       );
     } catch (error) {
@@ -61,10 +61,10 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
   async findRecent(deviceId: string, limit: number): Promise<DeviceStatus[]> {
     try {
       const statuses = await this.client.query(api.deviceStatus.getRecent, {
-        deviceId: deviceId as unknown as Id<'devices'>,
+        deviceId: deviceId as Id<'devices'>,
         limit,
       });
-      return (statuses as ConvexDeviceStatus[]).map((s) =>
+      return (statuses as unknown as ConvexDeviceStatus[]).map((s) =>
         this.mapToDeviceStatus(s),
       );
     } catch (error) {
@@ -76,9 +76,9 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
   async findLatest(deviceId: string): Promise<DeviceStatus | null> {
     try {
       const status = await this.client.query(api.deviceStatus.getLatest, {
-        deviceId: deviceId as unknown as Id<'devices'>,
+        deviceId: deviceId as Id<'devices'>,
       });
-      return status ? this.mapToDeviceStatus(status as ConvexDeviceStatus) : null;
+      return status ? this.mapToDeviceStatus(status as unknown as ConvexDeviceStatus) : null;
     } catch (error) {
       console.error('Error finding latest device status:', error);
       return null;
@@ -97,7 +97,7 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
   }): Promise<DeviceStatus> {
     try {
       const statusId = await this.client.mutation(api.deviceStatus.create, {
-        deviceId: data.deviceId as unknown as Id<'devices'>,
+        deviceId: data.deviceId as Id<'devices'>,
         timestamp: data.timestamp.getTime(),
         batteryPercentage: data.batteryPercentage,
         wifiConnected: data.wifiConnected,
@@ -111,7 +111,7 @@ export class ConvexDeviceStatusRepository implements IDeviceStatusRepository {
         id: statusId as Id<'deviceStatus'>,
       });
       if (!status) throw new Error('Failed to create device status');
-      return this.mapToDeviceStatus(status as ConvexDeviceStatus);
+      return this.mapToDeviceStatus(status as unknown as ConvexDeviceStatus);
     } catch (error) {
       console.error('Error creating device status:', error);
       throw error;

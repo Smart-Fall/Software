@@ -1,0 +1,103 @@
+---
+title: Health API
+description: Server health and status endpoints
+---
+
+# Health API
+
+Endpoints for checking server health and getting current user information.
+
+## GET /health
+
+Check server health.
+
+**Method:** `GET`
+**Auth Required:** No
+**Rate Limit:** Unlimited
+
+### Example Request
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+### Success Response
+
+```json
+HTTP/1.1 200 OK
+{
+  "success": true,
+  "data": {
+    "status": "HEALTHY",
+    "timestamp": "2026-03-18T10:30:00Z",
+    "uptime": 3600,
+    "database": "CONNECTED",
+    "memory": {
+      "used": 256,
+      "available": 1024
+    },
+    "version": "1.0.0"
+  }
+}
+```
+
+### Error Response (Service Down)
+
+```json
+HTTP/1.1 503 Service Unavailable
+{
+  "success": false,
+  "status": "UNHEALTHY",
+  "error": "Database connection failed"
+}
+```
+
+---
+
+## GET /me
+
+Get current authenticated user info.
+
+**Method:** `GET`
+**Auth Required:** Yes
+
+### Example Request
+
+```bash
+curl http://localhost:3000/api/me \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "user-uuid",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "PATIENT",
+    "createdAt": "2026-01-01T00:00:00Z",
+    "lastLogin": "2026-03-18T10:30:00Z"
+  }
+}
+```
+
+---
+
+## Health Check Values
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| **HEALTHY** | OK | System operational |
+| **DEGRADED** | PARTIAL | Some services affected |
+| **UNHEALTHY** | ERROR | Critical failure |
+
+---
+
+## Related Documentation
+
+- [API Reference](/docs/api-reference)
+- [Architecture Overview](/docs/architecture)

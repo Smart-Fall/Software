@@ -2,10 +2,10 @@
  * Prisma Session Repository Implementation
  */
 
-import { ISessionRepository } from '../base';
-import { Session } from '../../types';
-import prisma from '@/lib/prisma';
-import type { Session as PrismaSession } from '@prisma/client';
+import { ISessionRepository } from "../base";
+import { Session } from "../../types";
+import prisma from "@/lib/prisma";
+import type { Session as PrismaSession } from "@prisma/client";
 
 export class PrismaSessionRepository implements ISessionRepository {
   async create(data: {
