@@ -26,7 +26,7 @@ export class ConvexUserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     try {
       const user = await this.client.query(api.users.getByEmail, { email });
-      return user ? this.mapToUser(user as ConvexUser) : null;
+      return user ? this.mapToUser(user as unknown as ConvexUser) : null;
     } catch (error) {
       console.error("Error finding user by email:", error);
       return null;
@@ -38,7 +38,7 @@ export class ConvexUserRepository implements IUserRepository {
       const user = await this.client.query(api.users.getById, {
         id: id as Id<"users">,
       });
-      return user ? this.mapToUser(user as ConvexUser) : null;
+      return user ? this.mapToUser(user as unknown as ConvexUser) : null;
     } catch (error) {
       console.error("Error finding user by id:", error);
       return null;
@@ -67,7 +67,7 @@ export class ConvexUserRepository implements IUserRepository {
         id: userId as Id<"users">,
       });
       if (!user) throw new Error("Failed to create user");
-      return this.mapToUser(user as ConvexUser);
+      return this.mapToUser(user as unknown as ConvexUser);
     } catch (error) {
       console.error("Error creating user:", error);
       throw error;
@@ -84,13 +84,14 @@ export class ConvexUserRepository implements IUserRepository {
         lastName: data.lastName,
         dob: data.dob ? data.dob.getTime() : undefined,
         isActive: data.isActive,
+        accountType: data.accountType,
       });
 
       const user = await this.client.query(api.users.getById, {
         id: id as Id<"users">,
       });
       if (!user) throw new Error("User not found after update");
-      return this.mapToUser(user as ConvexUser);
+      return this.mapToUser(user as unknown as ConvexUser);
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;
@@ -103,7 +104,7 @@ export class ConvexUserRepository implements IUserRepository {
       const take = options?.take ?? 20;
 
       const users = await this.client.query(api.users.list, { skip, take });
-      return (users as ConvexUser[]).map((u) => this.mapToUser(u));
+      return (users as unknown as ConvexUser[]).map((u) => this.mapToUser(u));
     } catch (error) {
       console.error("Error listing users:", error);
       return [];

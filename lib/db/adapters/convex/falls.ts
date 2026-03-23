@@ -46,8 +46,8 @@ export class ConvexFallRepository implements IFallRepository {
   }): Promise<Fall> {
     try {
       const fallId = await this.client.mutation(api.falls.create, {
-        patientId: data.patientId as unknown as Id<'patients'> | undefined,
-        deviceId: data.deviceId as unknown as Id<'devices'> | undefined,
+        patientId: data.patientId ? (data.patientId as Id<'patients'>) : undefined,
+        deviceId: data.deviceId ? (data.deviceId as Id<'devices'>) : undefined,
         fallDatetime: data.fallDatetime.getTime(),
         confidenceScore: data.confidenceScore,
         confidenceLevel: data.confidenceLevel,
@@ -63,7 +63,7 @@ export class ConvexFallRepository implements IFallRepository {
         id: fallId as Id<'falls'>,
       });
       if (!fall) throw new Error('Failed to create fall');
-      return this.mapToFall(fall as ConvexFall);
+      return this.mapToFall(fall as unknown as ConvexFall);
     } catch (error) {
       console.error('Error creating fall:', error);
       throw error;
@@ -75,7 +75,7 @@ export class ConvexFallRepository implements IFallRepository {
       const fall = await this.client.query(api.falls.getById, {
         id: id as Id<'falls'>,
       });
-      return fall ? this.mapToFall(fall as ConvexFall) : null;
+      return fall ? this.mapToFall(fall as unknown as ConvexFall) : null;
     } catch (error) {
       console.error('Error finding fall by id:', error);
       return null;
@@ -85,11 +85,11 @@ export class ConvexFallRepository implements IFallRepository {
   async findMany(options?: FindOptions<Fall>): Promise<Fall[]> {
     try {
       const falls = await this.client.query(api.falls.list, {
-        patientId: options?.where?.patientId as unknown as Id<'patients'> | undefined,
+        patientId: options?.where?.patientId ? (options.where.patientId as Id<'patients'>) : undefined,
         skip: options?.skip,
         take: options?.take,
       });
-      return (falls as ConvexFall[]).map((f) => this.mapToFall(f));
+      return (falls as unknown as ConvexFall[]).map((f) => this.mapToFall(f));
     } catch (error) {
       console.error('Error listing falls:', error);
       return [];
@@ -99,9 +99,9 @@ export class ConvexFallRepository implements IFallRepository {
   async findByPatientId(patientId: string): Promise<Fall[]> {
     try {
       const falls = await this.client.query(api.falls.getByPatientId, {
-        patientId: patientId as unknown as Id<'patients'>,
+        patientId: patientId as Id<'patients'>,
       });
-      return (falls as ConvexFall[]).map((f) => this.mapToFall(f));
+      return (falls as unknown as ConvexFall[]).map((f) => this.mapToFall(f));
     } catch (error) {
       console.error('Error finding falls by patient id:', error);
       return [];
@@ -111,9 +111,9 @@ export class ConvexFallRepository implements IFallRepository {
   async findByDeviceId(deviceId: string): Promise<Fall[]> {
     try {
       const falls = await this.client.query(api.falls.getByDeviceId, {
-        deviceId: deviceId as unknown as Id<'devices'>,
+        deviceId: deviceId as Id<'devices'>,
       });
-      return (falls as ConvexFall[]).map((f) => this.mapToFall(f));
+      return (falls as unknown as ConvexFall[]).map((f) => this.mapToFall(f));
     } catch (error) {
       console.error('Error finding falls by device id:', error);
       return [];
@@ -123,7 +123,7 @@ export class ConvexFallRepository implements IFallRepository {
   async findRecent(limit: number): Promise<Fall[]> {
     try {
       const falls = await this.client.query(api.falls.getRecent, { limit });
-      return (falls as ConvexFall[]).map((f) => this.mapToFall(f));
+      return (falls as unknown as ConvexFall[]).map((f) => this.mapToFall(f));
     } catch (error) {
       console.error('Error finding recent falls:', error);
       return [];
@@ -133,7 +133,7 @@ export class ConvexFallRepository implements IFallRepository {
   async findUnresolved(): Promise<Fall[]> {
     try {
       const falls = await this.client.query(api.falls.getUnresolved, {});
-      return (falls as ConvexFall[]).map((f) => this.mapToFall(f));
+      return (falls as unknown as ConvexFall[]).map((f) => this.mapToFall(f));
     } catch (error) {
       console.error('Error finding unresolved falls:', error);
       return [];
@@ -156,7 +156,7 @@ export class ConvexFallRepository implements IFallRepository {
         id: id as Id<'falls'>,
       });
       if (!fall) throw new Error('Fall not found after update');
-      return this.mapToFall(fall as ConvexFall);
+      return this.mapToFall(fall as unknown as ConvexFall);
     } catch (error) {
       console.error('Error updating fall:', error);
       throw error;

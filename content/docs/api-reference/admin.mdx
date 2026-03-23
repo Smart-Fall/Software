@@ -1,0 +1,187 @@
+---
+title: Admin API
+description: System administration endpoints
+---
+
+# Admin API
+
+Endpoints for system administration and user management.
+
+## GET /admin/users
+
+List all users.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Admin
+**Pagination:** Yes
+
+### Query Parameters
+
+```
+page, limit, role, status
+```
+
+---
+
+## GET /admin/users/:id
+
+Get user details.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+---
+
+## PUT /admin/users/:id
+
+Update user.
+
+**Method:** `PUT`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+---
+
+## DELETE /admin/users/:id
+
+Delete user.
+
+**Method:** `DELETE`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+---
+
+## POST /admin/users/:id/role
+
+Change user role.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+### Request Body
+
+```json
+{
+  "role": "ADMIN"
+}
+```
+
+---
+
+## GET /admin/stats
+
+Get system statistics.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "totalUsers": 150,
+    "activeDevices": 120,
+    "fallsToday": 5,
+    "highRiskPatients": 12,
+    "caregiverAssignments": 85,
+    "systemHealth": "HEALTHY"
+  }
+}
+```
+
+---
+
+## GET /admin/logs
+
+Get system logs.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Admin
+**Pagination:** Yes
+
+### Query Parameters
+
+```
+page, limit, level (error, warning, info), date range
+```
+
+---
+
+## POST /admin/devices/:id/disable
+
+Disable device.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+---
+
+## POST /admin/devices/:id/enable
+
+Enable device.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+---
+
+## GET /admin/falls
+
+Get all falls.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Admin
+**Pagination:** Yes
+
+### Query Parameters
+
+```
+status, dateFrom, dateTo, patientId, severity
+```
+
+---
+
+## POST /admin/falls/:id/investigate
+
+Flag fall for investigation.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+---
+
+## POST /admin/maintenance
+
+Trigger maintenance tasks.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+### Request Body
+
+```json
+{
+  "task": "cleanup_logs",
+  "options": {}
+}
+```
+
+---
+
+## Related Documentation
+
+- [API Reference](/docs/api-reference)
+- [Admin Guide](/docs/admin-guide)

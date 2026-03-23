@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Activity, Cpu, Link2, BarChart3, ScrollText } from "lucide-react";
+import { Users, Activity, Cpu, Link2, BarChart3 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { LoadingSpinner } from "@/components/dashboard/LoadingSpinner";
 import { StatsOverview } from "./components/StatsOverview";
@@ -76,16 +75,6 @@ interface AssignmentRecord {
   facilityName?: string;
 }
 
-interface LogRecord {
-  id: string;
-  deviceId: string;
-  level: string;
-  category: string;
-  message: string;
-  metadata?: { value?: number; threshold?: number } | null;
-  createdAt: string;
-}
-
 interface NavbarUser {
   firstName?: string;
   lastName?: string;
@@ -103,13 +92,6 @@ export default function AdminDashboard() {
   const [devices, setDevices] = useState<DeviceRecord[]>([]);
   const [devicesTotal, setDevicesTotal] = useState(0);
   const [assignments, setAssignments] = useState<AssignmentRecord[]>([]);
-  const [logs, setLogs] = useState<LogRecord[]>([]);
-  const [logsTotal, setLogsTotal] = useState(0);
-  const [logDeviceFilter, setLogDeviceFilter] = useState("");
-  const [logLevelFilter, setLogLevelFilter] = useState("");
-  const [logCategoryFilter, setLogCategoryFilter] = useState("");
-  const [isLogsLive, setIsLogsLive] = useState(false);
-  const logsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -179,24 +161,6 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  const fetchLogs = useCallback(async () => {
-    try {
-      const params = new URLSearchParams({ take: "100" });
-      if (logDeviceFilter)   params.set("device_id", logDeviceFilter);
-      if (logLevelFilter)    params.set("level",     logLevelFilter);
-      if (logCategoryFilter) params.set("category",  logCategoryFilter);
-      const res = await fetch(`/api/admin/logs?${params.toString()}`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch logs");
-      const data = await res.json();
-      setLogs(data.logs || []);
-      setLogsTotal(data.total || 0);
-    } catch (error) {
-      console.error("Error fetching logs:", error);
-    }
-  }, [logDeviceFilter, logLevelFilter, logCategoryFilter]);
-
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
@@ -239,27 +203,6 @@ export default function AdminDashboard() {
     fetchDevices,
     fetchAssignments,
   ]);
-
-  // Poll logs every 10s when the Logs tab is active
-  useEffect(() => {
-    if (activeTab === "logs") {
-      fetchLogs();
-      setIsLogsLive(true);
-      logsIntervalRef.current = setInterval(fetchLogs, 10000);
-    } else {
-      setIsLogsLive(false);
-      if (logsIntervalRef.current) {
-        clearInterval(logsIntervalRef.current);
-        logsIntervalRef.current = null;
-      }
-    }
-    return () => {
-      if (logsIntervalRef.current) {
-        clearInterval(logsIntervalRef.current);
-        logsIntervalRef.current = null;
-      }
-    };
-  }, [activeTab, fetchLogs]);
 
   const handleLogout = async () => {
     try {
@@ -321,7 +264,7 @@ export default function AdminDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -344,10 +287,6 @@ export default function AdminDashboard() {
             >
               <Link2 className="h-4 w-4" />
               <span className="hidden sm:inline">Assignments</span>
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="flex items-center gap-2">
-              <ScrollText className="h-4 w-4" />
-              <span className="hidden sm:inline">Logs</span>
             </TabsTrigger>
           </TabsList>
 
@@ -390,127 +329,6 @@ export default function AdminDashboard() {
               assignments={assignments}
               onRefresh={fetchAssignments}
             />
-          </TabsContent>
-
-          <TabsContent value="logs">
-            <div className="rounded-lg border bg-white shadow-sm">
-              {/* Card Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b">
-                <div>
-                  <h2 className="text-lg font-semibold">Device Logs</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {logsTotal} total entries
-                  </p>
-                </div>
-                {isLogsLive && (
-                  <div className="flex items-center gap-2 text-sm text-green-600">
-                    <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    Live
-                  </div>
-                )}
-              </div>
-
-              {/* Filters */}
-              <div className="flex flex-wrap gap-3 px-6 py-4 border-b bg-gray-50">
-                <select
-                  value={logDeviceFilter}
-                  onChange={(e) => setLogDeviceFilter(e.target.value)}
-                  className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
-                >
-                  <option value="">All Devices</option>
-                  {Array.from(new Set(logs.map((l) => l.deviceId))).map((id) => (
-                    <option key={id} value={id}>{id}</option>
-                  ))}
-                </select>
-
-                <select
-                  value={logLevelFilter}
-                  onChange={(e) => setLogLevelFilter(e.target.value)}
-                  className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
-                >
-                  <option value="">All Levels</option>
-                  <option value="DEBUG">DEBUG</option>
-                  <option value="INFO">INFO</option>
-                  <option value="WARN">WARN</option>
-                  <option value="ERROR">ERROR</option>
-                </select>
-
-                <select
-                  value={logCategoryFilter}
-                  onChange={(e) => setLogCategoryFilter(e.target.value)}
-                  className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
-                >
-                  <option value="">All Categories</option>
-                  <option value="SYSTEM">SYSTEM</option>
-                  <option value="FALL_DETECTION">FALL_DETECTION</option>
-                  <option value="SENSOR">SENSOR</option>
-                  <option value="WIFI">WIFI</option>
-                  <option value="EMERGENCY">EMERGENCY</option>
-                </select>
-              </div>
-
-              {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <th className="px-6 py-3">Timestamp</th>
-                      <th className="px-6 py-3">Device</th>
-                      <th className="px-6 py-3">Level</th>
-                      <th className="px-6 py-3">Category</th>
-                      <th className="px-6 py-3">Message</th>
-                      <th className="px-6 py-3">Value / Threshold</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {logs.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
-                          No logs found
-                        </td>
-                      </tr>
-                    ) : (
-                      logs.map((log) => (
-                        <tr key={log.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-3 whitespace-nowrap text-xs text-gray-500">
-                            {format(new Date(log.createdAt), "MMM d, yyyy h:mm:ss a")}
-                          </td>
-                          <td className="px-6 py-3 whitespace-nowrap font-mono text-xs">
-                            {log.deviceId.slice(-12)}
-                          </td>
-                          <td className="px-6 py-3">
-                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              log.level === "ERROR"
-                                ? "bg-red-100 text-red-800"
-                                : log.level === "WARN"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : log.level === "INFO"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-700"
-                            }`}>
-                              {log.level}
-                            </span>
-                          </td>
-                          <td className="px-6 py-3">
-                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-                              {log.category}
-                            </span>
-                          </td>
-                          <td className="px-6 py-3 max-w-xs truncate" title={log.message}>
-                            {log.message}
-                          </td>
-                          <td className="px-6 py-3 text-xs text-gray-500 whitespace-nowrap">
-                            {log.metadata?.value !== undefined
-                              ? `${Number(log.metadata.value).toFixed(3)} / ${Number(log.metadata.threshold ?? 0).toFixed(3)}`
-                              : "—"}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
       </div>

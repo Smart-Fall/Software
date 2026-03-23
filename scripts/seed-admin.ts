@@ -51,7 +51,11 @@ import bcrypt from "bcryptjs";
 
 async function seedAdmin() {
   const email = process.env.ADMIN_EMAIL || "admin@smartfall.com";
-  const password = process.env.ADMIN_PASSWORD || "Admin123!";
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) {
+    console.error("❌ ADMIN_PASSWORD environment variable is required");
+    process.exit(1);
+  }
   const firstName = process.env.ADMIN_FIRST || "System";
   const lastName = process.env.ADMIN_LAST || "Admin";
 

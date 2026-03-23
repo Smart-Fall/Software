@@ -3,7 +3,7 @@
  */
 
 import { ICaregiverRepository } from "../base";
-import { Caregiver, FindOptions, User } from "../../types";
+import { Caregiver, FindOptions } from "../../types";
 import prisma from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
@@ -61,11 +61,14 @@ export class PrismaCaregiverRepository implements ICaregiverRepository {
 
   async findMany(options?: FindOptions<Caregiver>): Promise<Caregiver[]> {
     const caregivers = await prisma.caregiver.findMany({
-      where: options?.where,
+      where: options?.where as Prisma.CaregiverWhereInput | undefined,
       include: { user: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy as Prisma.CaregiverOrderByWithRelationInput | undefined,
+      orderBy: options?.orderBy as
+        | Prisma.CaregiverOrderByWithRelationInput
+        | Prisma.CaregiverOrderByWithRelationInput[]
+        | undefined,
     });
     return caregivers.map((c) => this.mapToCaregiver(c));
   }
@@ -82,7 +85,20 @@ export class PrismaCaregiverRepository implements ICaregiverRepository {
       specialization: caregiver.specialization ?? undefined,
       yearsOfExperience: caregiver.yearsOfExperience ?? undefined,
       createdAt: caregiver.createdAt,
-      user: caregiver.user as unknown as User,
+      user: {
+        id: caregiver.user.id,
+        email: caregiver.user.email,
+        passwordHash: caregiver.user.passwordHash,
+        accountType: caregiver.user.accountType as
+          | "user"
+          | "caregiver"
+          | "admin",
+        firstName: caregiver.user.firstName ?? undefined,
+        lastName: caregiver.user.lastName ?? undefined,
+        dob: caregiver.user.dob ?? undefined,
+        isActive: caregiver.user.isActive,
+        createdAt: caregiver.user.createdAt,
+      },
     };
   }
 }

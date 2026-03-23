@@ -1,0 +1,87 @@
+---
+title: Messages API
+description: Messaging between users
+---
+
+# Messages API
+
+Endpoints for sending and receiving messages between caregivers and patients.
+
+## GET /messages
+
+List user messages.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Pagination:** Yes
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `page` | integer | Page number |
+| `limit` | integer | Results per page |
+| `unreadOnly` | boolean | Show only unread |
+| `conversationWith` | string | Filter by user ID |
+
+---
+
+## POST /messages
+
+Send message.
+
+**Method:** `POST`
+**Auth Required:** Yes
+
+### Request Body
+
+```json
+{
+  "recipientId": "user-uuid",
+  "content": "Hello, how are you feeling today?",
+  "type": "TEXT"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "message-uuid",
+    "senderId": "sender-uuid",
+    "recipientId": "recipient-uuid",
+    "content": "Hello, how are you feeling today?",
+    "type": "TEXT",
+    "read": false,
+    "createdAt": "2026-03-18T10:30:00Z"
+  }
+}
+```
+
+---
+
+## GET /messages/:id
+
+Get message details.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Sender or recipient
+
+---
+
+## POST /messages/:id/read
+
+Mark message as read.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Recipient
+
+---
+
+## Related Documentation
+
+- [API Reference](/docs/api-reference)

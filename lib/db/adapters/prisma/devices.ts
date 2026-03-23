@@ -3,7 +3,7 @@
  */
 
 import { IDeviceRepository } from "../base";
-import { Device, FindOptions, Patient } from "../../types";
+import { Device, FindOptions } from "../../types";
 import prisma from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
@@ -42,7 +42,10 @@ export class PrismaDeviceRepository implements IDeviceRepository {
       include: { patient: true },
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy as Prisma.DeviceOrderByWithRelationInput | undefined,
+      orderBy: options?.orderBy as
+        | Prisma.DeviceOrderByWithRelationInput
+        | Prisma.DeviceOrderByWithRelationInput[]
+        | undefined,
     });
     return devices.map((d) => this.mapToDevice(d));
   }
@@ -120,7 +123,16 @@ export class PrismaDeviceRepository implements IDeviceRepository {
       batteryLevel: device.batteryLevel ?? undefined,
       firmwareVersion: device.firmwareVersion ?? undefined,
       createdAt: device.createdAt,
-      patient: (device.patient ?? undefined) as unknown as Patient | undefined,
+      patient: device.patient
+        ? {
+            id: device.patient.id,
+            userId: device.patient.userId,
+            riskScore: device.patient.riskScore,
+            isHighRisk: device.patient.isHighRisk,
+            medicalConditions: device.patient.medicalConditions ?? undefined,
+            createdAt: device.patient.createdAt,
+          }
+        : undefined,
     };
   }
 }

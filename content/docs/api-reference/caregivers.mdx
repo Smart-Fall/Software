@@ -1,0 +1,209 @@
+---
+title: Caregiver API
+description: Caregiver management and patient assignment endpoints
+---
+
+# Caregiver API
+
+Endpoints for managing caregivers and their patient assignments.
+
+## GET /caregivers
+
+List all caregivers.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Admin
+**Pagination:** Yes
+
+---
+
+## POST /caregivers
+
+Create new caregiver.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+### Request Body
+
+```json
+{
+  "email": "caregiver@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "phone": "+1-555-0123",
+  "specialization": "Elderly care"
+}
+```
+
+---
+
+## GET /caregivers/:id
+
+Get caregiver details.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Self, Admin
+
+---
+
+## PUT /caregivers/:id
+
+Update caregiver.
+
+**Method:** `PUT`
+**Auth Required:** Yes
+**Permissions:** Self, Admin
+
+---
+
+## DELETE /caregivers/:id
+
+Delete caregiver.
+
+**Method:** `DELETE`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+---
+
+## GET /caregivers/:id/patients
+
+Get caregiver's assigned patients.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Self, Admin
+**Pagination:** Yes
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "patient-uuid",
+      "name": "Jane Doe",
+      "email": "jane@example.com",
+      "healthScore": 85,
+      "lastActive": "2026-03-18T10:30:00Z",
+      "devices": 1,
+      "recentFalls": 0
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 5,
+    "totalPages": 1
+  }
+}
+```
+
+---
+
+## POST /caregivers/:id/patients
+
+Assign patient to caregiver.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+### Request Body
+
+```json
+{
+  "patientId": "patient-uuid",
+  "relationship": "Son"
+}
+```
+
+---
+
+## DELETE /caregivers/:id/patients/:patientId
+
+Unassign patient from caregiver.
+
+**Method:** `DELETE`
+**Auth Required:** Yes
+**Permissions:** Admin
+
+---
+
+## GET /caregivers/alerts
+
+Get active alerts.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Caregiver
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "alert-uuid",
+      "patientName": "Jane Doe",
+      "type": "FALL_DETECTED",
+      "severity": "HIGH",
+      "message": "High confidence fall detected",
+      "timestamp": "2026-03-18T10:30:00Z",
+      "acknowledged": false
+    }
+  ]
+}
+```
+
+---
+
+## POST /caregivers/alerts/:id/acknowledge
+
+Acknowledge alert.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Permissions:** Assigned caregiver
+
+---
+
+## GET /caregivers/me
+
+Get current caregiver profile.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Caregiver
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "caregiver-uuid",
+    "email": "caregiver@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "CAREGIVER",
+    "phone": "+1-555-0123",
+    "patients": 5,
+    "activeAlerts": 2,
+    "organization": "Community Health Care"
+  }
+}
+```
+
+---
+
+## Related Documentation
+
+- [API Reference](/docs/api-reference)
+- [Caregiver Dashboard](/docs/frontend/caregiver-dashboard)

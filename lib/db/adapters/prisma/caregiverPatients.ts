@@ -2,14 +2,18 @@
  * Prisma CaregiverPatient Repository Implementation
  */
 
-import { ICaregiverPatientRepository } from '../base';
-import { Caregiver, CaregiverPatient, Patient } from '../../types';
-import prisma from '@/lib/prisma';
-import type { CaregiverPatient as PrismaCPModel, Caregiver as PrismaCaregiverModel, Patient as PrismaPatientModel } from '@prisma/client';
+import { ICaregiverPatientRepository } from "../base";
+import { CaregiverPatient } from "../../types";
+import prisma from "@/lib/prisma";
+import type {
+  Caregiver as PrismaCaregiver,
+  CaregiverPatient as PrismaCaregiverPatient,
+  Patient as PrismaPatient,
+} from "@prisma/client";
 
-type PrismaCaregiverPatientResult = PrismaCPModel & {
-  caregiver?: PrismaCaregiverModel | null;
-  patient?: PrismaPatientModel | null;
+type PrismaCaregiverPatientResult = PrismaCaregiverPatient & {
+  caregiver?: PrismaCaregiver | null;
+  patient?: PrismaPatient | null;
 };
 
 export class PrismaCaregiverPatientRepository implements ICaregiverPatientRepository {
@@ -44,7 +48,10 @@ export class PrismaCaregiverPatientRepository implements ICaregiverPatientReposi
     return assignments.map((a) => this.mapToCaregiverPatient(a));
   }
 
-  async findByIds(caregiverId: string, patientId: string): Promise<CaregiverPatient | null> {
+  async findByIds(
+    caregiverId: string,
+    patientId: string,
+  ): Promise<CaregiverPatient | null> {
     const assignment = await prisma.caregiverPatient.findUnique({
       where: {
         caregiverId_patientId: {
@@ -59,7 +66,7 @@ export class PrismaCaregiverPatientRepository implements ICaregiverPatientReposi
   async update(
     caregiverId: string,
     patientId: string,
-    data: Partial<CaregiverPatient>
+    data: Partial<CaregiverPatient>,
   ): Promise<CaregiverPatient> {
     const assignment = await prisma.caregiverPatient.update({
       where: {
@@ -96,8 +103,28 @@ export class PrismaCaregiverPatientRepository implements ICaregiverPatientReposi
       patientId: assignment.patientId,
       assignedDate: assignment.assignedDate,
       isActive: assignment.isActive,
-      caregiver: (assignment.caregiver ?? undefined) as unknown as Caregiver | undefined,
-      patient: (assignment.patient ?? undefined) as unknown as Patient | undefined,
+      caregiver: assignment.caregiver
+        ? {
+            id: assignment.caregiver.id,
+            userId: assignment.caregiver.userId,
+            facilityName: assignment.caregiver.facilityName ?? undefined,
+            specialization: assignment.caregiver.specialization ?? undefined,
+            yearsOfExperience:
+              assignment.caregiver.yearsOfExperience ?? undefined,
+            createdAt: assignment.caregiver.createdAt,
+          }
+        : undefined,
+      patient: assignment.patient
+        ? {
+            id: assignment.patient.id,
+            userId: assignment.patient.userId,
+            riskScore: assignment.patient.riskScore,
+            isHighRisk: assignment.patient.isHighRisk,
+            medicalConditions:
+              assignment.patient.medicalConditions ?? undefined,
+            createdAt: assignment.patient.createdAt,
+          }
+        : undefined,
     };
   }
 }

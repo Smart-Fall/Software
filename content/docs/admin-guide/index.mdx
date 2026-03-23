@@ -1,0 +1,152 @@
+---
+title: Admin Guide
+description: SmartFall system administration and management guide
+---
+
+# Admin Guide
+
+Complete administration guide for SmartFall system managers.
+
+## Admin Roles
+
+Only users with **ADMIN** role can access admin functions.
+
+### Granting Admin Access
+
+```bash
+# Via database
+UPDATE "User" SET role = 'ADMIN' WHERE email = 'admin@example.com';
+
+# Via admin API
+POST /api/admin/users/{userId}/role
+{ "role": "ADMIN" }
+```
+
+## Admin Dashboard
+
+Access at `/admin` after login (ADMIN role required)
+
+### Dashboard Sections
+
+- **System Statistics**: Overview of system health
+- **User Management**: Create, edit, delete users
+- **Device Management**: Monitor and manage devices
+- **Fall Events**: Review all fall events
+- **System Logs**: Access audit and error logs
+
+## Key Functions
+
+### User Management
+Create and manage user accounts and roles
+
+### Device Management
+Monitor and manage IoT devices
+
+### Fall Management
+Review and investigate fall events
+
+### System Logs
+Access audit, error, and activity logs
+
+## Maintenance Tasks
+
+### Daily
+
+- Monitor system health
+- Review error logs
+- Check active alerts
+- Verify backups completed
+
+### Weekly
+
+- Review user activity
+- Check device health
+- Analyze fall trends
+- Update documentation
+
+### Monthly
+
+- Generate reports
+- Review security logs
+- Audit user roles
+- Plan capacity
+
+### Quarterly
+
+- Security assessment
+- Performance optimization
+- Backup verification
+- Disaster recovery drill
+
+## Backup & Recovery
+
+### Automated Backups
+
+Daily automated backups configured:
+
+```bash
+# View backup status
+docker exec smartfall-postgres pg_dump --version
+
+# Manual backup
+docker exec smartfall-postgres pg_dump -U smartfall smartfall > backup.sql
+```
+
+### Recovery Process
+
+1. Identify backup to restore
+2. Notify users of maintenance
+3. Stop application
+4. Restore database from backup
+5. Verify data integrity
+6. Restart application
+7. Notify users
+
+## Security Monitoring
+
+### Suspicious Activities
+
+Monitor for:
+- Multiple failed login attempts
+- Unusual IP addresses
+- Rate limit violations
+- Unauthorized API access
+
+### Security Best Practices
+
+1. **Access Control**: Regular role audits
+2. **Secrets**: Rotate JWT secrets quarterly
+3. **Updates**: Keep system and dependencies updated
+4. **Backups**: Test backup restoration
+5. **Monitoring**: Alert on anomalies
+
+## Troubleshooting
+
+### System Down
+
+1. Check server status
+2. Review error logs
+3. Verify database connection
+4. Check disk space
+5. Restart if needed
+
+### Database Issues
+
+1. Check connections
+2. Review slow queries
+3. Monitor disk usage
+4. Check replication status
+
+### API Performance
+
+1. Check request logs
+2. Monitor response times
+3. Identify bottlenecks
+4. Scale if needed
+
+## Related Documentation
+
+- [User Management](/docs/admin-guide/user-management)
+- [Device Management](/docs/admin-guide/device-management)
+- [API Reference - Admin](/docs/api-reference/admin)
+- [Deployment](/docs/deployment)

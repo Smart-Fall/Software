@@ -1,0 +1,81 @@
+---
+title: Authentication Pages
+description: Login, signup, and password reset flows
+---
+
+# Authentication Pages
+
+User authentication and account management pages.
+
+## Pages
+
+### Login Page
+Location: `/login`
+
+Fields:
+- Email address
+- Password
+- Remember me (optional)
+- Login button
+- Sign up link
+- Forgot password link
+
+Validation:
+- Email format
+- Password required
+- Error messages for invalid credentials
+
+### Signup Page
+Location: `/signup`
+
+Fields:
+- First name
+- Last name
+- Email address
+- Password (with strength indicator)
+- Confirm password
+- Role selection (Patient/Caregiver)
+- Terms agreement
+
+Validation:
+- All fields required
+- Email uniqueness
+- Password strength
+- Password confirmation
+
+### Password Reset
+Location: `/reset-password`
+
+Flow:
+1. Enter email address
+2. Receive reset link
+3. Verify token
+4. Enter new password
+5. Confirmation
+
+## Security Features
+
+### Password Requirements
+- Minimum 8 characters
+- Uppercase letter
+- Lowercase letter
+- Number
+- Special character
+
+### Session Management
+- Secure HTTP-only cookies
+- Token expiration (24 hours)
+- Logout on browser close
+- Session invalidation
+
+### Protection
+- CSRF protection
+- Rate limiting
+- Account lockout after failed attempts
+- Email verification
+
+## Related Documentation
+
+- [Frontend Overview](/docs/frontend)
+- [API Reference - Auth](/docs/api-reference/auth)
+- [Architecture - Authentication](/docs/architecture/auth-flow)

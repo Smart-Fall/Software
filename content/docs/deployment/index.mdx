@@ -1,0 +1,213 @@
+---
+title: Deployment
+description: SmartFall deployment guides for production environments
+---
+
+# Deployment
+
+Production deployment guides for SmartFall.
+
+## Deployment Options
+
+### Vercel Deployment
+
+Easiest deployment for Next.js applications.
+
+**Best for**: Quick deployment, serverless, low maintenance
+
+**Requirements**:
+
+- Vercel account
+- GitHub repository
+- Environment variables configured
+
+### Docker Deployment
+
+Self-hosted containerized deployment.
+
+**Best for**: Full control, on-premises, custom infrastructure
+
+**Requirements**:
+
+- Docker installation
+- Server/VPS
+- PostgreSQL database
+
+## Pre-Deployment Checklist
+
+### Environment Configuration
+
+- [ ] Environment variables set
+- [ ] Database configured
+- [ ] Authentication secrets generated
+- [ ] API endpoints verified
+- [ ] CORS origins configured
+
+### Security
+
+- [ ] HTTPS/TLS certificates ready
+- [ ] Secrets not in code
+- [ ] Rate limiting configured
+- [ ] Security headers set
+- [ ] Input validation enabled
+
+### Database
+
+- [ ] Schema migrations applied
+- [ ] Backups configured
+- [ ] Connection pooling enabled
+- [ ] Indexes created
+- [ ] Test data removed
+
+### Testing
+
+- [ ] Unit tests pass
+- [ ] Integration tests pass
+- [ ] End-to-end tests pass
+- [ ] Load testing completed
+- [ ] Security scanning done
+
+## Deployment Checklist
+
+```bash
+# 1. Build application
+npm run build
+
+# 2. Run tests
+npm run test
+
+# 3. Check for errors
+npm run lint
+
+# 4. Deploy
+# (See Vercel or Docker guide)
+
+# 5. Verify deployment
+curl https://your-domain.com/api/health
+```
+
+## Environment Variables (Production)
+
+```bash
+NODE_ENV=production
+DATABASE_PROVIDER=prisma
+DATABASE_URL=postgresql://user:pass@host:5432/smartfall
+JWT_SECRET=<strong_random_secret_min_32_chars>
+SESSION_DURATION=24
+ALLOWED_ORIGINS=https://smartfall.example.com
+RATE_LIMIT_MAX_REQUESTS=1000
+LOG_LEVEL=info
+REQUEST_LOGGING=false
+DEBUG=false
+```
+
+## Monitoring & Logging
+
+### Application Monitoring
+
+- Monitor uptime and response times
+- Track error rates
+- Monitor API performance
+- Alert on failures
+
+### Logging Strategy
+
+- Application logs to file/service
+- Database query logging (slow queries)
+- Access logs
+- Error tracking (Sentry, etc.)
+
+## Backup Strategy
+
+### Database Backups
+
+```bash
+# Daily automated backups
+0 2 * * * pg_dump smartfall | gzip > /backups/smartfall-$(date +\%Y\%m\%d).sql.gz
+
+# Monthly full backup to S3
+0 3 1 * * pg_dump smartfall | gzip | aws s3 cp - s3://backups/smartfall-full-$(date +\%Y\%m).sql.gz
+```
+
+### Data Retention
+
+- Daily: 7 days
+- Weekly: 4 weeks
+- Monthly: 12 months
+
+## Performance Optimization
+
+### Frontend
+
+- Minify/compress assets
+- Enable gzip compression
+- Use CDN for static assets
+- Optimize images
+- Lazy load components
+
+### Backend
+
+- Database connection pooling
+- Query optimization with indexes
+- Caching strategies
+- API rate limiting
+- Request compression
+
+### Infrastructure
+
+- Use reverse proxy (nginx)
+- Enable HTTP/2
+- Configure HTTPS/TLS
+- Use load balancing for scaling
+
+## Scaling Considerations
+
+### Vertical Scaling
+
+Increase server resources as load grows.
+
+### Horizontal Scaling
+
+Deploy multiple instances behind a load balancer.
+
+```mermaid
+flowchart TD
+  LB[Load balancer] --> A1[App instance 1]
+  LB --> A2[App instance 2]
+  LB --> A3[App instance 3]
+  A1 --> DB[PostgreSQL database]
+  A2 --> DB
+  A3 --> DB
+```
+
+## Rollback Plan
+
+If deployment fails:
+
+1. Monitor error rates post-deployment
+2. If issues detected, rollback to previous version
+3. Investigate root cause
+4. Fix and re-deploy
+
+```bash
+# Rollback to previous version
+git revert HEAD
+npm run build
+# Re-deploy
+```
+
+## Post-Deployment
+
+After successful deployment:
+
+1. Verify all endpoints respond
+2. Test critical user flows
+3. Monitor error logs
+4. Check performance metrics
+5. Notify team of deployment
+
+## Related Documentation
+
+- [Vercel Deployment](/docs/deployment/vercel)
+- [Docker Deployment](/docs/deployment/docker)
+- [Getting Started](/docs/getting-started)

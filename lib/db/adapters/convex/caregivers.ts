@@ -36,7 +36,7 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
   async findByUserId(userId: string): Promise<Caregiver | null> {
     try {
       const caregiver = await this.client.query(api.caregivers.getByUserId, {
-        userId: userId as unknown as Id<'users'>,
+        userId: userId as Id<"users">,
       });
       return caregiver ? this.mapToCaregiver(caregiver as unknown as ConvexCaregiver) : null;
     } catch (error) {
@@ -53,7 +53,7 @@ export class ConvexCaregiverRepository implements ICaregiverRepository {
   }): Promise<Caregiver> {
     try {
       const caregiverId = await this.client.mutation(api.caregivers.create, {
-        userId: data.userId as unknown as Id<'users'>,
+        userId: data.userId as Id<"users">,
         facilityName: data.facilityName,
         specialization: data.specialization,
         yearsOfExperience: data.yearsOfExperience,

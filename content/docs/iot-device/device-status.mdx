@@ -1,0 +1,125 @@
+---
+title: Device Status
+description: Device monitoring and status tracking
+---
+
+# Device Status
+
+Device status monitoring and health tracking.
+
+## Device Statuses
+
+| Status | Description | Action |
+|--------|-------------|--------|
+| ACTIVE | Device actively sending data | Monitor normally |
+| INACTIVE | No data for 30+ minutes | Alert user |
+| OFFLINE | No data for 24+ hours | Notify caregiver |
+| DISABLED | Admin disabled device | Requires re-enable |
+
+## Status Endpoint
+
+```bash
+GET /api/device/{id}/status
+```
+
+### Response
+
+```json
+{
+  "deviceId": "device-uuid",
+  "status": "ACTIVE",
+  "batteryLevel": 85.0,
+  "signalStrength": -45,
+  "lastDataPoint": "2026-03-18T10:29:45Z",
+  "sensorsInitialized": true,
+  "wifiConnected": true,
+  "bluetoothConnected": false,
+  "uptime": 3600000,
+  "firmwareVersion": "1.2.3",
+  "updateAvailable": false
+}
+```
+
+## Battery Management
+
+### Battery Levels
+
+- **Critical**: &lt;5% - Urgent charging needed
+- **Low**: 5-20% - User notification
+- **Normal**: 20-100% - Monitor trend
+
+### Battery Life Estimates
+
+| Mode | Duration |
+|------|----------|
+| Continuous sampling | 8-12 hours |
+| Normal mode | 24-36 hours |
+| Low-power mode | 48+ hours |
+
+## Signal Strength
+
+Signal Quality Reference:
+
+| Signal (dBm) | Quality | Bars |
+|--------------|---------|------|
+| -30 to -50 | Excellent | 4 |
+| -50 to -70 | Good | 3 |
+| -70 to -85 | Fair | 2 |
+| -85 to -100 | Poor | 1 |
+| < -100 | Very Poor | 0 |
+
+## Uptime Tracking
+
+Device uptime since last boot:
+
+```javascript
+const hours = Math.floor(uptime_ms / (60 * 60 * 1000));
+const minutes = Math.floor((uptime_ms % (60 * 60 * 1000)) / (60 * 1000));
+console.log(`Device uptime: ${hours}h ${minutes}m`);
+```
+
+## Firmware Updates
+
+### Update Flow
+
+1. Check for updates: `GET /api/device/{id}/firmware/latest`
+2. Download firmware: `GET /api/firmware/{version}`
+3. Verify checksum: Compare SHA-256
+4. Install update: Restart device
+5. Confirm update: Report new version
+
+### Update Status
+
+- **Current**: `1.2.3`
+- **Available**: `1.2.4`
+- **Status**: Ready to install
+
+## Health Indicators
+
+### Sensor Health
+
+- All sensors initialized?
+- Calibration status?
+- Sensor drift detected?
+
+### Communication Health
+
+- WiFi/BLE stability?
+- Packet loss rate?
+- Connection failures?
+
+## Alerts
+
+Auto-generated alerts:
+
+- Battery below 20%
+- Device offline for 30+ minutes
+- High packet loss (>10%)
+- Sensor initialization failure
+- Firmware update available
+- Device disabled by admin
+
+## Related Documentation
+
+- [IoT Device Integration](/docs/iot-device)
+- [Firmware Guide](/docs/iot-device/firmware-guide)

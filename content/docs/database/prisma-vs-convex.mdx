@@ -1,0 +1,359 @@
+---
+title: Prisma vs Convex
+description: Comparison and migration guide for database providers
+---
+
+# Prisma vs Convex
+
+SmartFall supports two database providers. Choose based on your deployment model and requirements.
+
+## Quick Comparison
+
+| Feature | Prisma | Convex |
+|---------|--------|--------|
+| **Database** | PostgreSQL/MySQL | Hosted Backend |
+| **Deployment** | Self-hosted | Serverless |
+| **Scaling** | Manual | Automatic |
+| **Real-time** | Optional (polling) | Built-in (WebSockets) |
+| **Offline** | Full offline support | Limited |
+| **Cost** | Database hosting | Usage-based |
+| **Setup Complexity** | Medium | Low |
+| **Learning Curve** | Moderate | Low |
+
+## Prisma (PostgreSQL)
+
+**Best for**: Full control, complex queries, hybrid setups
+
+### Advantages
+
+- **Mature Ecosystem**: 10+ years PostgreSQL development
+- **Complex Queries**: Join, aggregate, window functions
+- **Transactions**: ACID guarantees, rollback support
+- **Migrations**: Explicit schema versioning
+- **Offline Support**: Full offline-first capabilities
+- **Cost Predictable**: Fixed infrastructure costs
+- **On-Premises**: Full control over data location
+
+### Disadvantages
+
+- **Server Management**: Requires database administration
+- **Scaling Complexity**: Manual connection pooling, replication
+- **No Real-time**: Requires polling or websockets
+- **Initial Setup**: More configuration needed
+- **Monitoring**: Infrastructure monitoring required
+
+### Setup
+
+```bash
+npm install @prisma/client prisma
+npx prisma init
+
+# Configure database
+echo 'DATABASE_URL="postgresql://user:password@localhost:5432/smartfall"' > .env.local
+
+# Run migrations
+npm run prisma:migrate
+
+# Generate client
+npm run prisma:generate
+```
+
+### Configuration
+
+```bash
+DATABASE_PROVIDER=prisma
+DATABASE_URL=postgresql://user:password@localhost:5432/smartfall
+PRISMA_LOG_LEVEL=info
+```
+
+### Connection Pooling
+
+For production, use PgBouncer or similar:
+
+```bash
+DATABASE_URL=postgresql://user:password@pgbouncer:6432/smartfall
+```
+
+### Backup Strategy
+
+Regular backups via:
+
+```bash
+# Full backup
+pg_dump smartfall > backup.sql
+
+# Automated daily backups
+0 2 * * * pg_dump smartfall | gzip > /backups/smartfall-$(date +\%Y\%m\%d).sql.gz
+```
+
+---
+
+## Convex (Serverless)
+
+**Best for**: Fast deployment, auto-scaling, real-time features
+
+### Advantages
+
+- **Zero Infrastructure**: No server management
+- **Auto-Scaling**: Handles traffic spikes automatically
+- **Real-time**: WebSocket subscriptions built-in
+- **Fast Deployment**: Deploy with `convex deploy`
+- **Automatic Backups**: Daily snapshots included
+- **Type-Safe**: TypeScript throughout
+- **Developer Experience**: Quick iteration
+
+### Disadvantages
+
+- **Vendor Lock-in**: Only Convex backend
+- **Query Limitations**: No SQL, limited complex queries
+- **Limited Offline**: Minimal offline support
+- **Cost Unknown**: Usage-dependent pricing
+- **Data Export**: More complex migrations
+
+### Setup
+
+```bash
+npm install convex
+
+# Create Convex account
+npx convex auth
+
+# Initialize
+npx convex init
+
+# Deploy
+npx convex deploy
+```
+
+### Configuration
+
+```bash
+DATABASE_PROVIDER=convex
+CONVEX_DEPLOYMENT=prod:your-deployment-id
+```
+
+### Schema Definition
+
+```typescript
+// convex/schema.ts
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  users: defineTable({
+    email: v.string(),
+    passwordHash: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    role: v.union(v.literal("PATIENT"), v.literal("CAREGIVER")),
+    createdAt: v.number(),
+  }).index("byEmail", ["email"]),
+
+  // ... other tables
+});
+```
+
+### Real-time Subscriptions
+
+```typescript
+// Subscribe to patient falls
+const falls = useQuery(api.falls.getByUserId, {
+  userId: patientId,
+});
+
+// Auto-updates when new falls created
+useEffect(() => {
+  // Component re-renders automatically
+}, [falls]);
+```
+
+---
+
+## Migration: Prisma → Convex
+
+### Step 1: Export Data from Prisma
+
+```typescript
+// scripts/export-prisma.ts
+import { PrismaClient } from '@prisma/client';
+import * as fs from 'fs';
+
+const prisma = new PrismaClient();
+
+const users = await prisma.user.findMany();
+const patients = await prisma.patient.findMany();
+// ... export all tables
+
+const data = { users, patients, /* ... */ };
+fs.writeFileSync('export.json', JSON.stringify(data, null, 2));
+```
+
+### Step 2: Transform to Convex Format
+
+```typescript
+// Transform timestamps, IDs, etc.
+const convexData = {
+  users: users.map(u => ({
+    email: u.email,
+    passwordHash: u.passwordHash,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    role: u.role,
+    createdAt: u.createdAt.getTime(),
+  })),
+  // ... transform other tables
+};
+```
+
+### Step 3: Import into Convex
+
+```bash
+# Use Convex CLI or API
+npx convex --project prod:deployment import export.json
+```
+
+### Step 4: Update Environment
+
+```bash
+DATABASE_PROVIDER=convex
+CONVEX_DEPLOYMENT=prod:your-deployment-id
+```
+
+### Step 5: Deploy
+
+```bash
+# Restart server - adapter auto-switches
+npm run dev
+```
+
+**No code changes needed!** The adapter pattern handles everything.
+
+---
+
+## Migration: Convex → Prisma
+
+### Step 1: Set up PostgreSQL
+
+```bash
+createdb smartfall
+```
+
+### Step 2: Define Prisma Schema
+
+```prisma
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    String @id @default(cuid())
+  // ... fields
+}
+```
+
+### Step 3: Export Convex Data
+
+```typescript
+// Use Convex SDK to export
+const response = await fetch('https://api.convex.dev/export', {
+  // ... auth headers
+});
+const data = await response.json();
+```
+
+### Step 4: Import to PostgreSQL
+
+```bash
+# Create tables
+npx prisma migrate dev --name initial
+
+# Import data
+psql smartfall < import.sql
+```
+
+### Step 5: Update Environment
+
+```bash
+DATABASE_PROVIDER=prisma
+DATABASE_URL=postgresql://user:password@localhost:5432/smartfall
+```
+
+---
+
+## Performance Benchmarks
+
+### Query Performance
+
+| Operation | Prisma | Convex |
+|-----------|--------|--------|
+| Simple read | ~1ms | ~10-50ms |
+| Join query | ~2-5ms | N/A (no joins) |
+| Batch write | ~5-10ms | ~20-100ms |
+| Real-time subscription | Polling | &lt;100ms |
+
+### Scaling
+
+**Prisma**: Vertical scaling to ~10k concurrent connections
+**Convex**: Horizontal auto-scaling to 100k+ concurrent
+
+---
+
+## Cost Comparison
+
+### Prisma (PostgreSQL)
+
+```
+Infrastructure: $15-100/month
+Backups: $5-20/month
+Monitoring: $10-50/month
+Total: ~$30-170/month baseline
+```
+
+### Convex
+
+```
+Usage-based: $0-1000+/month
+Depends on: API calls, database size, subscriptions
+No infrastructure costs
+```
+
+---
+
+## Decision Matrix
+
+Choose **Prisma** if:
+- Full control over data required
+- Complex analytics queries needed
+- Hybrid/on-premises deployment
+- Cost predictability critical
+- Offline-first features needed
+
+Choose **Convex** if:
+- Serverless deployment preferred
+- Real-time features important
+- Fast time-to-market critical
+- Auto-scaling required
+- Team expertise in serverless
+
+---
+
+## Hybrid Approach
+
+Use both providers:
+
+```bash
+DATABASE_PROVIDER=prisma  # Primary for analytics
+CONVEX_DEPLOYMENT=prod:id  # Secondary for real-time
+```
+
+SmartFall supports multi-provider setups via the adapter pattern.
+
+---
+
+## Related Documentation
+
+- [Database Overview](/docs/database)
+- [Architecture - Adapter Pattern](/docs/architecture/database-adapter-pattern)
+- [Schema Overview](/docs/database/schema-overview)

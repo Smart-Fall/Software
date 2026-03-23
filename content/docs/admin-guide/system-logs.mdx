@@ -1,0 +1,269 @@
+---
+title: System Logs
+description: System logging, auditing, and monitoring
+---
+
+# System Logs
+
+Access system logs for auditing and troubleshooting.
+
+## Log Types
+
+### Application Logs
+
+Runtime information:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Application]
+```
+
+Levels:
+
+- ERROR: Critical failures
+- WARNING: Potential issues
+- INFO: Normal operations
+- DEBUG: Detailed diagnostics
+
+### Access Logs
+
+User authentication and access:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Access]
+```
+
+Shows:
+
+- Login attempts (success/failure)
+- Logout events
+- API calls
+- Permission denials
+
+### Device Logs
+
+Device activity:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Devices]
+```
+
+Shows:
+
+- Device connections
+- Data submissions
+- Errors
+- Firmware updates
+
+### Database Logs
+
+Database operations:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Database]
+```
+
+Shows:
+
+- Connection events
+- Slow queries
+- Errors
+- Maintenance operations
+
+### Security Logs
+
+Security-related events:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Security]
+```
+
+Shows:
+
+- Authentication failures
+- Authorization denials
+- Rate limit violations
+- Suspicious activities
+
+## Log Filters
+
+Filter logs by:
+
+- Date range
+- Log level
+- Component
+- User
+- IP address
+- Error code
+
+## Log Search
+
+Search logs for specific events:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Search]
+```
+
+Examples:
+
+- User login failures
+- Device connection issues
+- Slow database queries
+- Specific error codes
+
+## Log Analysis
+
+### Performance Analysis
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Analytics]
+	C --> D[Performance]
+```
+
+Shows:
+
+- Average response times
+- Slow endpoints
+- Database performance
+- API usage patterns
+
+### Error Analysis
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Analytics]
+	C --> D[Errors]
+```
+
+Shows:
+
+- Error frequency
+- Error types
+- Affected endpoints
+- Trends over time
+
+### User Activity
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Analytics]
+	C --> D[User Activity]
+```
+
+Shows:
+
+- Active users
+- Login patterns
+- Feature usage
+- Anomalies
+
+## Log Retention
+
+Logs retained for:
+
+- **Active logs**: 30 days (searchable)
+- **Archive**: 90 days (downloadable)
+- **Deleted**: After 90 days
+
+### Data Retention Policy
+
+Configure log retention:
+
+```bash
+LOG_RETENTION_DAYS=30
+LOG_ARCHIVE_DAYS=90
+LOG_DELETE_AFTER_DAYS=90
+```
+
+## Exporting Logs
+
+Download logs for external analysis:
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Export]
+```
+
+Formats:
+
+- CSV
+- JSON
+- Syslog format
+
+## Alerts & Notifications
+
+Auto-alerts on:
+
+- Multiple failed logins
+- System errors
+- Unusual activities
+- Rate limit violations
+- Database issues
+
+### Configure Alerts
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Alerts]
+	C --> D[Settings]
+```
+
+Options:
+
+- Email notifications
+- Alert thresholds
+- Escalation rules
+
+## Troubleshooting Guide
+
+### Find Specific Event
+
+```mermaid
+flowchart LR
+	A[Admin] --> B[Logs]
+	B --> C[Search]
+	C --> D[Enter user/date/error]
+	D --> E[Find events]
+```
+
+### Investigate Errors
+
+```mermaid
+flowchart TD
+	A[Find error in logs] --> B[Review error details]
+	B --> C[Check related logs]
+	C --> D[Identify root cause]
+	D --> E[Document findings]
+```
+
+### Performance Issues
+
+```mermaid
+flowchart TD
+	A[Check response times in logs] --> B[Identify slow endpoints]
+	B --> C[Review database query times]
+	C --> D[Optimize as needed]
+```
+
+## Related Documentation
+
+- [Admin Guide](/docs/admin-guide)
+- [Deployment](/docs/deployment)
+- [Troubleshooting](/docs/getting-started)

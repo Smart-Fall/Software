@@ -63,7 +63,10 @@ export class PrismaUserRepository implements IUserRepository {
     const users = await prisma.user.findMany({
       skip: options?.skip,
       take: options?.take,
-      orderBy: options?.orderBy as Prisma.UserOrderByWithRelationInput | undefined,
+      orderBy: options?.orderBy as
+        | Prisma.UserOrderByWithRelationInput
+        | Prisma.UserOrderByWithRelationInput[]
+        | undefined,
     });
     return users.map((u) => this.mapToUser(u));
   }

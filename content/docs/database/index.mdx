@@ -1,0 +1,226 @@
+---
+title: Database
+description: SmartFall database schema, models, and architecture
+---
+
+# Database
+
+SmartFall uses a flexible, adapter-based database layer supporting both PostgreSQL (via Prisma) and Convex (serverless).
+
+## Database Overview
+
+The system manages 12 core entities with relationships:
+
+- **Users** - Authentication and account data
+- **Sessions** - User login sessions
+- **Patients** - Patient profiles
+- **Caregivers** - Caregiver profiles
+- **CaregiverPatients** - Caregiver-patient relationships
+- **Falls** - Fall event records
+- **Devices** - IoT device information
+- **SensorData** - Time-series sensor readings
+- **DeviceStatus** - Device status snapshots
+- **DeviceLogs** - Device activity logs
+- **HealthLogs** - Patient vital monitoring
+- **Messages** - Inter-user messaging
+
+## Database Selection
+
+Choose your database provider via environment variable:
+
+```bash
+# PostgreSQL with Prisma
+DATABASE_PROVIDER=prisma
+DATABASE_URL=postgresql://user:password@localhost:5432/smartfall
+
+# Convex Serverless
+DATABASE_PROVIDER=convex
+CONVEX_DEPLOYMENT=prod:your-deployment-id
+```
+
+No application code changes required - the adapter pattern handles it.
+
+## Sections
+
+### Schema Overview
+
+Entity relationship diagram and schema structure
+
+### Database Models
+
+Detailed model definitions with all fields
+
+### Prisma vs Convex
+
+Comparison and migration considerations
+
+## Data Flow
+
+```mermaid
+flowchart TD
+  A[API routes] --> B[getDbServiceAsync]
+  B --> C[IDatabaseAdapter interface]
+  C --> D[PrismaAdapter\nPostgreSQL]
+  C --> E[ConvexAdapter\nServerless]
+```
+
+## Key Design Patterns
+
+### Repository Pattern
+
+Each model has a dedicated repository:
+
+- `db.users.create()`, `findById()`, `update()`, `delete()`
+- `db.patients.list()`, `findByUserId()`
+- `db.falls.create()`, `getByStatus()`
+
+### Timestamp Tracking
+
+All entities include:
+
+- `createdAt` - Record creation
+- `updatedAt` - Last modification
+- Some include `deletedAt` for soft deletes
+
+### User Association
+
+Most entities track their owning user:
+
+- `userId` - Foreign key to User
+- Enables cascading authorization
+
+## Query Examples
+
+### Find Patient Falls (Last 7 Days)
+
+```typescript
+const db = await getDbServiceAsync();
+const falls = await db.falls.findByUserId(patientId, {
+  since: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+});
+```
+
+### Create Sensor Data
+
+```typescript
+const db = await getDbServiceAsync();
+const record = await db.sensorData.create({
+  deviceId: "device-uuid",
+  accelX: 0.5,
+  accelY: 0.3,
+  accelZ: 9.8,
+  // ... other fields
+});
+```
+
+### List High-Risk Patients
+
+```typescript
+const db = await getDbServiceAsync();
+const highRisk = await db.patients.findByRiskLevel(75);
+// isHighRisk = riskScore >= 75
+```
+
+## Transactions
+
+### Prisma Transactions
+
+```typescript
+const result = await prisma.$transaction(async (tx) => {
+  const fall = await tx.fall.create({
+    /* ... */
+  });
+  const alert = await tx.alert.create({
+    /* ... */
+  });
+  return { fall, alert };
+});
+```
+
+### Convex Transactions
+
+```typescript
+export const createFallWithAlert = mutation({
+  args: {
+    /* ... */
+  },
+  handler: async (ctx, args) => {
+    const fall = await ctx.db.insert("falls", args);
+    const alert = await ctx.db.insert("alerts", {
+      /* ... */
+    });
+    return { fall, alert };
+  },
+});
+```
+
+## Indexing Strategy
+
+### PostgreSQL Indexes (Prisma)
+
+```prisma
+model SensorData {
+  id        String   @id @default(cuid())
+  deviceId  String   @index
+  userId    String   @index
+  timestamp DateTime @index
+}
+```
+
+Indexed fields for fast queries:
+
+- `device_id` - Device lookups
+- `user_id` - User data retrieval
+- `timestamp` - Time-range queries
+- `status` - Fall event filtering
+
+### Convex Indexing
+
+Indexes automatically created for:
+
+- Foreign key references
+- Frequently filtered fields
+
+## Backup & Recovery
+
+### PostgreSQL
+
+- Regular automated backups
+- Point-in-time recovery supported
+- Export to CSV/JSON available
+
+### Convex
+
+- Automatic daily backups
+- Version history maintained
+- Automatic recovery on failure
+
+## Migration Path
+
+To migrate from Prisma to Convex:
+
+1. Export data from PostgreSQL
+2. Transform to Convex schema format
+3. Import into Convex backend
+4. Update `DATABASE_PROVIDER` env var
+5. Deploy with zero code changes
+
+## Performance Considerations
+
+### Prisma (PostgreSQL)
+
+- **Pros**: Complex queries, transactions, strong consistency
+- **Cons**: Requires server management
+- **Best for**: Large installations, complex analytics
+
+### Convex
+
+- **Pros**: Serverless, automatic scaling, real-time subscriptions
+- **Cons**: Limited offline capabilities
+- **Best for**: Cloud-first, auto-scaling requirements
+
+## Related Documentation
+
+- [Architecture - Database Adapter Pattern](/docs/architecture/database-adapter-pattern)
+- [API Reference](/docs/api-reference)
+- [Getting Started](/docs/getting-started)

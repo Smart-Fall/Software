@@ -1,0 +1,314 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap");
+
+.docs-theme {
+	--color-fd-background: hsl(42 39% 98%);
+	--color-fd-foreground: hsl(210 36% 12%);
+	--color-fd-muted: hsl(41 38% 94%);
+	--color-fd-muted-foreground: hsl(212 20% 35%);
+	--color-fd-popover: hsl(40 44% 98%);
+	--color-fd-popover-foreground: hsl(210 36% 12%);
+	--color-fd-card: hsl(45 36% 97% / 0.9);
+	--color-fd-card-foreground: hsl(210 34% 14%);
+	--color-fd-border: hsl(31 31% 79% / 0.8);
+	--color-fd-primary: hsl(15 79% 37%);
+	--color-fd-primary-foreground: hsl(33 33% 98%);
+	--color-fd-secondary: hsl(42 30% 90%);
+	--color-fd-secondary-foreground: hsl(212 28% 20%);
+	--color-fd-accent: hsl(21 76% 55% / 0.15);
+	--color-fd-accent-foreground: hsl(210 36% 12%);
+	--color-fd-ring: hsl(15 79% 37%);
+	--docs-panel: linear-gradient(145deg, hsl(48 48% 98% / 0.94), hsl(39 36% 95% / 0.95));
+	--docs-highlight: hsl(20 89% 53% / 0.16);
+	--docs-shadow: 0 18px 42px hsl(25 52% 27% / 0.13);
+	--docs-glow: 0 0 0 1px hsl(19 78% 50% / 0.18), inset 0 1px 0 hsl(50 100% 100% / 0.45);
+	font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+	min-height: 100dvh;
+	background:
+		radial-gradient(1350px 490px at 102% -15%, hsl(26 90% 68% / 0.36), transparent 66%),
+		radial-gradient(980px 500px at -3% -20%, hsl(44 91% 72% / 0.24), transparent 70%),
+		repeating-linear-gradient(
+			65deg,
+			hsl(42 55% 97% / 0.72) 0,
+			hsl(42 55% 97% / 0.72) 2px,
+			transparent 2px,
+			transparent 14px
+		),
+		linear-gradient(180deg, hsl(45 50% 98%), hsl(39 43% 96%));
+	animation: docsFadeIn 0.75s ease-out;
+}
+
+.docs-theme * {
+	scrollbar-color: hsl(26 27% 56%) transparent;
+}
+
+.docs-theme [class*="sticky"] {
+	border-bottom: 1px solid hsl(31 31% 79% / 0.55);
+	backdrop-filter: blur(11px) saturate(1.08);
+	background: color-mix(in srgb, hsl(45 38% 98%) 80%, transparent);
+}
+
+.docs-theme [role="navigation"] {
+	border-color: var(--color-fd-border);
+	background: color-mix(in srgb, hsl(45 35% 97%) 78%, transparent);
+	box-shadow: inset -1px 0 0 hsl(31 31% 79% / 0.42);
+}
+
+.docs-theme .prose {
+	color: color-mix(in srgb, var(--color-fd-foreground) 93%, transparent);
+	line-height: 1.82;
+	letter-spacing: 0.0025em;
+	font-size: 1.015rem;
+}
+
+.docs-theme .prose h1,
+.docs-theme .prose h2,
+.docs-theme .prose h3,
+.docs-theme .prose h4 {
+	font-family: "Sora", "IBM Plex Sans", sans-serif;
+	color: var(--color-fd-foreground);
+	letter-spacing: -0.025em;
+	text-wrap: balance;
+	font-variation-settings: "wght" 700;
+}
+
+.docs-theme .prose h1 {
+	font-size: clamp(2.35rem, 4.1vw, 3.45rem);
+	line-height: 1.02;
+	margin-bottom: 1.2rem;
+	text-shadow: 0 1px 0 hsl(46 100% 99% / 0.95);
+	animation: docsSlideIn 0.62s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.docs-theme .prose h2 {
+	margin-top: 3.15rem;
+	margin-bottom: 1.05rem;
+	padding-bottom: 0.42rem;
+	border-bottom: 1px dashed hsl(28 39% 66% / 0.58);
+	position: relative;
+}
+
+.docs-theme .prose h2::after {
+	content: "";
+	position: absolute;
+	inset-inline-start: 0;
+	bottom: -1px;
+	width: clamp(5rem, 14vw, 9rem);
+	height: 3px;
+	background: linear-gradient(90deg, hsl(20 85% 52%), hsl(36 93% 58%), transparent);
+	border-radius: 999px;
+}
+
+.docs-theme .prose p,
+.docs-theme .prose li {
+	color: color-mix(in srgb, var(--color-fd-foreground) 90%, transparent);
+}
+
+.docs-theme .prose a:not([data-card]) {
+	color: hsl(11 82% 35%);
+	text-decoration-color: hsl(23 85% 53% / 0.85);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.2em;
+	transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.docs-theme .prose a:not([data-card]):hover {
+	color: hsl(7 83% 29%);
+	text-decoration-color: hsl(17 88% 45% / 0.95);
+	opacity: 1;
+}
+
+.docs-theme .prose code {
+	border: 1px solid hsl(28 31% 73% / 0.75);
+	background: hsl(38 51% 94% / 0.75);
+	border-radius: 0.45rem;
+	padding: 0.15rem 0.4rem;
+	font-size: 0.92em;
+}
+
+.docs-theme .prose pre {
+	border: 1px solid hsl(29 29% 72% / 0.85);
+	background: hsl(31 43% 91% / 0.42);
+	border-radius: 1rem;
+	box-shadow: var(--docs-shadow), var(--docs-glow);
+	overflow-x: auto;
+}
+
+.docs-theme .prose blockquote {
+	border-inline-start: 4px solid hsl(17 89% 46% / 0.85);
+	background: linear-gradient(90deg, var(--docs-highlight), transparent);
+	border-radius: 0.62rem;
+	padding: 0.7rem 0.95rem;
+}
+
+.docs-theme .prose table {
+	border-radius: 0.78rem;
+	overflow: hidden;
+	box-shadow: var(--docs-shadow);
+	background: var(--docs-panel);
+}
+
+.docs-theme [aria-current="page"] {
+	background: linear-gradient(90deg, hsl(28 88% 57% / 0.21), hsl(14 82% 48% / 0.18));
+	color: hsl(13 69% 30%);
+	border-radius: 0.62rem;
+	position: relative;
+}
+
+.docs-theme [aria-current="page"]:before {
+	content: "";
+	position: absolute;
+	inset-inline-start: -0.5rem;
+	top: 50%;
+	width: 0.3rem;
+	height: 1.16rem;
+	border-radius: 1rem;
+	transform: translateY(-50%);
+	background: linear-gradient(180deg, hsl(20 86% 49%), hsl(32 95% 53%));
+}
+
+.docs-theme .mermaid-shell {
+	display: grid;
+	place-items: center;
+	margin: 1.25rem 0;
+	padding: clamp(1rem, 2.5vw, 1.6rem);
+	border-radius: 1rem;
+	border: 1px solid hsl(27 28% 73% / 0.9);
+	background: var(--docs-panel);
+	box-shadow: var(--docs-shadow), var(--docs-glow);
+	overflow: auto;
+	animation: docsSlideIn 0.5s ease;
+}
+
+.docs-theme .mermaid-shell svg {
+	max-width: 100%;
+	height: auto;
+	font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+.docs-theme .mermaid-error {
+	display: block;
+	color: hsl(3 68% 34%);
+	background: hsl(5 92% 95% / 0.7);
+	border: 1px solid hsl(7 71% 68% / 0.55);
+	padding: 1rem;
+}
+
+.docs-theme .mermaid-error pre {
+	white-space: pre-wrap;
+	font-size: 0.9rem;
+	margin-top: 0.6rem;
+	padding: 0;
+	border: 0;
+	box-shadow: none;
+	background: transparent;
+}
+
+@keyframes docsSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes docsFadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@media (max-width: 1024px) {
+	.docs-theme {
+		background:
+			radial-gradient(860px 330px at 102% -11%, hsl(25 84% 67% / 0.33), transparent 66%),
+			radial-gradient(620px 290px at -2% -12%, hsl(46 92% 72% / 0.22), transparent 68%),
+			repeating-linear-gradient(
+				65deg,
+				hsl(42 55% 97% / 0.7) 0,
+				hsl(42 55% 97% / 0.7) 2px,
+				transparent 2px,
+				transparent 16px
+			),
+			linear-gradient(180deg, hsl(45 45% 98%), hsl(39 43% 96%));
+	}
+
+	.docs-theme .prose h1 {
+		font-size: clamp(1.9rem, 10vw, 2.7rem);
+	}
+
+	.docs-theme .prose h2 {
+		margin-top: 2.4rem;
+	}
+
+	.docs-theme .mermaid-shell {
+		padding: 0.9rem;
+	}
+}
+
+.dark .docs-theme {
+	--color-fd-background: hsl(212 37% 7%);
+	--color-fd-foreground: hsl(40 39% 93%);
+	--color-fd-muted: hsl(210 23% 13%);
+	--color-fd-muted-foreground: hsl(36 18% 73%);
+	--color-fd-popover: hsl(212 32% 8%);
+	--color-fd-popover-foreground: hsl(40 39% 93%);
+	--color-fd-card: hsl(213 34% 10% / 0.88);
+	--color-fd-card-foreground: hsl(40 39% 93%);
+	--color-fd-border: hsl(18 30% 32% / 0.78);
+	--color-fd-primary: hsl(26 94% 61%);
+	--color-fd-primary-foreground: hsl(220 30% 9%);
+	--color-fd-secondary: hsl(216 24% 17%);
+	--color-fd-secondary-foreground: hsl(40 39% 93%);
+	--color-fd-accent: hsl(27 82% 53% / 0.16);
+	--docs-panel: linear-gradient(150deg, hsl(213 35% 13% / 0.95), hsl(211 30% 11% / 0.95));
+	--docs-highlight: hsl(24 95% 58% / 0.17);
+	--docs-shadow: 0 18px 40px hsl(218 46% 3% / 0.42);
+	--docs-glow: 0 0 0 1px hsl(20 80% 58% / 0.15), inset 0 1px 0 hsl(26 76% 67% / 0.1);
+	background:
+		radial-gradient(940px 420px at 106% -15%, hsl(19 88% 52% / 0.19), transparent 66%),
+		radial-gradient(900px 380px at -6% -18%, hsl(38 95% 46% / 0.12), transparent 70%),
+		repeating-linear-gradient(
+			68deg,
+			hsl(220 22% 13% / 0.5) 0,
+			hsl(220 22% 13% / 0.5) 2px,
+			transparent 2px,
+			transparent 18px
+		),
+		linear-gradient(180deg, hsl(213 36% 9%), hsl(212 37% 7%));
+}
+
+.dark .docs-theme [class*="sticky"] {
+	background: color-mix(in srgb, hsl(214 31% 10%) 78%, transparent);
+	border-bottom-color: hsl(20 34% 29% / 0.44);
+}
+
+.dark .docs-theme .prose a:not([data-card]) {
+	color: hsl(28 99% 72%);
+	text-decoration-color: hsl(24 90% 60% / 0.83);
+}
+
+.dark .docs-theme .prose a:not([data-card]):hover {
+	color: hsl(28 100% 80%);
+	text-decoration-color: hsl(22 95% 66%);
+}
+
+.dark .docs-theme .prose code {
+	background: hsl(217 23% 18% / 0.88);
+	border-color: hsl(20 22% 38% / 0.62);
+}
+
+.dark .docs-theme .prose pre {
+	background: hsl(213 24% 15% / 0.8);
+	border-color: hsl(22 23% 35% / 0.85);
+}
+
+.dark .docs-theme [aria-current="page"] {
+	color: hsl(30 98% 78%);
+	background: linear-gradient(90deg, hsl(24 97% 58% / 0.2), hsl(14 81% 51% / 0.2));
+}

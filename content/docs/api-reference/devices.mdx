@@ -1,0 +1,328 @@
+---
+title: Device API
+description: Device management and sensor stream endpoints
+---
+
+# Device API
+
+Endpoints for managing IoT devices and streaming sensor data.
+
+## POST /device/sensor-stream
+
+Stream sensor data from IoT device.
+
+**Method:** `POST`
+**Auth Required:** Yes
+**Rate Limit:** 1 per second per device
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `device_id` | string | Yes | MAC address (format: `AA:BB:CC:DD:EE:FF`) |
+| `accel_x` | float | Yes | X-axis acceleration (m/s²) |
+| `accel_y` | float | Yes | Y-axis acceleration (m/s²) |
+| `accel_z` | float | Yes | Z-axis acceleration (m/s²) |
+| `gyro_x` | float | Yes | X-axis rotation (°/s) |
+| `gyro_y` | float | Yes | Y-axis rotation (°/s) |
+| `gyro_z` | float | Yes | Z-axis rotation (°/s) |
+| `uptime_ms` | integer | Yes | Device uptime (milliseconds) |
+| `pressure` | float | No | Atmospheric pressure (hPa) |
+| `fsr` | float | No | Foot Pressure (0-1) |
+| `heart_rate` | integer | No | Heart rate (bpm) |
+| `spo2` | integer | No | Blood oxygen (%) |
+| `battery_level` | float | No | Battery remaining (%) |
+| `wifi_connected` | boolean | No | WiFi status |
+| `bluetooth_connected` | boolean | No | Bluetooth status |
+| `sensors_initialized` | boolean | No | Sensor readiness |
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:3000/api/device/sensor-stream \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "AA:BB:CC:DD:EE:FF",
+    "accel_x": 0.5,
+    "accel_y": 0.3,
+    "accel_z": 9.8,
+    "gyro_x": 0.1,
+    "gyro_y": 0.2,
+    "gyro_z": -0.05,
+    "uptime_ms": 3600000,
+    "heart_rate": 72,
+    "spo2": 98,
+    "battery_level": 85.0,
+    "wifi_connected": true
+  }'
+```
+
+### Success Response
+
+```json
+HTTP/1.1 200 OK
+{
+  "success": true,
+  "data": {
+    "deviceId": "AA:BB:CC:DD:EE:FF",
+    "timestamp": "2026-03-18T10:30:00Z",
+    "fallDetected": false,
+    "fallConfidence": 0.12,
+    "healthScore": 95,
+    "nextAllowedRequest": "2026-03-18T10:30:01Z"
+  }
+}
+```
+
+### Error Responses
+
+**400 Bad Request** - Invalid data:
+```json
+{
+  "success": false,
+  "error": "Validation failed",
+  "details": {
+    "accel_x": "Must be a number",
+    "gyro_z": "Missing required field"
+  }
+}
+```
+
+**429 Too Many Requests** - Rate limited:
+```json
+{
+  "success": false,
+  "error": "Rate limit exceeded",
+  "retryAfter": 1000
+}
+```
+
+---
+
+## GET /device/:id
+
+Get device details.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Owner or Caregiver
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Device UUID |
+
+### Example Request
+
+```bash
+curl http://localhost:3000/api/device/device-uuid \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Success Response
+
+```json
+HTTP/1.1 200 OK
+{
+  "success": true,
+  "data": {
+    "id": "device-uuid",
+    "userId": "user-uuid",
+    "macAddress": "AA:BB:CC:DD:EE:FF",
+    "name": "SmartFall Watch",
+    "status": "ACTIVE",
+    "lastSeen": "2026-03-18T10:29:00Z",
+    "batteryLevel": 85.0,
+    "firmwareVersion": "1.2.3",
+    "createdAt": "2026-01-15T08:00:00Z",
+    "updatedAt": "2026-03-18T10:29:00Z"
+  }
+}
+```
+
+---
+
+## GET /device/:id/status
+
+Get device current status.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Owner or Caregiver
+
+### Example Request
+
+```bash
+curl http://localhost:3000/api/device/device-uuid/status \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Success Response
+
+```json
+HTTP/1.1 200 OK
+{
+  "success": true,
+  "data": {
+    "deviceId": "device-uuid",
+    "status": "ACTIVE",
+    "batteryLevel": 85.0,
+    "signalStrength": -45,
+    "lastDataPoint": "2026-03-18T10:29:45Z",
+    "sensorsInitialized": true,
+    "wifiConnected": true,
+    "bluetoothConnected": false,
+    "uptime": 3600000,
+    "firmwareVersion": "1.2.3",
+    "updateAvailable": false
+  }
+}
+```
+
+---
+
+## GET /device/:id/logs
+
+Get device activity logs.
+
+**Method:** `GET`
+**Auth Required:** Yes
+**Permissions:** Owner or Caregiver
+**Pagination:** Yes (page, limit)
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `limit` | integer | 20 | Results per page (max 100) |
+| `logType` | string | - | Filter by type (error, warning, info) |
+
+### Example Request
+
+```bash
+curl http://localhost:3000/api/device/device-uuid/logs?page=1&limit=50 \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Success Response
+
+```json
+HTTP/1.1 200 OK
+{
+  "success": true,
+  "data": [
+    {
+      "id": "log-id",
+      "deviceId": "device-uuid",
+      "type": "INFO",
+      "message": "Device connected",
+      "timestamp": "2026-03-18T10:29:00Z"
+    },
+    {
+      "id": "log-id-2",
+      "deviceId": "device-uuid",
+      "type": "WARNING",
+      "message": "Low battery (20%)",
+      "timestamp": "2026-03-18T09:15:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 50,
+    "total": 142,
+    "totalPages": 3
+  }
+}
+```
+
+---
+
+## DELETE /device/:id
+
+Remove a device.
+
+**Method:** `DELETE`
+**Auth Required:** Yes
+**Permissions:** Owner only
+
+### Example Request
+
+```bash
+curl -X DELETE http://localhost:3000/api/device/device-uuid \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Success Response
+
+```json
+HTTP/1.1 204 No Content
+```
+
+### Error Response
+
+**403 Forbidden** - Cannot delete device:
+```json
+{
+  "success": false,
+  "error": "You do not have permission to delete this device"
+}
+```
+
+---
+
+## Device Registration
+
+Devices register automatically on first sensor data submission:
+
+1. MAC address normalized to `AA:BB:CC:DD:EE:FF` format
+2. Device created if not exists
+3. Associated with authenticated user
+4. Status set to "ACTIVE"
+
+### Example First Submission
+
+```bash
+curl -X POST http://localhost:3000/api/device/sensor-stream \
+  -H "Authorization: Bearer PATIENT_TOKEN" \
+  -d '{
+    "device_id": "aabbccddeeff",
+    "accel_x": 0.5,
+    ...
+  }'
+```
+
+Response includes automatic device ID creation.
+
+---
+
+## Device Statuses
+
+| Status | Description |
+|--------|-------------|
+| `ACTIVE` | Device actively sending data |
+| `INACTIVE` | No data for 30+ minutes |
+| `OFFLINE` | No data for 24+ hours |
+| `DISABLED` | Admin disabled device |
+| `UNREGISTERED` | Waiting for first data |
+
+---
+
+## Device Limits
+
+| Limit | Value |
+|-------|-------|
+| Max devices per user | 10 |
+| Max sensor data records | 90 days |
+| Max logs per device | 1000 |
+| Request rate | 1 per second |
+
+---
+
+## Related Documentation
+
+- [IoT Pipeline](/docs/architecture/iot-pipeline)
+- [Sensor Stream Format](/docs/iot-device/sensor-stream-format)
+- [Device Status](/docs/iot-device/device-status)
