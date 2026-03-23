@@ -9,9 +9,9 @@ export default function Home() {
   const router = useRouter();
 
   const scrollToFeatures = () => {
-    const featuresSection = document.getElementById('features');
+    const featuresSection = document.getElementById("features");
     if (featuresSection) {
-      featuresSection.scrollIntoView({ behavior: 'smooth' });
+      featuresSection.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -35,7 +35,9 @@ export default function Home() {
             independently while keeping your
             <br /> safety a priority.
           </p>
-          <button className={styles.heroButton} onClick={scrollToFeatures}>Learn More</button>
+          <button className={styles.heroButton} onClick={scrollToFeatures}>
+            Learn More
+          </button>
         </div>
         <div className={styles.heroRight}>
           <Image
@@ -135,16 +137,9 @@ export default function Home() {
           />
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <p>&copy; 2025 SmartFall.</p>
-      </footer>
     </div>
   );
 }
-
-
 
 // "use client";
 
