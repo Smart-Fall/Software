@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import FooterWithUserDetection from "@/components/FooterWithUserDetection";
 import { initializeDatabase } from "@/lib/db/service";
 
 export const metadata: Metadata = {
@@ -39,6 +40,7 @@ export default function RootLayout({
       </head>
       <body>
         <main>{children}</main>
+        <FooterWithUserDetection />
         <Toaster />
       </body>
     </html>
