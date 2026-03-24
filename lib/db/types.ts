@@ -100,6 +100,7 @@ export interface Device {
   patientId?: string;
   deviceName?: string;
   isActive: boolean;
+  isMuted: boolean;
   lastSeen?: Date;
   batteryLevel?: number;
   firmwareVersion?: string;

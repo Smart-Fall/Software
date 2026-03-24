@@ -102,6 +102,7 @@ export class PrismaDeviceStatusRepository implements IDeviceStatusRepository {
             patientId: status.device.patientId ?? undefined,
             deviceName: status.device.deviceName ?? undefined,
             isActive: status.device.isActive,
+            isMuted: status.device.isMuted,
             lastSeen: status.device.lastSeen ?? undefined,
             batteryLevel: status.device.batteryLevel ?? undefined,
             firmwareVersion: status.device.firmwareVersion ?? undefined,

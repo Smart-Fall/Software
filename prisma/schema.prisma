@@ -126,6 +126,7 @@ model Device {
   patientId       String?   @map("patient_id") @db.Uuid
   deviceName      String?   @map("device_name") @db.VarChar(100)
   isActive        Boolean   @default(true) @map("is_active")
+  isMuted         Boolean   @default(false) @map("is_muted")
   lastSeen        DateTime? @map("last_seen") @db.Timestamp(6)
   batteryLevel    Float?    @map("battery_level")
   firmwareVersion String?   @map("firmware_version") @db.VarChar(50)
