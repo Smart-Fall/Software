@@ -14,10 +14,21 @@ export async function POST(request: Request) {
     }
 
     const dbService = await getDbServiceAsync();
+    const parsedBattery = Number(data.battery_level);
+    const hasBattery =
+      data.battery_level !== undefined &&
+      data.battery_level !== null &&
+      Number.isFinite(parsedBattery);
+    const normalizedBattery = hasBattery
+      ? Math.min(100, Math.max(0, parsedBattery))
+      : undefined;
+
     let device = await dbService.devices.findByDeviceId(deviceId);
 
     if (!device) {
-      console.log(`[API] Auto-registering new device from sensor stream: ${deviceId}`);
+      console.log(
+        `[API] Auto-registering new device from sensor stream: ${deviceId}`,
+      );
       device = await dbService.devices.create({
         deviceId: deviceId,
         deviceName: `SmartFall Device ${deviceId}`,
@@ -43,7 +54,8 @@ export async function POST(request: Request) {
         gyroZ: data.gyro_z || 0,
         pressure: data.pressure != null ? Number(data.pressure) : undefined,
         fsr: data.fsr != null ? Number(data.fsr) : undefined,
-        heartRate: data.heart_rate != null ? Number(data.heart_rate) : undefined,
+        heartRate:
+          data.heart_rate != null ? Number(data.heart_rate) : undefined,
         spo2: data.spo2 != null ? Number(data.spo2) : undefined,
       });
     }
@@ -51,24 +63,32 @@ export async function POST(request: Request) {
     // Always update lastSeen; also update battery if provided
     await dbService.devices.update(device.id, {
       lastSeen: new Date(),
-      ...(data.battery_level !== undefined && { batteryLevel: data.battery_level }),
+      ...(normalizedBattery !== undefined && {
+        batteryLevel: normalizedBattery,
+      }),
     });
 
     // Store device status if provided
     if (
-      data.battery_level !== undefined ||
+      normalizedBattery !== undefined ||
       data.wifi_connected !== undefined ||
       data.uptime_ms !== undefined
     ) {
       await dbService.deviceStatus.create({
         deviceId: device.id,
         timestamp: new Date(),
-        batteryPercentage: data.battery_level || 0,
+        batteryPercentage: normalizedBattery ?? 0,
         wifiConnected: data.wifi_connected !== false,
         bluetoothConnected: data.bluetooth_connected !== false,
         sensorsInitialized: data.sensors_initialized !== false,
-        uptimeMs: BigInt(Math.floor(Number.isFinite(Number(data.uptime_ms)) ? Number(data.uptime_ms) : 0)),
-        currentStatus: data.status || 'active',
+        uptimeMs: BigInt(
+          Math.floor(
+            Number.isFinite(Number(data.uptime_ms))
+              ? Number(data.uptime_ms)
+              : 0,
+          ),
+        ),
+        currentStatus: data.status || "active",
       });
     }
 

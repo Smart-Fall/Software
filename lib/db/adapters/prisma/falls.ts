@@ -156,6 +156,7 @@ export class PrismaFallRepository implements IFallRepository {
             patientId: fall.device.patientId ?? undefined,
             deviceName: fall.device.deviceName ?? undefined,
             isActive: fall.device.isActive,
+            isMuted: fall.device.isMuted,
             lastSeen: fall.device.lastSeen ?? undefined,
             batteryLevel: fall.device.batteryLevel ?? undefined,
             firmwareVersion: fall.device.firmwareVersion ?? undefined,

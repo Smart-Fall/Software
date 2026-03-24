@@ -122,6 +122,7 @@ export class PrismaSensorDataRepository implements ISensorDataRepository {
             patientId: data.device.patientId ?? undefined,
             deviceName: data.device.deviceName ?? undefined,
             isActive: data.device.isActive,
+            isMuted: data.device.isMuted,
             lastSeen: data.device.lastSeen ?? undefined,
             batteryLevel: data.device.batteryLevel ?? undefined,
             firmwareVersion: data.device.firmwareVersion ?? undefined,

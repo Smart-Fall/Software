@@ -14,6 +14,15 @@ export async function POST(request: Request) {
     }
 
     const dbService = await getDbServiceAsync();
+    const parsedBattery = Number(data.battery_level);
+    const hasBattery =
+      data.battery_level !== undefined &&
+      data.battery_level !== null &&
+      Number.isFinite(parsedBattery);
+    const normalizedBattery = hasBattery
+      ? Math.min(100, Math.max(0, parsedBattery))
+      : undefined;
+
     let device = await dbService.devices.findByDeviceId(deviceId);
 
     if (!device) {
@@ -22,23 +31,31 @@ export async function POST(request: Request) {
         deviceId: deviceId,
         deviceName: `SmartFall Device ${deviceId}`,
         isActive: true,
-        batteryLevel: data.battery_level || null,
+        ...(normalizedBattery !== undefined && {
+          batteryLevel: normalizedBattery,
+        }),
       });
     }
 
     await dbService.devices.update(device.id, {
       lastSeen: new Date(),
-      batteryLevel: data.battery_level || device.batteryLevel,
+      ...(normalizedBattery !== undefined && {
+        batteryLevel: normalizedBattery,
+      }),
     });
 
     const status = await dbService.deviceStatus.create({
       deviceId: device.id,
       timestamp: new Date(),
-      batteryPercentage: data.battery_level || 0,
+      batteryPercentage: normalizedBattery ?? 0,
       wifiConnected: data.wifi_connected ?? true,
       bluetoothConnected: data.bluetooth_connected ?? false,
       sensorsInitialized: data.sensors_initialized ?? true,
-      uptimeMs: BigInt(Math.floor(Number.isFinite(Number(data.uptime)) ? Number(data.uptime) : 0)),
+      uptimeMs: BigInt(
+        Math.floor(
+          Number.isFinite(Number(data.uptime)) ? Number(data.uptime) : 0,
+        ),
+      ),
       currentStatus: data.current_status || "active",
     });
 

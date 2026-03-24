@@ -52,6 +52,7 @@ interface Device {
   deviceId: string;
   deviceName: string | null;
   isActive: boolean;
+  isMuted: boolean;
   lastSeen: string | null;
   batteryLevel: number | null;
   patient: {

@@ -25,9 +25,15 @@ export async function GET() {
     // Get all patients assigned to this caregiver
     const patients = await dbService.patients.findByCaregiverId(caregiver.id);
 
-    // Get all devices for those patients
+    // Get all devices for those patients and attach patient context expected by the UI.
     const devicesList = await Promise.all(
-      patients.map((p) => dbService.devices.findByPatientId(p.id)),
+      patients.map(async (p) => {
+        const patientDevices = await dbService.devices.findByPatientId(p.id);
+        return patientDevices.map((device) => ({
+          ...device,
+          patient: p,
+        }));
+      }),
     );
 
     const devices = devicesList.flat().sort((a, b) => {

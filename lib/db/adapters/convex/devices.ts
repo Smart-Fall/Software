@@ -14,6 +14,7 @@ type ConvexDevice = {
   patientId?: string;
   deviceName?: string;
   isActive: boolean;
+  isMuted?: boolean;
   lastSeen?: number | string | Date;
   batteryLevel?: number;
   firmwareVersion?: string;
@@ -109,6 +110,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
         patientId: data.patientId,
         deviceName: data.deviceName,
         isActive: data.isActive,
+        isMuted: data.isMuted,
         batteryLevel: data.batteryLevel,
         firmwareVersion: data.firmwareVersion,
         lastSeen: data.lastSeen ? data.lastSeen.getTime() : undefined,
@@ -132,15 +134,19 @@ export class ConvexDeviceRepository implements IDeviceRepository {
     data: Partial<Device>,
   ): Promise<Device> {
     try {
-      await this.client.mutation(api.devices.updateByDeviceId, {
-        deviceId,
-        patientId: data.patientId ? (data.patientId as Id<"patients">) : undefined,
-        deviceName: data.deviceName,
-        isActive: data.isActive,
-        batteryLevel: data.batteryLevel,
-        firmwareVersion: data.firmwareVersion,
-        lastSeen: data.lastSeen ? data.lastSeen.getTime() : undefined,
-      });
+      await (this.client.mutation as (fn: unknown, args: unknown) => Promise<unknown>)(
+        api.devices.updateByDeviceId,
+        {
+          deviceId,
+          patientId: data.patientId ? (data.patientId as Id<"patients">) : undefined,
+          deviceName: data.deviceName,
+          isActive: data.isActive,
+          isMuted: data.isMuted,
+          batteryLevel: data.batteryLevel,
+          firmwareVersion: data.firmwareVersion,
+          lastSeen: data.lastSeen ? data.lastSeen.getTime() : undefined,
+        },
+      );
 
       const device = await this.client.query(api.devices.getByDeviceId, {
         deviceId,
@@ -160,6 +166,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
       patientId: device.patientId,
       deviceName: device.deviceName,
       isActive: device.isActive,
+      isMuted: device.isMuted ?? false,
       lastSeen: device.lastSeen ? new Date(device.lastSeen) : undefined,
       batteryLevel: device.batteryLevel,
       firmwareVersion: device.firmwareVersion,
