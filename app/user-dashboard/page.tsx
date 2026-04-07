@@ -42,6 +42,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import {
+  playFallAlertSound,
+  primeFallAlertAudio,
+} from "@/lib/fall-alert-audio";
 
 interface UserData {
   firstName?: string;
@@ -224,6 +228,7 @@ export default function UserDashboard() {
         fallsThisMonth: prev.fallsThisMonth + newFalls.length,
         fallsThisYear: prev.fallsThisYear + newFalls.length,
       }));
+      void playFallAlertSound();
 
       if (fallNotificationTimerRef.current)
         clearTimeout(fallNotificationTimerRef.current);
@@ -248,6 +253,7 @@ export default function UserDashboard() {
   useEffect(() => {
     fetchPatientFalls();
     const intervalId = setInterval(fetchPatientFalls, 5000);
+    primeFallAlertAudio();
 
     if (Notification.permission === "default") {
       Notification.requestPermission();
