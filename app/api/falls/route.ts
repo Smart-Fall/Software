@@ -30,6 +30,19 @@ export async function POST(request: Request) {
     }
 
     const dbService = await getDbServiceAsync();
+    const parsedBattery = Number(data.battery_level);
+    const hasBattery =
+      data.battery_level !== undefined &&
+      data.battery_level !== null &&
+      Number.isFinite(parsedBattery);
+    const normalizedBattery = hasBattery
+      ? Math.min(100, Math.max(0, parsedBattery))
+      : undefined;
+
+    const parsedConfidenceScore = Number(data.confidence_score);
+    const normalizedConfidenceScore = Number.isFinite(parsedConfidenceScore)
+      ? Math.max(0, Math.round(parsedConfidenceScore))
+      : undefined;
 
     // Find or create device
     let device = await dbService.devices.findByDeviceId(data.device_id);
@@ -40,12 +53,16 @@ export async function POST(request: Request) {
         deviceId: data.device_id,
         deviceName: `SmartFall Device ${data.device_id}`,
         isActive: true,
-        batteryLevel: data.battery_level || null,
+        ...(normalizedBattery !== undefined && {
+          batteryLevel: normalizedBattery,
+        }),
       });
     } else {
       await dbService.devices.updateByDeviceId(data.device_id, {
         lastSeen: new Date(),
-        batteryLevel: data.battery_level || device.batteryLevel,
+        ...(normalizedBattery !== undefined && {
+          batteryLevel: normalizedBattery,
+        }),
       });
     }
 
@@ -74,10 +91,10 @@ export async function POST(request: Request) {
     const fall = await dbService.falls.create({
       deviceId: device.id,
       fallDatetime: new Date(),
-      confidenceScore: data.confidence_score || null,
+      confidenceScore: normalizedConfidenceScore,
       confidenceLevel: confidenceLevel,
-      sosTriggered: data.sos_triggered || false,
-      batteryLevel: data.battery_level || null,
+      sosTriggered: data.sos_triggered ?? false,
+      batteryLevel: normalizedBattery,
       severity:
         confidenceLevel === "HIGH" || confidenceLevel === "CONFIRMED"
           ? "high"
@@ -95,7 +112,10 @@ export async function POST(request: Request) {
         gyroX: data.sensor_data.gyro_x || 0,
         gyroY: data.sensor_data.gyro_y || 0,
         gyroZ: data.sensor_data.gyro_z || 0,
-        pressure: data.sensor_data.pressure || null,
+        pressure:
+          data.sensor_data.pressure != null
+            ? Number(data.sensor_data.pressure)
+            : undefined,
       });
     }
 
