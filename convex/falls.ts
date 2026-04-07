@@ -5,6 +5,27 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
+async function enrichFall(ctx: Parameters<typeof getById["handler"]>[0], fall: any) {
+  if (!fall) {
+    return null;
+  }
+
+  const patient = fall.patientId ? await ctx.db.get(fall.patientId) : null;
+  const user = patient ? await ctx.db.get(patient.userId) : null;
+  const device = fall.deviceId ? await ctx.db.get(fall.deviceId) : null;
+
+  return {
+    ...fall,
+    patient: patient
+      ? {
+          ...patient,
+          user: user ?? undefined,
+        }
+      : undefined,
+    device: device ?? undefined,
+  };
+}
+
 // ============================================================================
 // Queries
 // ============================================================================
@@ -12,7 +33,8 @@ import { v } from 'convex/values';
 export const getById = query({
   args: { id: v.id('falls') },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    const fall = await ctx.db.get(args.id);
+    return await enrichFall(ctx, fall);
   },
 });
 
@@ -24,7 +46,8 @@ export const getByPatientId = query({
       .withIndex('by_patient_id', (q) => q.eq('patientId', args.patientId))
       .collect();
 
-    return falls.sort((a, b) => (b.fallDatetime || 0) - (a.fallDatetime || 0));
+    const sortedFalls = falls.sort((a, b) => (b.fallDatetime || 0) - (a.fallDatetime || 0));
+    return await Promise.all(sortedFalls.map((fall) => enrichFall(ctx, fall)));
   },
 });
 
@@ -36,18 +59,21 @@ export const getByDeviceId = query({
       .withIndex('by_device_id', (q) => q.eq('deviceId', args.deviceId))
       .collect();
 
-    return falls.sort((a, b) => (b.fallDatetime || 0) - (a.fallDatetime || 0));
+    const sortedFalls = falls.sort((a, b) => (b.fallDatetime || 0) - (a.fallDatetime || 0));
+    return await Promise.all(sortedFalls.map((fall) => enrichFall(ctx, fall)));
   },
 });
 
 export const getRecent = query({
   args: { limit: v.number() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const falls = await ctx.db
       .query('falls')
       .withIndex('by_created_at')
       .order('desc')
       .take(args.limit);
+
+    return await Promise.all(falls.map((fall) => enrichFall(ctx, fall)));
   },
 });
 
@@ -58,7 +84,8 @@ export const getUnresolved = query({
       .withIndex('by_resolved', (q) => q.eq('resolved', false))
       .collect();
 
-    return falls.sort((a, b) => (b.fallDatetime || 0) - (a.fallDatetime || 0));
+    const sortedFalls = falls.sort((a, b) => (b.fallDatetime || 0) - (a.fallDatetime || 0));
+    return await Promise.all(sortedFalls.map((fall) => enrichFall(ctx, fall)));
   },
 });
 
@@ -79,7 +106,9 @@ export const list = query({
 
     const skip = args.skip ?? 0;
     const take = args.take ?? 20;
-    return falls.slice(skip, skip + take);
+    return await Promise.all(
+      falls.slice(skip, skip + take).map((fall) => enrichFall(ctx, fall))
+    );
   },
 });
 
