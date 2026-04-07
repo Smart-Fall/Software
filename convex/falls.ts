@@ -2,17 +2,24 @@
  * Convex Fall Queries and Mutations
  */
 
-import { query, mutation } from './_generated/server';
+import { query, mutation, type QueryCtx } from './_generated/server';
 import { v } from 'convex/values';
+import type { Id } from './_generated/dataModel';
 
-async function enrichFall(ctx: Parameters<typeof getById["handler"]>[0], fall: any) {
+async function enrichFall(ctx: QueryCtx, fall: any) {
   if (!fall) {
     return null;
   }
 
-  const patient = fall.patientId ? await ctx.db.get(fall.patientId) : null;
-  const user = patient ? await ctx.db.get(patient.userId) : null;
-  const device = fall.deviceId ? await ctx.db.get(fall.deviceId) : null;
+  const patient = fall.patientId
+    ? await ctx.db.get(fall.patientId as Id<'patients'>)
+    : null;
+  const user = patient
+    ? await ctx.db.get(patient.userId as Id<'users'>)
+    : null;
+  const device = fall.deviceId
+    ? await ctx.db.get(fall.deviceId as Id<'devices'>)
+    : null;
 
   return {
     ...fall,
