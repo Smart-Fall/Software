@@ -25,9 +25,18 @@ export class PrismaFallRepository implements IFallRepository {
     notes?: string;
     batteryLevel?: number;
   }): Promise<Fall> {
+    let patientId = data.patientId;
+    if (!patientId && data.deviceId) {
+      const device = await prisma.device.findUnique({
+        where: { id: data.deviceId },
+        select: { patientId: true },
+      });
+      patientId = device?.patientId ?? undefined;
+    }
+
     const fall = await prisma.fall.create({
       data: {
-        patientId: data.patientId,
+        patientId,
         deviceId: data.deviceId,
         fallDatetime: data.fallDatetime,
         confidenceScore: data.confidenceScore,
