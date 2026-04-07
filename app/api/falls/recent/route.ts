@@ -11,7 +11,6 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const since = searchParams.get("since");
-    const caregiverId = searchParams.get("caregiver_id");
 
     const dbService = await getDbServiceAsync();
 
@@ -24,14 +23,19 @@ export async function GET(request: Request) {
       falls = falls.filter((f) => f.createdAt >= sinceDate);
     }
 
-    // Filter by caregiver if provided
-    if (caregiverId) {
-      falls = falls.filter((f) => {
-        // Check if fall's patient is assigned to this caregiver
-        return f.patient?.caregiverPatients?.some(
-          (cp) => cp.caregiverId === caregiverId && cp.isActive,
-        );
-      });
+    // Scope falls to the authenticated caregiver's active patients.
+    const caregiver = await dbService.caregivers.findByUserId(session.userId);
+    if (caregiver) {
+      const assignments = await dbService.caregiverPatients.findByCaregiverId(
+        caregiver.id,
+      );
+      const activePatientIds = new Set(
+        assignments.filter((a) => a.isActive).map((a) => a.patientId),
+      );
+
+      falls = falls.filter(
+        (f) => !!f.patientId && activePatientIds.has(f.patientId),
+      );
     }
 
     // Sort and limit

@@ -9,7 +9,7 @@
  *
  * Environment variables:
  *   ADMIN_EMAIL     - Admin email (default: admin@smartfall.com)
- *   ADMIN_PASSWORD  - Admin password (default: Admin123!)
+ *   ADMIN_PASSWORD  - Admin password (required for create/reset)
  *   ADMIN_FIRST     - Admin first name (default: System)
  *   ADMIN_LAST      - Admin last name (default: Admin)
  */
@@ -50,7 +50,9 @@ try {
 import bcrypt from "bcryptjs";
 
 async function seedAdmin() {
-  const email = process.env.ADMIN_EMAIL || "admin@smartfall.com";
+  const email = (process.env.ADMIN_EMAIL || "admin@smartfall.com")
+    .trim()
+    .toLowerCase();
   const password = process.env.ADMIN_PASSWORD;
   if (!password) {
     console.error("❌ ADMIN_PASSWORD environment variable is required");
@@ -68,21 +70,25 @@ async function seedAdmin() {
   const { getDbServiceAsync } = await import("../lib/db/service");
   const dbService = await getDbServiceAsync();
 
-  // Check if admin already exists
+  // Check if user already exists for this email
   const existing = await dbService.users.findByEmail(email);
   if (existing) {
-    if (existing.accountType === "admin") {
-      console.log("✅ Admin user already exists. No changes made.");
-    } else {
-      console.log(
-        `⚠️  A user with email ${email} exists but has accountType "${existing.accountType}".`,
-      );
-      console.log('   Updating accountType to "admin"...');
-      await dbService.users.update(existing.id, {
-        accountType: "admin",
-      });
-      console.log("✅ Updated to admin.");
-    }
+    console.log(
+      `ℹ️  User with email ${email} already exists. Updating admin credentials...`,
+    );
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const updated = await dbService.users.update(existing.id, {
+      accountType: "admin",
+      passwordHash,
+      firstName,
+      lastName,
+    });
+
+    console.log("✅ Admin credentials updated successfully!");
+    console.log(`   ID: ${updated.id}`);
+    console.log(`   Email: ${updated.email}`);
+    console.log(`   Account Type: ${updated.accountType}`);
     process.exit(0);
   }
 
