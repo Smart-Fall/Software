@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from "react";
 
 interface Fall {
   id: string;
@@ -10,7 +10,7 @@ interface Fall {
     user: {
       firstName: string;
       lastName: string;
-    }
+    };
   };
   device?: {
     deviceId: string;
@@ -18,19 +18,28 @@ interface Fall {
   };
 }
 
-export function useFallAlerts(caregiverId?: string, pollingInterval: number = 5000) {
+export function useFallAlerts(
+  caregiverId?: string,
+  pollingInterval: number = 5000,
+) {
   const [falls, setFalls] = useState<Fall[]>([]);
   const [loading, setLoading] = useState(true);
   const [newFallCount, setNewFallCount] = useState(0);
   const lastCheckRef = useRef<string>(new Date().toISOString());
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     const fetchFalls = async () => {
       try {
-        const params = new URLSearchParams({
-          since: lastCheckRef.current,
-          ...(caregiverId && { caregiver_id: caregiverId })
-        });
+        const params = new URLSearchParams(
+          caregiverId ? { caregiver_id: caregiverId } : undefined,
+        );
+
+        // First request loads currently unresolved falls so Alerts tab is populated.
+        // Subsequent polls are incremental.
+        if (initializedRef.current && lastCheckRef.current) {
+          params.set("since", lastCheckRef.current);
+        }
 
         const response = await fetch(`/api/falls/recent?${params}`);
 
@@ -41,25 +50,45 @@ export function useFallAlerts(caregiverId?: string, pollingInterval: number = 50
         const data = await response.json();
 
         if (data.falls && data.falls.length > 0) {
-          setFalls(prev => [...data.falls, ...prev].slice(0, 20));
-          setNewFallCount(prev => prev + data.falls.length);
+          const incomingFalls: Fall[] = data.falls;
 
-          // Browser notifications (if permitted)
-          data.falls.forEach((fall: Fall) => {
-            const patientName = `${fall.patient?.user.firstName || 'Unknown'} ${fall.patient?.user.lastName || ''}`.trim();
-            if (Notification.permission === 'granted') {
-              new Notification('Fall Detected!', {
-                body: `${patientName} - ${fall.confidenceLevel}`,
-                icon: '/favicon.ico'
+          if (!initializedRef.current) {
+            setFalls(incomingFalls.slice(0, 20));
+          } else {
+            let addedCount = 0;
+
+            setFalls((prev) => {
+              const existingIds = new Set(prev.map((f) => f.id));
+              const uniqueIncoming = incomingFalls.filter(
+                (f) => !existingIds.has(f.id),
+              );
+              addedCount = uniqueIncoming.length;
+              return [...uniqueIncoming, ...prev].slice(0, 20);
+            });
+
+            if (addedCount > 0) {
+              setNewFallCount((prev) => prev + addedCount);
+
+              // Browser notifications (if permitted)
+              incomingFalls.forEach((fall: Fall) => {
+                const patientName =
+                  `${fall.patient?.user.firstName || "Unknown"} ${fall.patient?.user.lastName || ""}`.trim();
+                if (Notification.permission === "granted") {
+                  new Notification("Fall Detected!", {
+                    body: `${patientName} - ${fall.confidenceLevel}`,
+                    icon: "/favicon.ico",
+                  });
+                }
               });
             }
-          });
+          }
         }
 
         lastCheckRef.current = data.timestamp ?? new Date().toISOString();
+        initializedRef.current = true;
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching falls:', error);
+        console.error("Error fetching falls:", error);
         setLoading(false);
       }
     };
@@ -67,12 +96,17 @@ export function useFallAlerts(caregiverId?: string, pollingInterval: number = 50
     fetchFalls();
     const intervalId = setInterval(fetchFalls, pollingInterval);
 
-    if (Notification.permission === 'default') {
+    if (Notification.permission === "default") {
       Notification.requestPermission();
     }
 
     return () => clearInterval(intervalId);
   }, [caregiverId, pollingInterval]);
 
-  return { falls, loading, newFallCount, clearNewFallCount: () => setNewFallCount(0) };
+  return {
+    falls,
+    loading,
+    newFallCount,
+    clearNewFallCount: () => setNewFallCount(0),
+  };
 }

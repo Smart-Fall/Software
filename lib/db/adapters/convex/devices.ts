@@ -116,7 +116,7 @@ export class ConvexDeviceRepository implements IDeviceRepository {
         lastSeen: data.lastSeen ? data.lastSeen.getTime() : undefined,
       };
 
-      await this.client.mutation(api.devices.update, mutationData as unknown as any);
+      await this.client.mutation(api.devices.update, mutationData as unknown);
 
       const device = await this.client.query(api.devices.getById, {
         id: id as Id<"devices">,

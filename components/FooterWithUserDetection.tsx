@@ -25,10 +25,10 @@ export default function FooterWithUserDetection() {
             accountType === "caregiver" ||
             accountType === "admin"
           ) {
-            setUserType(accountType as any);
+            setUserType(accountType as "patient" | "caregiver" | "admin");
           }
         }
-      } catch (error) {
+      } catch {
         console.log("User not authenticated or error fetching user info");
       } finally {
         setIsLoading(false);
