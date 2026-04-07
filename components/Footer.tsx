@@ -7,11 +7,8 @@ interface FooterProps {
   userType?: "visitor" | "patient" | "caregiver" | "admin" | null;
 }
 
-export default function Footer({ userType }: FooterProps) {
-  const currentYear = new Date().getFullYear();
-
-  // Emergency contact section (always visible)
-  const EmergencySection = () => (
+// Emergency contact section (always visible)
+const EmergencySection = () => (
     <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-8">
       <div className="flex items-start gap-3">
         <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
@@ -546,7 +543,10 @@ export default function Footer({ userType }: FooterProps) {
         </div>
       </div>
     </div>
-  );
+);
+
+export default function Footer({ userType }: FooterProps) {
+  const currentYear = new Date().getFullYear();
 
   return (
     <footer className="border-t border-border bg-card text-card-foreground mt-12">
