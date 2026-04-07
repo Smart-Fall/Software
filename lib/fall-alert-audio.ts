@@ -6,21 +6,44 @@ const REPEATING_ALERT_INTERVAL_MS = 1600;
 
 export type FallAlertAudioStatus = "ready" | "blocked" | "unsupported";
 
-function getAudioContext(): AudioContext | null {
+function getAudioContextCtor() {
   if (typeof window === "undefined") {
     return null;
   }
 
-  const AudioContextCtor =
+  return (
     window.AudioContext ||
     (window as Window & { webkitAudioContext?: typeof AudioContext })
-      .webkitAudioContext;
+      .webkitAudioContext ||
+    null
+  );
+}
 
+function hasUserGestureForAudio() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const navigatorWithActivation = navigator as Navigator & {
+    userActivation?: { hasBeenActive: boolean; isActive: boolean };
+  };
+
+  return Boolean(
+    navigatorWithActivation.userActivation?.hasBeenActive ||
+      navigatorWithActivation.userActivation?.isActive,
+  );
+}
+
+function getAudioContext(): AudioContext | null {
+  const AudioContextCtor = getAudioContextCtor();
   if (!AudioContextCtor) {
     return null;
   }
 
   if (!audioContext) {
+    if (!hasUserGestureForAudio()) {
+      return null;
+    }
     audioContext = new AudioContextCtor();
   }
 
@@ -45,13 +68,22 @@ async function resumeAudioContext() {
 }
 
 export async function getFallAlertAudioStatus(): Promise<FallAlertAudioStatus> {
-  const context = getAudioContext();
-  if (!context) {
+  const AudioContextCtor = getAudioContextCtor();
+  if (!AudioContextCtor) {
     return "unsupported";
   }
 
-  if (context.state === "running") {
+  if (audioContext?.state === "running") {
     return "ready";
+  }
+
+  if (!hasUserGestureForAudio()) {
+    return "blocked";
+  }
+
+  const context = getAudioContext();
+  if (!context) {
+    return "blocked";
   }
 
   const resumedContext = await resumeAudioContext();
@@ -72,6 +104,8 @@ export function primeFallAlertAudio() {
     if (!context || context.state !== "running") {
       return;
     }
+
+    updateRepeatingAlertLoop();
 
     window.removeEventListener("pointerdown", unlockAudio);
     window.removeEventListener("keydown", unlockAudio);
@@ -140,10 +174,15 @@ function updateRepeatingAlertLoop() {
     return;
   }
 
-  void playFallAlertSound();
-  repeatingAlertTimer = setInterval(() => {
-    void playFallAlertSound();
-  }, REPEATING_ALERT_INTERVAL_MS);
+  void playFallAlertSound().then((played) => {
+    if (!played || repeatingAlertSources.size === 0 || repeatingAlertTimer) {
+      return;
+    }
+
+    repeatingAlertTimer = setInterval(() => {
+      void playFallAlertSound();
+    }, REPEATING_ALERT_INTERVAL_MS);
+  });
 }
 
 export function startRepeatingFallAlert(sourceId: string) {
