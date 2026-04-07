@@ -1,5 +1,10 @@
 let audioContext: AudioContext | null = null;
 let unlockListenersAttached = false;
+let repeatingAlertTimer: ReturnType<typeof setInterval> | null = null;
+const repeatingAlertSources = new Set<string>();
+const REPEATING_ALERT_INTERVAL_MS = 1600;
+
+export type FallAlertAudioStatus = "ready" | "blocked" | "unsupported";
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") {
@@ -37,6 +42,24 @@ async function resumeAudioContext() {
   }
 
   return context;
+}
+
+export async function getFallAlertAudioStatus(): Promise<FallAlertAudioStatus> {
+  const context = getAudioContext();
+  if (!context) {
+    return "unsupported";
+  }
+
+  if (context.state === "running") {
+    return "ready";
+  }
+
+  const resumedContext = await resumeAudioContext();
+  if (resumedContext?.state === "running") {
+    return "ready";
+  }
+
+  return "blocked";
 }
 
 export function primeFallAlertAudio() {
@@ -102,4 +125,38 @@ export async function playFallAlertSound() {
   );
 
   return true;
+}
+
+function updateRepeatingAlertLoop() {
+  if (repeatingAlertSources.size === 0) {
+    if (repeatingAlertTimer) {
+      clearInterval(repeatingAlertTimer);
+      repeatingAlertTimer = null;
+    }
+    return;
+  }
+
+  if (repeatingAlertTimer) {
+    return;
+  }
+
+  void playFallAlertSound();
+  repeatingAlertTimer = setInterval(() => {
+    void playFallAlertSound();
+  }, REPEATING_ALERT_INTERVAL_MS);
+}
+
+export function startRepeatingFallAlert(sourceId: string) {
+  repeatingAlertSources.add(sourceId);
+  updateRepeatingAlertLoop();
+}
+
+export function stopRepeatingFallAlert(sourceId: string) {
+  repeatingAlertSources.delete(sourceId);
+  updateRepeatingAlertLoop();
+}
+
+export function clearAllRepeatingFallAlerts() {
+  repeatingAlertSources.clear();
+  updateRepeatingAlertLoop();
 }
