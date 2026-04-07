@@ -1,4 +1,8 @@
 import { useEffect, useState, useRef } from "react";
+import {
+  playFallAlertSound,
+  primeFallAlertAudio,
+} from "@/lib/fall-alert-audio";
 
 interface Fall {
   id: string;
@@ -68,6 +72,7 @@ export function useFallAlerts(
 
             if (addedCount > 0) {
               setNewFallCount((prev) => prev + addedCount);
+              void playFallAlertSound();
 
               // Browser notifications (if permitted)
               incomingFalls.forEach((fall: Fall) => {
@@ -95,6 +100,7 @@ export function useFallAlerts(
 
     fetchFalls();
     const intervalId = setInterval(fetchFalls, pollingInterval);
+    primeFallAlertAudio();
 
     if (Notification.permission === "default") {
       Notification.requestPermission();

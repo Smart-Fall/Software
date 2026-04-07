@@ -1,6 +1,8 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DeviceProvisioner } from "./components/DeviceProvisioner";
+import { DeviceCalibrator } from "./components/DeviceCalibrator";
 
 export default function ProvisionPage() {
   return (
@@ -18,15 +20,25 @@ export default function ProvisionPage() {
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Device Provisioning
+            Device Tools
           </h1>
           <p className="text-muted-foreground mt-1">
-            Connect a SmartFall device via USB to configure its WiFi
-            credentials.
+            Connect a SmartFall device via USB to provision or calibrate it.
           </p>
         </div>
 
-        <DeviceProvisioner />
+        <Tabs defaultValue="provision" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="provision">Provisioning</TabsTrigger>
+            <TabsTrigger value="calibrate">Calibration</TabsTrigger>
+          </TabsList>
+          <TabsContent value="provision">
+            <DeviceProvisioner />
+          </TabsContent>
+          <TabsContent value="calibrate">
+            <DeviceCalibrator />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
