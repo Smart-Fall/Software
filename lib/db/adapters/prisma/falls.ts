@@ -8,7 +8,7 @@ import prisma from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
 type PrismaFallWithRelations = Prisma.FallGetPayload<{
-  include: { patient: true; device: true };
+  include: { patient: { include: { user: true } }; device: true };
 }>;
 
 export class PrismaFallRepository implements IFallRepository {
@@ -48,7 +48,7 @@ export class PrismaFallRepository implements IFallRepository {
         notes: data.notes,
         batteryLevel: data.batteryLevel,
       },
-      include: { patient: true, device: true },
+      include: { patient: { include: { user: true } }, device: true },
     });
     return this.mapToFall(fall);
   }
@@ -56,7 +56,7 @@ export class PrismaFallRepository implements IFallRepository {
   async findById(id: string): Promise<Fall | null> {
     const fall = await prisma.fall.findUnique({
       where: { id },
-      include: { patient: true, device: true },
+      include: { patient: { include: { user: true } }, device: true },
     });
     return fall ? this.mapToFall(fall) : null;
   }
@@ -64,7 +64,7 @@ export class PrismaFallRepository implements IFallRepository {
   async findMany(options?: FindOptions<Fall>): Promise<Fall[]> {
     const falls = await prisma.fall.findMany({
       where: options?.where as Prisma.FallWhereInput | undefined,
-      include: { patient: true, device: true },
+      include: { patient: { include: { user: true } }, device: true },
       skip: options?.skip,
       take: options?.take,
       orderBy: options?.orderBy as
@@ -78,7 +78,7 @@ export class PrismaFallRepository implements IFallRepository {
   async findByPatientId(patientId: string): Promise<Fall[]> {
     const falls = await prisma.fall.findMany({
       where: { patientId },
-      include: { patient: true, device: true },
+      include: { patient: { include: { user: true } }, device: true },
       orderBy: { fallDatetime: "desc" },
     });
     return falls.map((f) => this.mapToFall(f));
@@ -87,7 +87,7 @@ export class PrismaFallRepository implements IFallRepository {
   async findByDeviceId(deviceId: string): Promise<Fall[]> {
     const falls = await prisma.fall.findMany({
       where: { deviceId },
-      include: { patient: true, device: true },
+      include: { patient: { include: { user: true } }, device: true },
       orderBy: { fallDatetime: "desc" },
     });
     return falls.map((f) => this.mapToFall(f));
@@ -97,7 +97,7 @@ export class PrismaFallRepository implements IFallRepository {
     const falls = await prisma.fall.findMany({
       orderBy: { fallDatetime: "desc" },
       take: limit,
-      include: { patient: true, device: true },
+      include: { patient: { include: { user: true } }, device: true },
     });
     return falls.map((f) => this.mapToFall(f));
   }
@@ -106,7 +106,7 @@ export class PrismaFallRepository implements IFallRepository {
     const falls = await prisma.fall.findMany({
       where: { resolved: false },
       orderBy: { fallDatetime: "desc" },
-      include: { patient: true, device: true },
+      include: { patient: { include: { user: true } }, device: true },
     });
     return falls.map((f) => this.mapToFall(f));
   }
@@ -122,7 +122,7 @@ export class PrismaFallRepository implements IFallRepository {
         resolved: data.resolved,
         resolvedAt: data.resolvedAt,
       },
-      include: { patient: true, device: true },
+      include: { patient: { include: { user: true } }, device: true },
     });
     return this.mapToFall(fall);
   }
@@ -156,6 +156,19 @@ export class PrismaFallRepository implements IFallRepository {
             isHighRisk: fall.patient.isHighRisk,
             medicalConditions: fall.patient.medicalConditions ?? undefined,
             createdAt: fall.patient.createdAt,
+            user: fall.patient.user
+              ? {
+                  id: fall.patient.user.id,
+                  email: fall.patient.user.email,
+                  passwordHash: fall.patient.user.passwordHash,
+                  accountType: fall.patient.user.accountType as "user" | "caregiver" | "admin",
+                  firstName: fall.patient.user.firstName ?? undefined,
+                  lastName: fall.patient.user.lastName ?? undefined,
+                  dob: fall.patient.user.dob ?? undefined,
+                  isActive: fall.patient.user.isActive,
+                  createdAt: fall.patient.user.createdAt,
+                }
+              : undefined,
           }
         : undefined,
       device: fall.device
