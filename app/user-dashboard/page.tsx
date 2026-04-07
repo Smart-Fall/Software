@@ -43,8 +43,11 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import {
-  playFallAlertSound,
+  clearAllRepeatingFallAlerts,
+  getFallAlertAudioStatus,
   primeFallAlertAudio,
+  startRepeatingFallAlert,
+  stopRepeatingFallAlert,
 } from "@/lib/fall-alert-audio";
 
 interface UserData {
@@ -136,8 +139,31 @@ export default function UserDashboard() {
   );
   const knownFallIdsRef = useRef<Set<string>>(new Set());
   const fallPollingInitializedRef = useRef<boolean>(false);
+  const [fallAlertAudioBlocked, setFallAlertAudioBlocked] =
+    useState<boolean>(false);
 
   const API_BASE_URL = "/api";
+
+  const dismissFallNotification = () => {
+    setShowFallNotification(false);
+    stopRepeatingFallAlert("user-latest-fall");
+  };
+
+  const dismissAllNotifications = () => {
+    setShowNotification(false);
+    setShowFallNotification(false);
+    stopRepeatingFallAlert("user-latest-fall");
+
+    if (notificationTimerRef.current) {
+      clearTimeout(notificationTimerRef.current);
+      notificationTimerRef.current = null;
+    }
+
+    if (fallNotificationTimerRef.current) {
+      clearTimeout(fallNotificationTimerRef.current);
+      fallNotificationTimerRef.current = null;
+    }
+  };
 
   const fetchMessages = async () => {
     try {
@@ -228,14 +254,10 @@ export default function UserDashboard() {
         fallsThisMonth: prev.fallsThisMonth + newFalls.length,
         fallsThisYear: prev.fallsThisYear + newFalls.length,
       }));
-      void playFallAlertSound();
-
-      if (fallNotificationTimerRef.current)
-        clearTimeout(fallNotificationTimerRef.current);
-      fallNotificationTimerRef.current = setTimeout(
-        () => setShowFallNotification(false),
-        10000,
-      );
+      void getFallAlertAudioStatus().then((status) => {
+        setFallAlertAudioBlocked(status !== "ready");
+      });
+      startRepeatingFallAlert("user-latest-fall");
 
       if (Notification.permission === "granted" && newestFall) {
         new Notification("Fall Detected!", {
@@ -263,6 +285,7 @@ export default function UserDashboard() {
       clearInterval(intervalId);
       if (fallNotificationTimerRef.current)
         clearTimeout(fallNotificationTimerRef.current);
+      clearAllRepeatingFallAlerts();
     };
   }, []);
 
@@ -1029,6 +1052,14 @@ export default function UserDashboard() {
               >
                 View Message
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-2 ml-2 h-7 text-xs"
+                onClick={dismissAllNotifications}
+              >
+                Clear all notifications
+              </Button>
             </div>
             <button
               className="flex-shrink-0 text-gray-400 hover:text-gray-600"
@@ -1068,10 +1099,22 @@ export default function UserDashboard() {
                   Score: {latestFall.confidenceScore}%
                 </p>
               )}
+              {fallAlertAudioBlocked && (
+                <p className="text-xs text-amber-700 mt-2">
+                  Sound alert is blocked by the browser until this page receives user interaction.
+                </p>
+              )}
+              <Button
+                size="sm"
+                className="mt-2 h-7 text-xs bg-red-600 hover:bg-red-700"
+                onClick={dismissAllNotifications}
+              >
+                Clear all notifications
+              </Button>
             </div>
             <button
               className="flex-shrink-0 text-gray-400 hover:text-gray-600"
-              onClick={() => setShowFallNotification(false)}
+              onClick={dismissFallNotification}
             >
               <X className="h-4 w-4" />
             </button>

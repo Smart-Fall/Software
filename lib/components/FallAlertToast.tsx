@@ -8,7 +8,9 @@ interface FallAlertToastProps {
   patientName: string;
   confidenceLevel: string;
   confidenceScore: number;
+  audioBlocked?: boolean;
   onDismiss?: () => void;
+  onClearAll?: () => void;
   onViewDetails?: () => void;
 }
 
@@ -16,7 +18,9 @@ export const FallAlertToast: React.FC<FallAlertToastProps> = ({
   patientName,
   confidenceLevel,
   confidenceScore,
+  audioBlocked = false,
   onDismiss,
+  onClearAll,
   onViewDetails,
 }) => {
   const getLevelColor = (level: string) => {
@@ -65,7 +69,13 @@ export const FallAlertToast: React.FC<FallAlertToastProps> = ({
           </div>
         </div>
 
-        <div className="flex gap-2">
+        {audioBlocked && (
+          <p className="mb-3 text-xs text-white/90">
+            Sound alert is blocked by the browser until this page receives user interaction.
+          </p>
+        )}
+
+        <div className="grid grid-cols-3 gap-2">
           <Button
             onClick={onViewDetails}
             size="sm"
@@ -80,6 +90,14 @@ export const FallAlertToast: React.FC<FallAlertToastProps> = ({
             className="flex-1 border-white text-white hover:bg-white/20"
           >
             Dismiss
+          </Button>
+          <Button
+            onClick={onClearAll}
+            size="sm"
+            variant="outline"
+            className="flex-1 border-white text-white hover:bg-white/20"
+          >
+            Clear All
           </Button>
         </div>
       </div>

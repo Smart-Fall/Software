@@ -29,6 +29,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  clearAllRepeatingFallAlerts,
+  getFallAlertAudioStatus,
+  primeFallAlertAudio,
+  startRepeatingFallAlert,
+  stopRepeatingFallAlert,
+} from "@/lib/fall-alert-audio";
 
 interface Patient {
   id?: number;
@@ -119,35 +126,75 @@ export default function CaregiverDashboard() {
 
   // Track previous falls to detect new ones for toast display
   const previousFallIdsRef = useRef<Set<string>>(new Set());
+  const liveFallNotificationsInitializedRef = useRef(false);
+  const activeFallToastIdsRef = useRef<Map<string, string | number>>(new Map());
+
+  const dismissFallToast = (fallId: string) => {
+    const toastId = activeFallToastIdsRef.current.get(fallId);
+    if (toastId !== undefined) {
+      toast.dismiss(toastId);
+      activeFallToastIdsRef.current.delete(fallId);
+    }
+    stopRepeatingFallAlert(`caregiver-fall:${fallId}`);
+  };
+
+  const clearAllFallNotifications = () => {
+    activeFallToastIdsRef.current.forEach((toastId) => {
+      toast.dismiss(toastId);
+    });
+    activeFallToastIdsRef.current.clear();
+    clearAllRepeatingFallAlerts();
+    clearNewFallCount();
+  };
 
   // Show toast for new falls
   useEffect(() => {
+    if (!liveFallNotificationsInitializedRef.current) {
+      previousFallIdsRef.current = new Set(liveFalls.map((f) => f.id));
+      liveFallNotificationsInitializedRef.current = true;
+      return;
+    }
+
     liveFalls.forEach((fall) => {
       if (!previousFallIdsRef.current.has(fall.id)) {
-        const patientName =
-          `${fall.patient?.user.firstName || "Unknown"} ${fall.patient?.user.lastName || ""}`.trim();
+        void (async () => {
+          const patientName =
+            `${fall.patient?.user.firstName || "Unknown"} ${fall.patient?.user.lastName || ""}`.trim();
+          const audioBlocked = (await getFallAlertAudioStatus()) !== "ready";
 
-        toast.custom(
-          (t) => (
-            <FallAlertToast
-              patientName={patientName}
-              confidenceLevel={fall.confidenceLevel}
-              confidenceScore={fall.confidenceScore}
-              onDismiss={() => toast.dismiss(t)}
-              onViewDetails={() => toast.dismiss(t)}
-            />
-          ),
-          {
-            duration: 8000,
-            position: "top-right",
-          },
-        );
+          startRepeatingFallAlert(`caregiver-fall:${fall.id}`);
+          const toastId = toast.custom(
+            () => (
+              <FallAlertToast
+                patientName={patientName}
+                confidenceLevel={fall.confidenceLevel}
+                confidenceScore={fall.confidenceScore}
+                audioBlocked={audioBlocked}
+                onDismiss={() => dismissFallToast(fall.id)}
+                onClearAll={clearAllFallNotifications}
+                onViewDetails={() => dismissFallToast(fall.id)}
+              />
+            ),
+            {
+              duration: Number.POSITIVE_INFINITY,
+              position: "top-right",
+            },
+          );
+          activeFallToastIdsRef.current.set(fall.id, toastId);
+        })();
       }
     });
 
     // Update tracked fall IDs
     previousFallIdsRef.current = new Set(liveFalls.map((f) => f.id));
   }, [liveFalls]);
+
+  useEffect(() => {
+    primeFallAlertAudio();
+    return () => {
+      clearAllFallNotifications();
+    };
+  }, []);
 
   const API_BASE_URL = "/api";
 
