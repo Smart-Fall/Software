@@ -72,7 +72,6 @@ export async function POST(request: Request) {
 
     // Create fall record
     const fall = await dbService.falls.create({
-      patientId: device.patientId || undefined,
       deviceId: device.id,
       fallDatetime: new Date(),
       confidenceScore: data.confidence_score || null,
