@@ -105,18 +105,17 @@ export class ConvexDeviceRepository implements IDeviceRepository {
 
   async update(id: string, data: Partial<Device>): Promise<Device> {
     try {
-      const mutationData: Record<string, unknown> = {
+      const mutationData = {
         id: id as Id<"devices">,
-        patientId: data.patientId,
+        patientId: data.patientId as Id<"patients"> | undefined,
         deviceName: data.deviceName,
         isActive: data.isActive,
-        isMuted: data.isMuted,
         batteryLevel: data.batteryLevel,
         firmwareVersion: data.firmwareVersion,
         lastSeen: data.lastSeen ? data.lastSeen.getTime() : undefined,
       };
 
-      await this.client.mutation(api.devices.update, mutationData as unknown);
+      await this.client.mutation(api.devices.update, mutationData);
 
       const device = await this.client.query(api.devices.getById, {
         id: id as Id<"devices">,
