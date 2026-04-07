@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Activity, Cpu, Link2, BarChart3 } from "lucide-react";
+import { Users, Activity, Cpu, Link2, BarChart3, Usb } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import { LoadingSpinner } from "@/components/dashboard/LoadingSpinner";
 import { StatsOverview } from "./components/StatsOverview";
@@ -331,6 +333,31 @@ export default function AdminDashboard() {
             />
           </TabsContent>
         </Tabs>
+
+        {/* Device Tools Section */}
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Device Tools
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Link href="/admin/provision">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-blue-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Provision Device
+                  </CardTitle>
+                  <Usb className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Configure WiFi credentials on a SmartFall device via USB
+                    serial.
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

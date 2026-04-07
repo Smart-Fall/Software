@@ -5,7 +5,9 @@ import { createSession } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { email: rawEmail, password } = await request.json();
+    const email =
+      typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
 
     // Validate input
     if (!email || !password) {

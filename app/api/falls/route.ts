@@ -3,6 +3,23 @@ import { getDbServiceAsync } from "@/lib/db/service";
 
 export async function POST(request: Request) {
   try {
+    const expectedApiKey = process.env.DEVICE_INGEST_API_KEY;
+    if (!expectedApiKey) {
+      console.error("[API] DEVICE_INGEST_API_KEY is not configured");
+      return NextResponse.json(
+        { error: "Device ingestion is not configured" },
+        { status: 500 },
+      );
+    }
+
+    const providedApiKey = request.headers.get("x-device-api-key");
+    if (!providedApiKey || providedApiKey !== expectedApiKey) {
+      return NextResponse.json(
+        { error: "Unauthorized device request" },
+        { status: 401 },
+      );
+    }
+
     const data = await request.json();
 
     if (!data.device_id) {
@@ -34,13 +51,24 @@ export async function POST(request: Request) {
 
     // Hardware sends confidence_level as a string (e.g. "HIGH", "CONFIRMED")
     const VALID_CONFIDENCE_LEVELS = new Set([
-      "NO_FALL", "SUSPICIOUS", "POTENTIAL", "HIGH", "CONFIRMED",
+      "NO_FALL",
+      "SUSPICIOUS",
+      "POTENTIAL",
+      "HIGH",
+      "CONFIRMED",
     ]);
     const confidenceLevel =
       typeof data.confidence_level === "string" &&
       VALID_CONFIDENCE_LEVELS.has(data.confidence_level)
         ? data.confidence_level
-        : "UNKNOWN";
+        : null;
+
+    if (!confidenceLevel) {
+      return NextResponse.json(
+        { error: "Invalid confidence_level" },
+        { status: 400 },
+      );
+    }
 
     // Create fall record
     const fall = await dbService.falls.create({

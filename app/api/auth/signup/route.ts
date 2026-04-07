@@ -8,7 +8,7 @@ export async function POST(request: Request) {
       firstName,
       lastName,
       dob,
-      email,
+      email: rawEmail,
       password,
       accountType,
       // Caregiver fields
@@ -20,6 +20,9 @@ export async function POST(request: Request) {
       initialHealthScore,
       deviceMacAddress,
     } = await request.json();
+
+    const email =
+      typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
 
     // Validate input
     if (
@@ -59,7 +62,8 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
-      const macRegex = /^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})|([0-9A-Fa-f]{12})$/;
+      const macRegex =
+        /^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})|([0-9A-Fa-f]{12})$/;
       if (!macRegex.test(deviceMacAddress)) {
         return NextResponse.json(
           { error: "Invalid MAC address format" },
@@ -121,8 +125,10 @@ export async function POST(request: Request) {
       });
 
       // Normalize MAC to device ID format matching firmware: AA:BB:CC:DD:EE:FF
-      const rawMac = deviceMacAddress.replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
-      const deviceId = rawMac.match(/.{2}/g)!.join(':');
+      const rawMac = deviceMacAddress
+        .replace(/[^0-9A-Fa-f]/g, "")
+        .toUpperCase();
+      const deviceId = rawMac.match(/.{2}/g)!.join(":");
 
       // Create device with normalized device ID
       await dbService.devices.create({

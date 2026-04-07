@@ -1,34 +1,34 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, MessageSquare } from 'lucide-react';
-import { useFallAlerts } from '@/lib/hooks/useFallAlerts';
-import { FallAlertToast } from '@/lib/components/FallAlertToast';
-import { CaregiverHeader } from './components/CaregiverHeader';
-import { PatientTable } from './components/PatientTable';
-import { DeviceTable } from './components/DeviceTable';
-import { AnalyticsTab } from './components/AnalyticsTab';
-import { AlertsTab } from './components/AlertsTab';
-import { AddPatientSheet } from './components/AddPatientSheet';
-import { MetricCard } from '@/components/dashboard/MetricCard';
-import { LoadingSpinner } from '@/components/dashboard/LoadingSpinner';
-import { EmptyState } from '@/components/dashboard/EmptyState';
-import { Users, Heart, TrendingUp } from 'lucide-react';
-import PatientDetailsDialog from '@/app/PatientDetailsDialog';
+import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertTriangle, MessageSquare } from "lucide-react";
+import { useFallAlerts } from "@/lib/hooks/useFallAlerts";
+import { FallAlertToast } from "@/lib/components/FallAlertToast";
+import { CaregiverHeader } from "./components/CaregiverHeader";
+import { PatientTable } from "./components/PatientTable";
+import { DeviceTable } from "./components/DeviceTable";
+import { AnalyticsTab } from "./components/AnalyticsTab";
+import { AlertsTab } from "./components/AlertsTab";
+import { AddPatientSheet } from "./components/AddPatientSheet";
+import { MetricCard } from "@/components/dashboard/MetricCard";
+import { LoadingSpinner } from "@/components/dashboard/LoadingSpinner";
+import { EmptyState } from "@/components/dashboard/EmptyState";
+import { Users, Heart, TrendingUp } from "lucide-react";
+import PatientDetailsDialog from "@/app/PatientDetailsDialog";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 
 interface Patient {
   id?: number;
@@ -66,6 +66,7 @@ interface Device {
 interface Caregiver {
   id?: number;
   caregiver_id?: number;
+  caregiverId?: string | number;
   firstName?: string;
   first_name?: string;
   lastName?: string;
@@ -95,18 +96,26 @@ export default function CaregiverDashboard() {
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sheetOpen, setSheetOpen] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [detailsOpen, setDetailsOpen] = useState<boolean>(false);
   const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false);
   const [messageTarget, setMessageTarget] = useState<Patient | null>(null);
-  const [messageForm, setMessageForm] = useState({ subject: '', message: '', isUrgent: false });
+  const [messageForm, setMessageForm] = useState({
+    subject: "",
+    message: "",
+    isUrgent: false,
+  });
   const [sendingMessage, setSendingMessage] = useState<boolean>(false);
+  const caregiverPollId =
+    caregiver?.caregiverId || caregiver?.caregiver_id || caregiver?.id;
 
   // Use fall alerts hook (starts polling after caregiver loads)
-  const { falls: liveFalls, newFallCount, clearNewFallCount } = useFallAlerts(
-    caregiver?.caregiver_id || caregiver?.id ? String(caregiver.caregiver_id || caregiver.id) : undefined
-  );
+  const {
+    falls: liveFalls,
+    newFallCount,
+    clearNewFallCount,
+  } = useFallAlerts(caregiverPollId ? String(caregiverPollId) : undefined);
 
   // Track previous falls to detect new ones for toast display
   const previousFallIdsRef = useRef<Set<string>>(new Set());
@@ -115,7 +124,8 @@ export default function CaregiverDashboard() {
   useEffect(() => {
     liveFalls.forEach((fall) => {
       if (!previousFallIdsRef.current.has(fall.id)) {
-        const patientName = `${fall.patient?.user.firstName || 'Unknown'} ${fall.patient?.user.lastName || ''}`.trim();
+        const patientName =
+          `${fall.patient?.user.firstName || "Unknown"} ${fall.patient?.user.lastName || ""}`.trim();
 
         toast.custom(
           (t) => (
@@ -129,28 +139,28 @@ export default function CaregiverDashboard() {
           ),
           {
             duration: 8000,
-            position: 'top-right',
-          }
+            position: "top-right",
+          },
         );
       }
     });
 
     // Update tracked fall IDs
-    previousFallIdsRef.current = new Set(liveFalls.map(f => f.id));
+    previousFallIdsRef.current = new Set(liveFalls.map((f) => f.id));
   }, [liveFalls]);
 
-  const API_BASE_URL = '/api';
+  const API_BASE_URL = "/api";
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
         const caregiverRes = await fetch(`${API_BASE_URL}/caregiver/current`, {
-          credentials: 'include',
+          credentials: "include",
         });
 
         if (!caregiverRes.ok) {
-          throw new Error('Failed to fetch caregiver data');
+          throw new Error("Failed to fetch caregiver data");
         }
 
         const caregiverData: Caregiver = await caregiverRes.json();
@@ -159,12 +169,12 @@ export default function CaregiverDashboard() {
         const unassignedRes = await fetch(
           `${API_BASE_URL}/patients/unassigned`,
           {
-            credentials: 'include',
-          }
+            credentials: "include",
+          },
         );
 
         if (!unassignedRes.ok) {
-          throw new Error('Failed to fetch unassigned patients');
+          throw new Error("Failed to fetch unassigned patients");
         }
 
         const unassignedData: Patient[] = await unassignedRes.json();
@@ -173,30 +183,30 @@ export default function CaregiverDashboard() {
         const myPatientsRes = await fetch(
           `${API_BASE_URL}/caregiver/patients`,
           {
-            credentials: 'include',
-          }
+            credentials: "include",
+          },
         );
 
         if (!myPatientsRes.ok) {
-          throw new Error('Failed to fetch assigned patients');
+          throw new Error("Failed to fetch assigned patients");
         }
 
         const myPatientsData: Patient[] = await myPatientsRes.json();
         setMyPatients(myPatientsData);
 
         const statsRes = await fetch(`${API_BASE_URL}/caregiver/stats`, {
-          credentials: 'include',
+          credentials: "include",
         });
 
         if (!statsRes.ok) {
-          throw new Error('Failed to fetch statistics');
+          throw new Error("Failed to fetch statistics");
         }
 
         const statsData: Stats = await statsRes.json();
         setStats(statsData);
 
         const devicesRes = await fetch(`${API_BASE_URL}/caregiver/devices`, {
-          credentials: 'include',
+          credentials: "include",
         });
 
         if (devicesRes.ok) {
@@ -204,9 +214,9 @@ export default function CaregiverDashboard() {
           setDevices(devicesData.devices || []);
         }
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error("Error fetching dashboard data:", error);
         toast.error(
-          'Failed to load dashboard data. Please make sure you are logged in and try again.'
+          "Failed to load dashboard data. Please make sure you are logged in and try again.",
         );
       } finally {
         setIsLoading(false);
@@ -220,7 +230,7 @@ export default function CaregiverDashboard() {
     const fetchDevices = async () => {
       try {
         const devicesRes = await fetch(`${API_BASE_URL}/caregiver/devices`, {
-          credentials: 'include',
+          credentials: "include",
         });
 
         if (devicesRes.ok) {
@@ -228,7 +238,7 @@ export default function CaregiverDashboard() {
           setDevices(devicesData.devices || []);
         }
       } catch (error) {
-        console.error('Error fetching devices:', error);
+        console.error("Error fetching devices:", error);
       }
     };
 
@@ -239,19 +249,19 @@ export default function CaregiverDashboard() {
   const handleLogout = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
       });
 
       if (response.ok) {
-        toast.success('Logged out successfully');
-        window.location.href = '/login';
+        toast.success("Logged out successfully");
+        window.location.href = "/login";
       } else {
-        throw new Error('Logout failed');
+        throw new Error("Logout failed");
       }
     } catch (error) {
-      console.error('Error logging out:', error);
-      toast.error('Failed to logout. Please try again.');
+      console.error("Error logging out:", error);
+      toast.error("Failed to logout. Please try again.");
     }
   };
 
@@ -265,16 +275,16 @@ export default function CaregiverDashboard() {
       const patientId = patient.id ?? patient.patient_id;
 
       if (patientId == null) {
-        toast.error('Cannot assign patient: missing patient id');
+        toast.error("Cannot assign patient: missing patient id");
         return;
       }
 
       const response = await fetch(`${API_BASE_URL}/caregiver-patients`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           patient_id: patientId,
         }),
@@ -290,18 +300,18 @@ export default function CaregiverDashboard() {
         }
 
         throw new Error(
-          serverMessage || `Failed to assign patient (HTTP ${response.status})`
+          serverMessage || `Failed to assign patient (HTTP ${response.status})`,
         );
       }
 
       const updatedPatients = [...myPatients, patient];
       setMyPatients(updatedPatients);
       setUnassignedPatients(
-        unassignedPatients.filter((p) => (p.id ?? p.patient_id) !== patientId)
+        unassignedPatients.filter((p) => (p.id ?? p.patient_id) !== patientId),
       );
 
       const statsRes = await fetch(`${API_BASE_URL}/caregiver/stats`, {
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (statsRes.ok) {
@@ -310,38 +320,39 @@ export default function CaregiverDashboard() {
       }
 
       setSheetOpen(false);
-      toast.success('Patient assigned successfully');
+      toast.success("Patient assigned successfully");
     } catch (error) {
-      console.error('Error assigning patient:', error);
+      console.error("Error assigning patient:", error);
       const message =
         error instanceof Error
           ? error.message
-          : 'Failed to assign patient. Please try again.';
+          : "Failed to assign patient. Please try again.";
       toast.error(message);
     }
   };
 
   const handleOpenMessageDialog = (patient: Patient) => {
     setMessageTarget(patient);
-    setMessageForm({ subject: '', message: '', isUrgent: false });
+    setMessageForm({ subject: "", message: "", isUrgent: false });
     setMessageDialogOpen(true);
   };
 
   const handleSendMessage = async () => {
     if (!messageTarget || !messageForm.message.trim()) return;
 
-    const patientId = messageTarget.id ?? messageTarget.patient_id ?? messageTarget.patientId;
+    const patientId =
+      messageTarget.id ?? messageTarget.patient_id ?? messageTarget.patientId;
     if (patientId == null) {
-      toast.error('Cannot send message: missing patient id');
+      toast.error("Cannot send message: missing patient id");
       return;
     }
 
     setSendingMessage(true);
     try {
       const response = await fetch(`${API_BASE_URL}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           patientId: String(patientId),
           subject: messageForm.subject,
@@ -351,16 +362,22 @@ export default function CaregiverDashboard() {
       });
 
       if (!response.ok) {
-        const err = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(err.error || `Failed to send message (HTTP ${response.status})`);
+        const err = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(
+          err.error || `Failed to send message (HTTP ${response.status})`,
+        );
       }
 
-      toast.success('Message sent successfully');
+      toast.success("Message sent successfully");
       setMessageDialogOpen(false);
-      setMessageForm({ subject: '', message: '', isUrgent: false });
+      setMessageForm({ subject: "", message: "", isUrgent: false });
     } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to send message');
+      console.error("Error sending message:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to send message",
+      );
     } finally {
       setSendingMessage(false);
     }
@@ -395,8 +412,8 @@ export default function CaregiverDashboard() {
             title="Failed to load dashboard"
             description="Unable to fetch caregiver information. Please refresh or contact support."
             action={{
-              label: 'Logout',
-              onClick: handleLogout
+              label: "Logout",
+              onClick: handleLogout,
             }}
           />
         </main>
@@ -452,7 +469,13 @@ export default function CaregiverDashboard() {
         </div>
 
         {/* Main Tabs */}
-        <Tabs defaultValue="patients" className="w-full" onValueChange={(v) => { if (v === 'alerts') clearNewFallCount(); }}>
+        <Tabs
+          defaultValue="patients"
+          className="w-full"
+          onValueChange={(v) => {
+            if (v === "alerts") clearNewFallCount();
+          }}
+        >
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="patients">Patients</TabsTrigger>
             <TabsTrigger value="devices">Devices</TabsTrigger>
@@ -504,7 +527,10 @@ export default function CaregiverDashboard() {
               recentFalls={liveFalls}
               unresolvedFalls={stats.recentFalls}
               highRiskPatients={stats.highRiskPatients}
-              offlineDevices={Math.max(0, devices.length - Math.floor(devices.length * 0.8))}
+              offlineDevices={Math.max(
+                0,
+                devices.length - Math.floor(devices.length * 0.8),
+              )}
             />
           </TabsContent>
         </Tabs>
@@ -523,10 +549,10 @@ export default function CaregiverDashboard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
-              Send Message to{' '}
+              Send Message to{" "}
               {messageTarget
-                ? `${messageTarget.firstName || messageTarget.first_name || ''} ${messageTarget.lastName || messageTarget.last_name || ''}`.trim()
-                : 'Patient'}
+                ? `${messageTarget.firstName || messageTarget.first_name || ""} ${messageTarget.lastName || messageTarget.last_name || ""}`.trim()
+                : "Patient"}
             </DialogTitle>
           </DialogHeader>
 
@@ -537,7 +563,12 @@ export default function CaregiverDashboard() {
                 id="subject"
                 placeholder="Optional subject"
                 value={messageForm.subject}
-                onChange={(e) => setMessageForm((prev) => ({ ...prev, subject: e.target.value }))}
+                onChange={(e) =>
+                  setMessageForm((prev) => ({
+                    ...prev,
+                    subject: e.target.value,
+                  }))
+                }
               />
             </div>
 
@@ -548,7 +579,12 @@ export default function CaregiverDashboard() {
                 placeholder="Write your message here..."
                 rows={5}
                 value={messageForm.message}
-                onChange={(e) => setMessageForm((prev) => ({ ...prev, message: e.target.value }))}
+                onChange={(e) =>
+                  setMessageForm((prev) => ({
+                    ...prev,
+                    message: e.target.value,
+                  }))
+                }
               />
             </div>
 
@@ -567,7 +603,10 @@ export default function CaregiverDashboard() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setMessageDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setMessageDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button
@@ -575,7 +614,7 @@ export default function CaregiverDashboard() {
               disabled={sendingMessage || !messageForm.message.trim()}
               className="bg-[#1a1a96] hover:bg-[#15157a]"
             >
-              {sendingMessage ? 'Sending...' : 'Send Message'}
+              {sendingMessage ? "Sending..." : "Send Message"}
             </Button>
           </DialogFooter>
         </DialogContent>
