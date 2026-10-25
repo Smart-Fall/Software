@@ -1,6 +1,6 @@
 /**
  * Shared Type Definitions
- * Database-agnostic interfaces used by both Prisma and Convex adapters
+ * Database-agnostic interfaces used by the Convex adapter
  */
 
 // ============================================================================

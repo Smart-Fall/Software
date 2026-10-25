@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 
 export async function PUT(
   _req: Request,
-  context: { params: Promise<{ messageId: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -21,9 +21,9 @@ export async function PUT(
     }
 
     const params = await context.params;
-    const { messageId } = params;
+    const { id } = params;
 
-    const message = await db.messages.markAsRead(messageId, patient.id);
+    const message = await db.messages.markAsRead(id, patient.id);
 
     return NextResponse.json(message);
   } catch (error) {

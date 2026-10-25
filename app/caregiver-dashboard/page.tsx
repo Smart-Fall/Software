@@ -16,7 +16,7 @@ import { MetricCard } from "@/components/dashboard/MetricCard";
 import { LoadingSpinner } from "@/components/dashboard/LoadingSpinner";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { Users, Heart, TrendingUp } from "lucide-react";
-import PatientDetailsDialog from "@/app/PatientDetailsDialog";
+import PatientDetailsDialog from "@/components/dashboard/PatientDetailsDialog";
 import {
   Dialog,
   DialogContent,

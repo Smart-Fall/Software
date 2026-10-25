@@ -1,18 +1,17 @@
 /**
  * Database Service
- * Factory and singleton for creating database adapters
- * Provides a single interface to switch between Prisma and Convex
+ * Factory and singleton for the database adapter
+ * Provides a single interface to the Convex backend
  */
 
 import { IDatabaseAdapter } from "./adapters/base";
-import { getDatabaseConfig } from "./config";
 
 let adapterInstance: IDatabaseAdapter | null = null;
 let initializationPromise: Promise<IDatabaseAdapter> | null = null;
 
 /**
  * Get or create the database adapter singleton (async version)
- * Lazily loads the appropriate adapter based on DATABASE_PROVIDER
+ * Lazily loads the Convex adapter
  */
 export async function getDatabaseAdapter(): Promise<IDatabaseAdapter> {
   if (adapterInstance) {
@@ -32,20 +31,11 @@ export async function getDatabaseAdapter(): Promise<IDatabaseAdapter> {
 }
 
 /**
- * Initialize the appropriate adapter based on configuration
+ * Initialize the Convex adapter
  */
 async function initializeAdapter(): Promise<IDatabaseAdapter> {
-  const config = getDatabaseConfig();
-
-  if (config.provider === "prisma") {
-    const { PrismaAdapter } = await import("./adapters/prisma");
-    return new PrismaAdapter();
-  } else if (config.provider === "convex") {
-    const { ConvexAdapter } = await import("./adapters/convex");
-    return new ConvexAdapter();
-  } else {
-    throw new Error(`Unsupported database provider: ${config.provider}`);
-  }
+  const { ConvexAdapter } = await import("./adapters/convex");
+  return new ConvexAdapter();
 }
 
 /**

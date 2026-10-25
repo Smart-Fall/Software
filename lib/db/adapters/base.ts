@@ -1,6 +1,6 @@
 /**
  * Base Repository Interfaces
- * Define the contract that both Prisma and Convex adapters must implement
+ * Define the contract that the Convex adapter must implement
  */
 
 import {

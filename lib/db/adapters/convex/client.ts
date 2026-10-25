@@ -11,11 +11,6 @@ let clientInstance: ConvexHttpClient | null = null;
 export function getConvexClient(): ConvexHttpClient {
   if (!clientInstance) {
     const config = getDatabaseConfig();
-
-    if (config.provider !== 'convex' || !config.convex) {
-      throw new Error('Convex configuration not available');
-    }
-
     clientInstance = new ConvexHttpClient(config.convex.publicUrl);
   }
 

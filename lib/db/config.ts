@@ -1,16 +1,10 @@
 /**
  * Database Configuration
- * Centralizes environment-based database provider selection and validation
+ * Loads and validates the Convex environment variables
  */
 
-export type DatabaseProvider = 'prisma' | 'convex';
-
 export interface DatabaseConfig {
-  provider: DatabaseProvider;
-  prisma?: {
-    databaseUrl: string;
-  };
-  convex?: {
+  convex: {
     deploymentUrl: string;
     publicUrl: string;
   };
@@ -20,44 +14,17 @@ export interface DatabaseConfig {
  * Load and validate database configuration from environment variables
  */
 export function loadDatabaseConfig(): DatabaseConfig {
-  const provider = (process.env.DATABASE_PROVIDER || 'prisma') as DatabaseProvider;
+  const deploymentUrl = process.env.CONVEX_DEPLOYMENT;
+  const publicUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
-  if (!['prisma', 'convex'].includes(provider)) {
-    throw new Error(
-      `Invalid DATABASE_PROVIDER: "${provider}". Must be "prisma" or "convex"`
-    );
+  if (!deploymentUrl) {
+    throw new Error('CONVEX_DEPLOYMENT environment variable is required');
+  }
+  if (!publicUrl) {
+    throw new Error('NEXT_PUBLIC_CONVEX_URL environment variable is required');
   }
 
-  const config: DatabaseConfig = {
-    provider,
-  };
-
-  // Validate provider-specific configuration
-  if (provider === 'prisma') {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
-      throw new Error('DATABASE_URL environment variable is required for prisma provider');
-    }
-    config.prisma = { databaseUrl };
-  }
-
-  if (provider === 'convex') {
-    const deploymentUrl = process.env.CONVEX_DEPLOYMENT;
-    const publicUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-
-    if (!deploymentUrl) {
-      throw new Error('CONVEX_DEPLOYMENT environment variable is required for convex provider');
-    }
-    if (!publicUrl) {
-      throw new Error(
-        'NEXT_PUBLIC_CONVEX_URL environment variable is required for convex provider'
-      );
-    }
-
-    config.convex = { deploymentUrl, publicUrl };
-  }
-
-  return config;
+  return { convex: { deploymentUrl, publicUrl } };
 }
 
 /**
