@@ -2,16 +2,13 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { getDbServiceAsync } from "./db/service";
 
-if (!process.env.JWT_SECRET) {
-  console.warn(
-    "[AUTH] WARNING: JWT_SECRET is not set. Using insecure hardcoded fallback. " +
-      "Set JWT_SECRET in your .env file before deploying to production.",
-  );
+function getSecret(): Uint8Array {
+  const value = process.env.JWT_SECRET;
+  if (!value) {
+    throw new Error("JWT_SECRET is not set. Add it to your .env file.");
+  }
+  return new TextEncoder().encode(value);
 }
-
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || "REDACTED",
-);
 
 type AccountType = "user" | "caregiver" | "admin";
 
@@ -29,7 +26,7 @@ export async function createSession(
   const token = await new SignJWT({ userId, accountType })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("24h")
-    .sign(secret);
+    .sign(getSecret());
 
   const cookieStore = await cookies();
   cookieStore.set("session", token, {
@@ -58,7 +55,7 @@ export async function getSession(): Promise<SessionPayload | null> {
   if (!token) return null;
 
   try {
-    const verified = await jwtVerify(token, secret);
+    const verified = await jwtVerify(token, getSecret());
 
     // Check if session exists in database and is not expired
     const dbService = await getDbServiceAsync();
