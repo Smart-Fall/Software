@@ -10,7 +10,7 @@ description: Detailed installation guide for SmartFall
 - **Node.js**: 18.0.0 or higher
 - **npm**: 8.0.0 or higher (or yarn 1.22.0+)
 - **Git**: Latest stable version
-- **Database**: PostgreSQL 12+ or Convex account
+- **Database**: A Convex account (https://convex.dev)
 - **Memory**: Minimum 2GB RAM
 - **Disk Space**: At least 500MB for dependencies
 
@@ -45,14 +45,6 @@ npm list
 
 You should see a tree of all installed packages without errors.
 
-## Generate Prisma Client
-
-If using Prisma as the database adapter:
-
-```bash
-npm run prisma:generate
-```
-
 ## Create Environment File
 
 Copy the example environment file:
@@ -64,26 +56,6 @@ cp .env.example .env.local
 Edit `.env.local` with your configuration values.
 
 ## Database Setup
-
-### For PostgreSQL
-
-1. Create a new PostgreSQL database:
-
-```sql
-CREATE DATABASE smartfall;
-```
-
-2. Set your database connection string in `.env.local`:
-
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/smartfall"
-```
-
-3. Run migrations:
-
-```bash
-npm run prisma:migrate
-```
 
 ### For Convex
 
@@ -114,14 +86,6 @@ If you encounter peer dependency issues:
 npm install --legacy-peer-deps
 ```
 
-### Prisma Client generation failed
-
-Clear Prisma cache and regenerate:
-
-```bash
-rm -rf node_modules/.prisma
-npm run prisma:generate
-```
 
 ### Port 3000 already in use
 
