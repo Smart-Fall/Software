@@ -31,7 +31,7 @@ Self-hosted containerized deployment.
 
 - Docker installation
 - Server/VPS
-- PostgreSQL database
+- Convex deployment
 
 ## Pre-Deployment Checklist
 
@@ -90,8 +90,8 @@ curl https://your-domain.com/api/health
 
 ```bash
 NODE_ENV=production
-DATABASE_PROVIDER=prisma
-DATABASE_URL=postgresql://user:pass@host:5432/smartfall
+CONVEX_DEPLOYMENT=prod:your-deployment-id
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment-id.convex.cloud
 JWT_SECRET=<strong_random_secret_min_32_chars>
 SESSION_DURATION=24
 ALLOWED_ORIGINS=https://smartfall.example.com
@@ -175,7 +175,7 @@ flowchart TD
   LB[Load balancer] --> A1[App instance 1]
   LB --> A2[App instance 2]
   LB --> A3[App instance 3]
-  A1 --> DB[PostgreSQL database]
+  A1 --> DB[Convex backend]
   A2 --> DB
   A3 --> DB
 ```

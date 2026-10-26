@@ -15,8 +15,8 @@ flowchart TD
       C[Caregiver app\nBrowser or mobile] --> A
       I[IoT devices\nWearables and firmware] --> M
       A --> M[API layer and middleware\nAuth, validation, rate limiting]
-      M --> D[Database adapter layer\nIDatabaseAdapter\nPrismaAdapter\nConvexAdapter]
-      D --> PG[PostgreSQL]
+      M --> D[Database adapter layer\nIDatabaseAdapter\nConvexAdapter]
+      D --> PG[Convex backend]
       D --> CV[Convex serverless]
 ```
 
@@ -43,12 +43,7 @@ flowchart TD
 
 ### 4. Database Adapter Pattern
 
-Two database implementations available:
-
-- **Prisma**: For PostgreSQL/MySQL deployments
-- **Convex**: For serverless/real-time requirements
-
-Switch providers via `DATABASE_PROVIDER` environment variable.
+SmartFall reaches Convex through a single database adapter. Routes never call the backend SDK directly, so the data access layer can change without touching the API routes.
 
 ### 5. Authentication & Authorization
 
@@ -64,8 +59,8 @@ Switch providers via `DATABASE_PROVIDER` environment variable.
 | **Frontend**       | React 19, TypeScript, Tailwind CSS |
 | **Framework**      | Next.js 16 with App Router         |
 | **Authentication** | JWT, bcryptjs                      |
-| **Database**       | PostgreSQL (Prisma) or Convex      |
-| **ORM**            | Prisma or Convex SDK               |
+| **Database**       | Convex                             |
+| **ORM**            | Convex SDK                         |
 | **API**            | REST, Next.js Route Handlers       |
 | **Validation**     | TypeScript types                   |
 | **UI Components**  | Radix UI, Lucide icons             |
@@ -132,7 +127,7 @@ flowchart LR
 
 ### Database Adapter Pattern
 
-Learn how SmartFall abstracts database operations to support multiple providers.
+Learn how SmartFall abstracts database operations behind one adapter interface.
 
 ### IoT Pipeline
 

@@ -5,7 +5,7 @@ description: SmartFall database schema, models, and architecture
 
 # Database
 
-SmartFall uses a flexible, adapter-based database layer supporting both PostgreSQL (via Prisma) and Convex (serverless).
+SmartFall stores its data in Convex, a serverless backend. All database access goes through a single adapter interface.
 
 ## Database Overview
 
@@ -26,19 +26,12 @@ The system manages 12 core entities with relationships:
 
 ## Database Selection
 
-Choose your database provider via environment variable:
+Configure the Convex deployment with environment variables:
 
 ```bash
-# PostgreSQL with Prisma
-DATABASE_PROVIDER=prisma
-DATABASE_URL=postgresql://user:password@localhost:5432/smartfall
-
-# Convex Serverless
-DATABASE_PROVIDER=convex
 CONVEX_DEPLOYMENT=prod:your-deployment-id
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment-id.convex.cloud
 ```
-
-No application code changes required - the adapter pattern handles it.
 
 ## Sections
 
@@ -50,17 +43,12 @@ Entity relationship diagram and schema structure
 
 Detailed model definitions with all fields
 
-### Prisma vs Convex
-
-Comparison and migration considerations
-
 ## Data Flow
 
 ```mermaid
 flowchart TD
   A[API routes] --> B[getDbServiceAsync]
   B --> C[IDatabaseAdapter interface]
-  C --> D[PrismaAdapter\nPostgreSQL]
   C --> E[ConvexAdapter\nServerless]
 ```
 
@@ -123,20 +111,6 @@ const highRisk = await db.patients.findByRiskLevel(75);
 
 ## Transactions
 
-### Prisma Transactions
-
-```typescript
-const result = await prisma.$transaction(async (tx) => {
-  const fall = await tx.fall.create({
-    /* ... */
-  });
-  const alert = await tx.alert.create({
-    /* ... */
-  });
-  return { fall, alert };
-});
-```
-
 ### Convex Transactions
 
 ```typescript
@@ -156,24 +130,6 @@ export const createFallWithAlert = mutation({
 
 ## Indexing Strategy
 
-### PostgreSQL Indexes (Prisma)
-
-```prisma
-model SensorData {
-  id        String   @id @default(cuid())
-  deviceId  String   @index
-  userId    String   @index
-  timestamp DateTime @index
-}
-```
-
-Indexed fields for fast queries:
-
-- `device_id` - Device lookups
-- `user_id` - User data retrieval
-- `timestamp` - Time-range queries
-- `status` - Fall event filtering
-
 ### Convex Indexing
 
 Indexes automatically created for:
@@ -183,35 +139,13 @@ Indexes automatically created for:
 
 ## Backup & Recovery
 
-### PostgreSQL
-
-- Regular automated backups
-- Point-in-time recovery supported
-- Export to CSV/JSON available
-
 ### Convex
 
 - Automatic daily backups
 - Version history maintained
 - Automatic recovery on failure
 
-## Migration Path
-
-To migrate from Prisma to Convex:
-
-1. Export data from PostgreSQL
-2. Transform to Convex schema format
-3. Import into Convex backend
-4. Update `DATABASE_PROVIDER` env var
-5. Deploy with zero code changes
-
 ## Performance Considerations
-
-### Prisma (PostgreSQL)
-
-- **Pros**: Complex queries, transactions, strong consistency
-- **Cons**: Requires server management
-- **Best for**: Large installations, complex analytics
 
 ### Convex
 

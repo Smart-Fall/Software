@@ -11,7 +11,7 @@ Deploy SmartFall to Vercel with zero configuration.
 
 - GitHub account and repository
 - Vercel account (free or pro)
-- PostgreSQL database (or Convex)
+- Convex deployment
 
 ## Deployment Steps
 
@@ -31,8 +31,8 @@ In Vercel dashboard:
 
 ```bash
 NODE_ENV=production
-DATABASE_PROVIDER=prisma
-DATABASE_URL=postgresql://...
+CONVEX_DEPLOYMENT=prod:your-deployment-id
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment-id.convex.cloud
 JWT_SECRET=<strong_secret>
 ALLOWED_ORIGINS=https://your-domain.com
 ```
@@ -58,17 +58,9 @@ curl https://your-project.vercel.app/api/health
 3. Add your domain
 4. Update DNS records as directed
 
-## Database Hosting Options
+## Database
 
-### Option 1: PostgreSQL (External)
-
-Use Supabase, Railway, or similar:
-
-```bash
-DATABASE_URL=postgresql://user:pass@db.example.com:5432/smartfall
-```
-
-### Option 2: Convex (Recommended for Vercel)
+### Convex
 
 Serverless-first approach:
 
@@ -106,7 +98,7 @@ Common issues:
 ### Database Connection Fails
 
 Verify:
-- DATABASE_URL is correct
+- NEXT_PUBLIC_CONVEX_URL is correct
 - Database is accessible from Vercel
 - Firewall allows Vercel IPs
 

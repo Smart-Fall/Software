@@ -11,7 +11,7 @@ Get started with SmartFall in just a few minutes.
 
 - Node.js 18+ or later
 - npm or yarn
-- PostgreSQL database (or use Convex for serverless)
+- A Convex account (https://convex.dev)
 - Git
 
 ## Installation
@@ -70,7 +70,7 @@ npm run dev -- -p 3001
 
 ### Database connection failed
 
-Verify your `DATABASE_URL` in `.env.local` and ensure the database server is running.
+Verify `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL` in `.env.local`, and make sure `npm run dev` is running the Convex dev server.
 
 ### Module not found errors
 

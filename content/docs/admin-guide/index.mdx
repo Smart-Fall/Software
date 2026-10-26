@@ -85,11 +85,8 @@ Access audit, error, and activity logs
 Daily automated backups configured:
 
 ```bash
-# View backup status
-docker exec smartfall-postgres pg_dump --version
-
-# Manual backup
-docker exec smartfall-postgres pg_dump -U smartfall smartfall > backup.sql
+# Export all data from the Convex deployment
+npx convex export --path backup.zip
 ```
 
 ### Recovery Process

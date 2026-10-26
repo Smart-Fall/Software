@@ -44,18 +44,6 @@ Open your browser and navigate to the appropriate URL:
 
 Verify your database is running and accessible:
 
-### For PostgreSQL
-
-```bash
-psql postgresql://user:password@localhost:5432/smartfall
-```
-
-If the connection fails, check:
-1. PostgreSQL service is running
-2. Database name matches `DATABASE_URL`
-3. Username and password are correct
-4. Network connection is available
-
 ### For Convex
 
 Check your Convex deployment status at `https://dashboard.convex.dev`
@@ -163,21 +151,6 @@ lsof -ti:3000 | xargs kill -9
 # On Windows
 netstat -ano | findstr :3000
 taskkill /PID <PID> /F
-```
-
-### Database Connection Timeout
-
-Check if PostgreSQL is running:
-
-```bash
-# Mac (via Homebrew)
-brew services start postgresql
-
-# Linux
-sudo systemctl start postgresql
-
-# Windows
-pg_ctl -D "C:\Program Files\PostgreSQL\data" start
 ```
 
 ### Module Not Found

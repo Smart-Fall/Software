@@ -22,33 +22,6 @@ Represents user accounts with authentication and role information.
 | `createdAt` | DateTime | Account creation time |
 | `updatedAt` | DateTime | Last modification time |
 
-### Prisma Schema
-
-```prisma
-model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String
-  firstName     String
-  lastName      String
-  role          Role     @default(PATIENT)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  sessions      Session[]
-  patient       Patient?
-  caregiver     Caregiver?
-}
-
-enum Role {
-  PATIENT
-  CAREGIVER
-  ADMIN
-}
-```
-
----
-
 ## Session Model
 
 Stores user authentication sessions.
