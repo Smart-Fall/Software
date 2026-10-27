@@ -11,7 +11,7 @@ export default defineSchema({
   // Users Table
   // ============================================================================
   users: defineTable({
-    externalId: v.string(), // Original Prisma UUID for migration
+    externalId: v.string(), // Legacy ID from the original PostgreSQL data
     email: v.string(),
     passwordHash: v.string(),
     accountType: v.union(
@@ -32,9 +32,9 @@ export default defineSchema({
   // Sessions Table
   // ============================================================================
   sessions: defineTable({
-    externalId: v.string(), // Original Prisma UUID for migration
+    externalId: v.string(), // Legacy ID from the original PostgreSQL data
     userId: v.optional(v.string()), // Convex ID reference
-    externalUserId: v.optional(v.string()), // Original Prisma UUID for migration
+    externalUserId: v.optional(v.string()), // Legacy ID from the original PostgreSQL data
     sessionToken: v.string(),
     createdAt: v.number(), // Unix timestamp
     expiresAt: v.optional(v.number()), // Unix timestamp
@@ -47,9 +47,9 @@ export default defineSchema({
   // Patients Table
   // ============================================================================
   patients: defineTable({
-    externalId: v.string(), // Original Prisma UUID for migration
+    externalId: v.string(), // Legacy ID from the original PostgreSQL data
     userId: v.string(), // Convex ID reference
-    externalUserId: v.string(), // Original Prisma UUID for migration
+    externalUserId: v.string(), // Legacy ID from the original PostgreSQL data
     riskScore: v.number(),
     isHighRisk: v.boolean(),
     medicalConditions: v.optional(v.string()),
@@ -62,9 +62,9 @@ export default defineSchema({
   // Caregivers Table
   // ============================================================================
   caregivers: defineTable({
-    externalId: v.string(), // Original Prisma UUID for migration
+    externalId: v.string(), // Legacy ID from the original PostgreSQL data
     userId: v.string(), // Convex ID reference
-    externalUserId: v.string(), // Original Prisma UUID for migration
+    externalUserId: v.string(), // Legacy ID from the original PostgreSQL data
     facilityName: v.optional(v.string()),
     specialization: v.optional(v.string()),
     yearsOfExperience: v.optional(v.number()),
@@ -77,11 +77,11 @@ export default defineSchema({
   // CaregiverPatient Assignments
   // ============================================================================
   caregiverPatients: defineTable({
-    externalId: v.string(), // Original Prisma UUID for migration
+    externalId: v.string(), // Legacy ID from the original PostgreSQL data
     caregiverId: v.string(), // Convex ID reference
     patientId: v.string(), // Convex ID reference
-    externalCaregiverId: v.string(), // Original Prisma UUID for migration
-    externalPatientId: v.string(), // Original Prisma UUID for migration
+    externalCaregiverId: v.string(), // Legacy ID from the original PostgreSQL data
+    externalPatientId: v.string(), // Legacy ID from the original PostgreSQL data
     assignedDate: v.number(), // Unix timestamp
     isActive: v.boolean(),
   })
@@ -94,11 +94,11 @@ export default defineSchema({
   // Falls Table
   // ============================================================================
   falls: defineTable({
-    externalId: v.string(), // Original Prisma UUID for migration
+    externalId: v.string(), // Legacy ID from the original PostgreSQL data
     patientId: v.optional(v.string()), // Convex ID reference
     deviceId: v.optional(v.string()), // Convex ID reference
-    externalPatientId: v.optional(v.string()), // Original Prisma UUID for migration
-    externalDeviceId: v.optional(v.string()), // Original Prisma UUID for migration
+    externalPatientId: v.optional(v.string()), // Legacy ID from the original PostgreSQL data
+    externalDeviceId: v.optional(v.string()), // Legacy ID from the original PostgreSQL data
     fallDatetime: v.number(), // Unix timestamp
     confidenceScore: v.optional(v.number()),
     confidenceLevel: v.optional(v.string()),
@@ -123,10 +123,10 @@ export default defineSchema({
   // Devices Table
   // ============================================================================
   devices: defineTable({
-    externalId: v.string(), // Original Prisma UUID for migration
+    externalId: v.string(), // Legacy ID from the original PostgreSQL data
     deviceId: v.string(), // Hardware identifier (unique, e.g., MAC address)
     patientId: v.optional(v.string()), // Convex ID reference
-    externalPatientId: v.optional(v.string()), // Original Prisma UUID for migration
+    externalPatientId: v.optional(v.string()), // Legacy ID from the original PostgreSQL data
     deviceName: v.optional(v.string()),
     isActive: v.boolean(),
     lastSeen: v.optional(v.number()), // Unix timestamp
@@ -142,9 +142,9 @@ export default defineSchema({
   // Sensor Data (Time Series)
   // ============================================================================
   sensorData: defineTable({
-    externalId: v.string(), // Original Prisma UUID for migration
+    externalId: v.string(), // Legacy ID from the original PostgreSQL data
     deviceId: v.string(), // Convex ID reference
-    externalDeviceId: v.string(), // Original Prisma UUID for migration
+    externalDeviceId: v.string(), // Legacy ID from the original PostgreSQL data
     timestamp: v.number(), // Unix timestamp
     accelX: v.number(),
     accelY: v.number(),
@@ -165,9 +165,9 @@ export default defineSchema({
   // Device Status (Time Series)
   // ============================================================================
   deviceStatus: defineTable({
-    externalId: v.string(), // Original Prisma UUID for migration
+    externalId: v.string(), // Legacy ID from the original PostgreSQL data
     deviceId: v.string(), // Convex ID reference
-    externalDeviceId: v.string(), // Original Prisma UUID for migration
+    externalDeviceId: v.string(), // Legacy ID from the original PostgreSQL data
     timestamp: v.number(), // Unix timestamp
     batteryPercentage: v.number(),
     wifiConnected: v.boolean(),
@@ -184,9 +184,9 @@ export default defineSchema({
   // Health Logs (Time Series)
   // ============================================================================
   healthLogs: defineTable({
-    externalId: v.optional(v.string()), // Original Prisma UUID for migration
+    externalId: v.optional(v.string()), // Legacy ID from the original PostgreSQL data
     patientId: v.string(), // Convex ID reference
-    externalPatientId: v.optional(v.string()), // Original Prisma UUID for migration
+    externalPatientId: v.optional(v.string()), // Legacy ID from the original PostgreSQL data
     healthScore: v.number(),
     recordedAt: v.number(), // Unix timestamp
   })
